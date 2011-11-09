@@ -3,13 +3,13 @@ package com.kharamly;
 import java.util.*;
 
 import android.graphics.drawable.*;
-import android.os.Bundle;
+import android.os.*;
 import com.google.android.maps.*;
 
 // import 
 
 public class KharamlyActivity extends MapActivity {
-	// LinearLayout linearLayout;
+	// LinearLayout linearLayout; // Not used?
 	MapView mapView;
 	
 	List<Overlay> mapOverlays;
@@ -29,7 +29,7 @@ public class KharamlyActivity extends MapActivity {
 		drawable = this.getResources().getDrawable(R.drawable.androidmarker);
 		itemizedOverlay = new HelloItemizedOverlay(drawable);
 		
-		GeoPoint point = new GeoPoint(19240000,-99120000);
+		GeoPoint point = new GeoPoint(19240000, -99120000);
 		OverlayItem overlayitem = new OverlayItem(point, "", "");
 		
 		GeoPoint point2 = new GeoPoint(35410000, 139460000);
@@ -44,13 +44,11 @@ public class KharamlyActivity extends MapActivity {
 	    return false;
 	}
 	
-	
 	private static class HelloItemizedOverlay extends ItemizedOverlay {
 		private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
 		
 		public HelloItemizedOverlay(Drawable defaultMarker) {
 			super(boundCenterBottom(defaultMarker));
-			
 		}
 		
 		public void addOverlay(OverlayItem overlay) {

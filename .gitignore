@@ -1,4 +1,7 @@
 frontend/bin
 frontend/gen
 frontend/local.properties
-.DS_Store
+.DS_Store*
+
+*.pyc
+*.class
