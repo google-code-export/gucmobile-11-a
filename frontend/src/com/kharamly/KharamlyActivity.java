@@ -3,10 +3,12 @@ package com.kharamly;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.ItemizedOverlay;
@@ -53,6 +55,17 @@ public class KharamlyActivity extends MapActivity {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.menu, menu);
 		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.block :
+			Intent i = new Intent(KharamlyActivity.this, ReportBlocked.class);
+			startActivity(i);
+		default:
+			return super.onOptionsItemSelected(item);
+		}
 	}
 	
 	@Override
