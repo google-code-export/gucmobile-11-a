@@ -3,5 +3,6 @@
 
     <string name="hello">Hello World, KharamlyActivity!</string>
     <string name="app_name">Kharamly</string>
+    <string name="street_block">Report Blocked Street</string>
 
 </resources>

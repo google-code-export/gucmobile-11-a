@@ -1,10 +1,19 @@
 package com.kharamly;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import android.graphics.drawable.*;
-import android.os.*;
-import com.google.android.maps.*;
+import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+
+import com.google.android.maps.GeoPoint;
+import com.google.android.maps.ItemizedOverlay;
+import com.google.android.maps.MapActivity;
+import com.google.android.maps.MapView;
+import com.google.android.maps.Overlay;
+import com.google.android.maps.OverlayItem;
 
 // import 
 
@@ -37,6 +46,13 @@ public class KharamlyActivity extends MapActivity {
 		
 		itemizedOverlay.addOverlay(overlayitem);
 		mapOverlays.add(itemizedOverlay);
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.menu, menu);
+		return true;
 	}
 	
 	@Override
