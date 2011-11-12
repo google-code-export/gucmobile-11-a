@@ -1,31 +1,17 @@
 package com.kharamly;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.ItemizedOverlay;
-import com.google.android.maps.MapActivity;
-import com.google.android.maps.MapView;
-import com.google.android.maps.Overlay;
-import com.google.android.maps.OverlayItem;
-
-// import 
+import android.content.*;
+import android.location.*;
+import android.os.*;
+import android.view.*;
+import com.google.android.maps.*;
 
 public class KharamlyActivity extends MapActivity {
 	// LinearLayout linearLayout; // Not used?
 	MapView mapView;
+	MyCustomizedLocationOverlay myLocationOverlay;
 	
-	List<Overlay> mapOverlays;
-	Drawable drawable;
-	HelloItemizedOverlay itemizedOverlay;
+	// Drawable drawable;
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -36,18 +22,16 @@ public class KharamlyActivity extends MapActivity {
 		mapView = (MapView) findViewById(R.id.mapview);
 		mapView.setBuiltInZoomControls(true);
 		
-		mapOverlays = mapView.getOverlays();
-		drawable = this.getResources().getDrawable(R.drawable.androidmarker);
-		itemizedOverlay = new HelloItemizedOverlay(drawable);
+		myLocationOverlay = new MyCustomizedLocationOverlay(this, mapView);
+		myLocationOverlay.runOnFirstFix(new Runnable() {
+			public void run() {
+				mapView.getController().animateTo(myLocationOverlay.getMyLocation());
+			}
+		});
 		
-		GeoPoint point = new GeoPoint(19240000, -99120000);
-		OverlayItem overlayitem = new OverlayItem(point, "", "");
-		
-		GeoPoint point2 = new GeoPoint(35410000, 139460000);
-		OverlayItem overlayitem2 = new OverlayItem(point2, "", "");
-		
-		itemizedOverlay.addOverlay(overlayitem);
-		mapOverlays.add(itemizedOverlay);
+		mapView.getOverlays().add(myLocationOverlay);
+		mapView.postInvalidate();
+		// drawable = this.getResources().getDrawable(R.drawable.androidmarker);
 	}
 	
 	@Override
@@ -73,25 +57,14 @@ public class KharamlyActivity extends MapActivity {
 	    return false;
 	}
 	
-	private static class HelloItemizedOverlay extends ItemizedOverlay {
-		private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
-		
-		public HelloItemizedOverlay(Drawable defaultMarker) {
-			super(boundCenterBottom(defaultMarker));
-		}
-		
-		public void addOverlay(OverlayItem overlay) {
-		    mOverlays.add(overlay);
-		    populate();
-		}
-		
-		@Override
-		protected OverlayItem createItem(int i) {
-		  return mOverlays.get(i);
-		}
-		
-		public int size() {
-			return mOverlays.size();
+	protected void onResume() {
+		super.onResume();
+		myLocationOverlay.enableMyLocation();
+	}
+	
+	public static class MyCustomizedLocationOverlay extends MyLocationOverlay {
+		public MyCustomizedLocationOverlay(Context context, MapView mapView) {
+			super(context, mapView);
 		}
 	}
 }
