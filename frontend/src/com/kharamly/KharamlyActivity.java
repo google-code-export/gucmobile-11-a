@@ -23,6 +23,7 @@ public class KharamlyActivity extends MapActivity {
 		mapView.setBuiltInZoomControls(true);
 		
 		myLocationOverlay = new MyCustomizedLocationOverlay(this, mapView);
+		myLocationOverlay.enableMyLocation();
 		myLocationOverlay.runOnFirstFix(new Runnable() {
 			public void run() {
 				mapView.getController().animateTo(myLocationOverlay.getMyLocation());
@@ -54,17 +55,23 @@ public class KharamlyActivity extends MapActivity {
 	
 	@Override
 	protected boolean isRouteDisplayed() {
-	    return false;
-	}
-	
-	protected void onResume() {
-		super.onResume();
-		myLocationOverlay.enableMyLocation();
+	    return true;
 	}
 	
 	public static class MyCustomizedLocationOverlay extends MyLocationOverlay {
 		public MyCustomizedLocationOverlay(Context context, MapView mapView) {
 			super(context, mapView);
+		}
+		
+		@Override
+		public void onLocationChanged(Location location) {
+		    // let's pretend for now we'll update the routes everytime the location is changed
+		    // this might drain the battery, but we'll see!
+		    
+		    // todo's
+		    // ping server
+		    // get response
+		    // render response on map
 		}
 	}
 }

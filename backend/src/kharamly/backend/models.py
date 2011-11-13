@@ -3,8 +3,8 @@ from django.db import models
 # Create your models here.
 
 class Node(models.Model):
-    latitude = models.DecimalField(verbose_name= 'latitude', name = 'latitude', max_digits=11, decimal_places=9)
-    longitude = models.DecimalField(verbose_name= 'longitude', name = 'longitude', max_digits=12, decimal_places=9)
+    latitude = models.DecimalField(verbose_name='latitude', name='latitude', max_digits=11, decimal_places=9)
+    longitude = models.DecimalField(verbose_name='longitude', name='longitude', max_digits=12, decimal_places=9)
 
 class Step(models.Model):
     html_instructions = models.TextField()
@@ -27,9 +27,3 @@ class Leg(models.Model):
 class Route(models.Model):
     summary = models.CharField(max_length=200)
     legs = models.ManyToManyField(Leg)
-    
-    
-#class Choice(models.Model):
-#    poll = models.ForeignKey(Poll)
-#    choice = models.CharField(max_length=200)
-#    votes = models.IntegerField()
