@@ -1,6 +1,9 @@
 frontend/bin
 frontend/gen
 frontend/local.properties
+
+backend/src/sqlite.db
+
 .DS_Store*
 
 *.pyc
