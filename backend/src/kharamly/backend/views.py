@@ -17,6 +17,6 @@ def getdirections(request, origin, destination, sensor, alternatives):
     origin = origin.replace('_', ',')
     destination = destination.replace('-', '.')
     destination = destination.replace('_', ',')
-    url = 'http://maps.googleapis.com/maps/api/directions/json?origin='+origin+'&destination='+destination+',CA&sensor='+sensor+'&alternatives='+alternatives
+    url = 'http://maps.googleapis.com/maps/api/directions/json?origin='+origin+'&destination='+destination+'&sensor='+sensor+'&alternatives='+alternatives
     result = json.load(urllib.urlopen(url))
     return HttpResponse(json.dumps(result), mimetype="application/json")
