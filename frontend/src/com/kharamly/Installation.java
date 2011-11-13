@@ -13,7 +13,14 @@ import android.provider.*;
 public class Installation {
     private static String sID = null;
     private static final String INSTALLATION = "INSTALLATION";
-
+    
+    /**
+     * Usage: 
+     *    String installation = Installation.id(this); // called from an Activity
+     *
+     * @param context the context being called from
+     * @return unique installation id
+     */
     public synchronized static String id(Context context) {
         if (sID == null) {  
             File installation = new File(context.getFilesDir(), INSTALLATION);
