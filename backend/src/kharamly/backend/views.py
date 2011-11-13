@@ -11,12 +11,42 @@ import urllib, json
 # <sensor> & <alternatives> take the value true or false only
 # <origin> & <destination> can be address or long & lat
 # don't forget to replace the forbidden chars
-
+	
 def getdirections(request, origin, destination, sensor, alternatives):
-    origin = origin.replace('-', '.')
-    origin = origin.replace('_', ',')
-    destination = destination.replace('-', '.')
-    destination = destination.replace('_', ',')
-    url = 'http://maps.googleapis.com/maps/api/directions/json?origin='+origin+'&destination='+destination+',CA&sensor='+sensor+'&alternatives='+alternatives
-    result = json.load(urllib.urlopen(url))
-    return HttpResponse(json.dumps(result), mimetype="application/json")
+	origin = origin.replace('-', '.').replace('_', ',')
+    # origin = origin.replace('_', ',')
+	destination = destination.replace('-', '.').replace('_', ',')
+    # destination = destination.replace('_', ',')
+
+	# Just checking if this would work ^k
+	# origin = get_original_param(origin)
+	# destination = get_original_param(destination)
+	
+	print origin
+	print destination
+	
+	url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + ',CA&sensor=' + sensor + '&alternatives=' + alternatives
+	result = json.load(urllib.urlopen(url))
+	return HttpResponse(json.dumps(result), mimetype="application/json")
+
+# Testing playing around with methods in the views file ^k
+# def get_original_param(orig):
+	# return orig.replace('-', '.').replace('_', ',')
+
+
+def api(request, long, lat, who):
+    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
