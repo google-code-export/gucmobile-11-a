@@ -102,17 +102,20 @@ public class KharamlyActivity extends MapActivity {
 	
 	public class MyCustomizedLocationOverlay extends MyLocationOverlay {
 	    MapView mapView;
+	    MapController mapController;
 	    
 		public MyCustomizedLocationOverlay(Context context, MapView mapView) {
 			super(context, mapView);
 			this.mapView = mapView;
-			Log.e(TAG_NAME, "STARTED LOCATION LISTENER");
+			this.mapController = mapView.getController();
 		}
 		
 		@Override
 		public void onLocationChanged(Location location) {
-		    Log.e(TAG_NAME, "LOCATION CHANGED");
-		    
+		    float speed = location.getSpeed();
+            mapController.setZoom(speed <= 5 ? 21 : 
+                                                speed >= 28 ? 15 : 
+                                                                (int) ((speed * -6 + 513) / 23));
 		    /**
 		     * Remove any old route info
 		     */
@@ -131,7 +134,6 @@ public class KharamlyActivity extends MapActivity {
                                         location.getLatitude() + "/" + 
                                         Installation.id(KharamlyActivity.this));
             try {
-                Log.i(getClass().getSimpleName(), "send  task - start");
                 HttpResponse httpresponse = httpclient.execute(httpget);
                 String responseBody = convertStreamToString(httpresponse.getEntity().getContent());
                 
@@ -155,13 +157,20 @@ public class KharamlyActivity extends MapActivity {
                 
                 // Process mylist (list of hashmaps) to show on map
                 List<Overlay> overlays = mapView.getOverlays();
+                GeoPoint center = null;
                 for (HashMap<String, Integer> step : mylist) {
-                    overlays.add(new MapRouteOverlay(new GeoPoint(step.get("s_lat"), step.get("s_lng")),
-                                                    new GeoPoint(step.get("e_lat"), step.get("e_lng")),
-                                                    step.get("col")));
+                    GeoPoint start = new GeoPoint(step.get("s_lat"), step.get("s_lng"));
+                    GeoPoint end = new GeoPoint(step.get("e_lat"), step.get("e_lng"));
+                    
+                    if (center == null) {
+                        center = start;
+                    }
+                    
+                    overlays.add(new MapRouteOverlay(start, end, step.get("col")));
                 }
                 
-                mapView.invalidate();
+                mapView.invalidate();                
+    		    mapController.animateTo(center);
                 
             } catch (Exception e) {
                 e.printStackTrace();

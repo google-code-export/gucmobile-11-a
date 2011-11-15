@@ -13,7 +13,7 @@ import urllib
 # @author kamasheto
 # For now this will return dummie results, for the frontend to process and visualize
 # Later versions will trigger and use the proper actions defined by others
-def api(request, long, lat, who):
+def api(request, lng, lat, who):
     # todo
     # save logs
     # send more routes?
@@ -51,9 +51,6 @@ def getdirections(request, origin, destination, sensor, alternatives):
     # destination = get_original_param(destination)
     url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=' + sensor + '&alternatives=' + alternatives
     result = json.load(urllib.urlopen(url))
-<<<<<<< HEAD
-    return HttpResponse(json.dumps(result), mimetype="application/json")
-=======
     routes = result['routes']
     for route in routes :
         summ = route['summary']
@@ -101,7 +98,6 @@ def getdirections(request, origin, destination, sensor, alternatives):
                 current_leg.save()
             current_route.legs.add(current_leg)
             current_route.save()
-    
     return HttpResponse(json.dumps(result), mimetype="application/json")
 
 # Testing playing around with methods in the views file ^k
@@ -172,5 +168,3 @@ def encode_route(obj):
             myString+="]}"
         myString+="]}"  
         return myString
-     
->>>>>>> ef5491e359c7dd7272af5eeb0ad3440b1fe44b05
