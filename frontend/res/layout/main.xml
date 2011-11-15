@@ -1,8 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.maps.MapView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/mapview"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:clickable="true"
-    android:apiKey="0xOoX7nNhhQOud_FxUn9at75skt25TH8pk2-fHQ"
-/>
+<LinearLayout
+android:id="@+id/widget32"
+android:layout_width="fill_parent"
+android:layout_height="fill_parent"
+android:orientation="vertical"
+xmlns:android="http://schemas.android.com/apk/res/android"
+>
+<EditText
+android:id="@+id/txtMsg"
+android:layout_width="fill_parent"
+android:layout_height="120px"
+android:textSize="12sp"
+>
+</EditText>
+<Button
+android:id="@+id/btnStopService"
+android:layout_width="151px"
+android:layout_height="wrap_content"
+android:text="Stop Service"
+>
+</Button>
+
+<RelativeLayout
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent">
+ 
+    <com.google.android.maps.MapView 
+        android:id="@+id/mapView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:enabled="true"
+        android:clickable="true"
+        android:apiKey="0PnWT6EreN5-ZqlLLV7NRjCZ10mI8cU9WNcENAw
+"
+
+        />
+ 
+   
+</RelativeLayout>
+</LinearLayout>
