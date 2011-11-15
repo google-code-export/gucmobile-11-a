@@ -14,7 +14,8 @@ class Step(models.Model):
     duration_value = models.IntegerField();
     start_location = models.ForeignKey(Node, related_name='start')
     end_location = models.ForeignKey(Node, related_name='end')
-    
+
+
 class Leg(models.Model):
     steps = models.ManyToManyField(Step)
     distance_text = models.CharField(max_length=200)
