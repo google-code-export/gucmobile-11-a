@@ -45,6 +45,7 @@ public class MyGpsService extends Service {
 							// request GPS updates
 							LocationManager.GPS_PROVIDER, minTime, minDistance,
 							myLocationListener);
+
 					Looper.loop();
 				} catch (Exception e) {
 					Log.e("MYGPS", e.getMessage());
