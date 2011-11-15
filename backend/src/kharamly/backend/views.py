@@ -1,7 +1,15 @@
 # Create your views here.
+from ctypes import util
+from django.conf import settings
+from django.core import serializers
 from django.http import HttpResponse
-import urllib, json
-from backend.models import Node, Step, Leg, Route
+from kharamly.backend.models import Node, Step, Leg, Route
+import json
+from django.utils import simplejson as json2
+import urllib
+
+
+
 # @author kamasheto
 # For now this will return dummie results, for the frontend to process and visualize
 # Later versions will trigger and use the proper actions defined by others
@@ -88,3 +96,69 @@ def getdirections(request, origin, destination, sensor, alternatives):
 # Testing playing around with methods in the views file ^k
 # def get_original_param(orig):
     # return orig.replace('-', '.').replace('_', ',')
+
+
+
+#@author: Monayri
+#@param Location: The start Node id of the step the user currently at
+#@param Destination: The Destination of the user in the form of a node id
+#@return: A JSON object containting the alternative route(s)
+def getalternative (request, location, destination):
+    #First i will check if the alternative can be fetched from the database
+    startNode = Node.objects.get(id = location)
+    endNode = Node.objects.get(id = destination)
+    startStep = Step.objects.filter(start_location = location)
+    endStep = Step.objects.filter(end_location = destination)
+    print endNode.longitude
+    legs = Leg.objects.all()
+    routes = []
+    if(startStep != None and endStep!= None):
+        print startStep
+        print endStep
+        for leg in legs :
+            data = leg.steps.all()
+            current_steps = []
+            for cstep in data:
+                current_steps.append(cstep)
+            for step in startStep :
+                for step2 in endStep : 
+                    if step in current_steps:
+                        if step2 in current_steps:
+                            routeSummary = "" # Should Contain the route summary
+                            currentRoute = Route(summary = routeSummary)
+                            currentRoute.save()
+                            current_leg = Leg(duration_text = "", 
+                              duration_value = 1, 
+                              distance_text = "", 
+                              distance_value = 1, 
+                              start_address = "longitude:" + str(startNode.longitude) + "latitude: " + str(startNode.latitude), 
+                              end_address = "longitude:" + str(endNode.longitude) + "latitude: " + str(endNode.latitude))
+                            current_leg.save()
+                            for x in range(current_steps.index(step), current_steps.index(step2)):
+                                current_leg.steps.add(current_steps[x])
+                                current_steps[x].save()
+                            current_leg.save()
+                            currentRoute.legs.add(current_leg)
+                            currentRoute.save()
+                            routes.append(currentRoute)
+    if(len(routes) > 1):
+        return_data = serializers.serialize("json", routes)
+        return HttpResponse(json.dumps(routes, default=encode_route), mimetype="application/json")
+    
+    
+    return 
+
+def encode_route(obj):
+    if isinstance(obj, Route): 
+        myString = "{ Summary:"+ obj.summary  + ", legs: ["      
+        data = []
+        for leg in obj.legs.all():    
+            myString +=  "{steps: ["
+            for step in leg.steps.all():
+                myString += "{start_location : { longitude: "  + str(step.start_location.longitude) + ", latitude : "+ str(step.start_location.longitude)+"}"
+                myString += ", end_location : { longitude : "  + str(step.end_location.longitude) + ", latitude : "+ str(step.end_location.longitude)+"}}"
+                
+            myString+="]}"
+        myString+="]}"  
+        return myString
+     
