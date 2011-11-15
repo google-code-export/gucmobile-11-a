@@ -37,7 +37,7 @@ public class KharamlyActivity extends MapActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		
-		mapView = (MapView) findViewById(R.id.mapview);
+		mapView = (MapView) findViewById(R.id.mapView);
 		mapView.setBuiltInZoomControls(true);
 		
 		myLocationOverlay = new MyCustomizedLocationOverlay(this, mapView);
