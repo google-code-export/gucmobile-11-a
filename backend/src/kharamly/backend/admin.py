@@ -1,7 +1,4 @@
-from backend.models import Node
-from backend.models import Step
-from backend.models import Leg
-from backend.models import Route
+from kharamly.backend.models import Leg, Node, Route, Step
 from django.contrib import admin
 
 
