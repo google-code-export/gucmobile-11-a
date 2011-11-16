@@ -25,6 +25,8 @@
         <activity android:name=".ReportBlocked" 
             android:label="@string/street_block"
             android:theme="@android:style/Theme.Dialog" ></activity>
+          <service android:name="MyGpsService" >
+        </service>
     </application>
 
 </manifest>
