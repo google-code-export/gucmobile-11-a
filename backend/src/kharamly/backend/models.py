@@ -43,14 +43,8 @@ def test_method_in_models(num):
     return num * 2
 
 # Author : Moataz Mekki
-# the convention in the url is
-# replace all the dots '.' in all decimals with dash '-'
-# replace all the commas ',' in all decimals with dash '_'
-# these chars are forbidden in a django url
-# the url should be .../getdirections/<origin>/<destination>/<sensor>/<alternatives>
 # <sensor> & <alternatives> take the value true or false only
 # <origin> & <destination> can be address or long & lat
-# don't forget to replace the forbidden chars
 
 def getdirections(origin, destination, sensor, alternatives, result):
     routes = result['routes']

@@ -7,7 +7,7 @@ admin.autodiscover()
 urlpatterns = patterns('backend.views',
     url(r'^api/(?P<lng>\d+\.\d+)/(?P<lat>\d+\.\d+)/(?P<who>[\w\-_]+)$', 'api'),
     url(r'^test/(?P<test_value>(.)+)', 'test_method_in_views'),
-    url(r'^directions/(?P<origin>[\w\-]+)/(?P<destination>[\w\-]+)/(?P<sensor>[a-z]+)/(?P<alternatives>[a-z]+)/$', 'directions'),
+    url(r'^directions/(?P<origin>(.)+)/(?P<destination>(.)+)/(?P<sensor>[a-z]+)/(?P<alternatives>[a-z]+)/$', 'directions'),
     url(r'^alternatives/(?P<location>\d+)/(?P<destination>\d+)$', 'alternatives'),
     url(r'^admin/', include(admin.site.urls)),
 )
