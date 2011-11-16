@@ -159,22 +159,21 @@ def getalternative (request, location, destination):
                             currentRoute.save()
                             routes.append(currentRoute)
     if(len(routes) > 1):
-        return_data = serializers.serialize("json", routes)
-        return HttpResponse(json.dumps(routes, default=encode_route), mimetype="application/json")
-    
-    
+        # return_data = serializers.serialize("json", routes)
+        return HttpResponse(json.dumps(routes, default=encode_route), mimetype="application/json")    
     return 
 
-def encode_route(obj):
-    if isinstance(obj, Route): 
-        myString = "{ Summary:"+ obj.summary  + ", legs: ["      
-        data = []
-        for leg in obj.legs.all():    
-            myString +=  "{steps: ["
-            for step in leg.steps.all():
-                myString += "{start_location : { longitude: "  + str(step.start_location.longitude) + ", latitude : "+ str(step.start_location.longitude)+"}"
-                myString += ", end_location : { longitude : "  + str(step.end_location.longitude) + ", latitude : "+ str(step.end_location.longitude)+"}}"
-                
-            myString+="]}"
-        myString+="]}"  
-        return myString
+# Will not be needed ^k
+# def encode_route(obj):
+#     if isinstance(obj, Route): 
+#         myString = "{ Summary:"+ obj.summary  + ", legs: ["      
+#         data = []
+#         for leg in obj.legs.all():    
+#             myString +=  "{steps: ["
+#             for step in leg.steps.all():
+#                 myString += "{start_location : { longitude: "  + str(step.start_location.longitude) + ", latitude : "+ str(step.start_location.longitude)+"}"
+#                 myString += ", end_location : { longitude : "  + str(step.end_location.longitude) + ", latitude : "+ str(step.end_location.longitude)+"}}"
+#                 
+#             myString+="]}"
+#         myString+="]}"  
+#         return myString
