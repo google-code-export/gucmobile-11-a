@@ -24,13 +24,7 @@ def test_method_in_views(request, test_value):
     return HttpResponse(test_method_in_models(test_value))
 
 def directions(request, origin, destination, sensor, alternatives):
-    origin = origin.replace('-', '.').replace('_', ',')
-    # origin = origin.replace('_', ',')
-    destination = destination.replace('-', '.').replace('_', ',')
-    # destination = destination.replace('_', ',')
-
-    # print origin, destination
-
+    print origin, destination
     # Just checking if this would work ^k
     # origin = get_original_param(origin)
     # destination = get_original_param(destination)
