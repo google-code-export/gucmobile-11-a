@@ -50,11 +50,10 @@ public class PathOverlay extends Overlay {
 		super.draw(canvas, mapView, shadow);
 	}
 
-	protected static void drawPath(ArrayList<GeoPoint> path, MapView mv) {
-		for (int i = 0; i < path.size() - 1; i++) {
+	protected static void drawPath(ArrayList<Step> steps, MapView mv) {
+		for (int i = 0; i < steps.size(); i++) {
 			mv.getOverlays().add(
-					new PathOverlay(path.get(i), path
-							.get((i + 1) % path.size())));
+					new PathOverlay(steps.get(i).source,steps.get(i).destination));
 			mv.invalidate();
 		}
 	}

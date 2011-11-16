@@ -47,7 +47,6 @@ public class KharamlyActivity extends MapActivity {
         
 		myLocationOverlay.runOnFirstFix(new Runnable() {
 			public void run() {
-			    Log.e(TAG_NAME, "RUNNING ON FIRST FIX");
 				mapView.getController().animateTo(myLocationOverlay.getMyLocation());
 			}
 		});
