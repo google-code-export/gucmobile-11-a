@@ -112,12 +112,6 @@ def getdirections(origin, destination, sensor, alternatives, result):
             current_route.save()
     return result
 
-# Testing playing around with methods in the views file ^k
-# def get_original_param(orig):
-# return orig.replace('-', '.').replace('_', ',')
-
-
-
 #@author: Monayri
 #@param Location: The start Node id of the step the user currently at
 #@param Destination: The Destination of the user in the form of a node id
