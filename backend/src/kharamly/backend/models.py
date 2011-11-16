@@ -40,7 +40,7 @@ class Route(models.Model):
 
 # Test method in model
 def test_method_in_models(num):
-    return num
+    return num * 2
 
 # Author : Moataz Mekki
 # the convention in the url is
