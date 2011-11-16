@@ -13,10 +13,18 @@ import urllib
 # @author kamasheto
 # For now this will return dummie results, for the frontend to process and visualize
 # Later versions will trigger and use the proper actions defined by others
-def api(request, long, lat, who):
+def api(request, lng, lat, who):
     # todo
     # save logs
-    pass
+    # send more routes?
+    response = {"steps" : 
+            [{"s_lng": 31.24906000000001, "s_lat": 30.065440, "e_lng": 31.256110, "e_lat": 30.099050, "col": 1},
+            {"s_lng": 31.256110, "s_lat": 30.099050, "e_lng": 31.255410, "e_lat": 30.105590, "col": 2},
+            {"s_lng": 31.255410, "s_lat": 30.105590, "e_lng": 31.252130, "e_lat": 30.113050, "col": 3},
+            {"s_lng": 31.252130, "s_lat": 30.113050, "e_lng": 31.243610, "e_lat": 30.12307000000001, "col": 120},
+            {"s_lng": 31.243610, "s_lat": 30.12307000000001, "e_lng": 31.236110, "e_lat": 30.132170, "col": 60}]
+    }
+    return HttpResponse(json.dumps(response), mimetype="application/json")
     
     
 
@@ -56,13 +64,23 @@ def getdirections(request, origin, destination, sensor, alternatives):
             duration_value = leg['duration']['value']
             start_address = leg['start_address']
             end_address = leg['end_address']
+            start_loc = leg['start_location']
+            end_loc = leg['end_location']
+            s_node = Node(latitude = start_loc['lat'], 
+                              longitude = start_loc['lng'])
+            s_node.save()
+            e_node = Node(latitude = end_loc['lat'], 
+                            longitude = end_loc['lng'])
+            e_node.save()
             steps = leg['steps']
             current_leg = Leg(duration_text = duration_text, 
                               duration_value = duration_value, 
                               distance_text = distance_text, 
                               distance_value = distance_value, 
                               start_address = start_address, 
-                              end_address = end_address)
+                              end_address = end_address,
+                              start_location = s_node, 
+                              end_location = e_node)
             current_leg.save()
             for step in steps:
                 html = step['html_instructions']
@@ -90,7 +108,6 @@ def getdirections(request, origin, destination, sensor, alternatives):
                 current_leg.save()
             current_route.legs.add(current_leg)
             current_route.save()
-    
     return HttpResponse(json.dumps(result), mimetype="application/json")
 
 # Testing playing around with methods in the views file ^k
@@ -161,4 +178,3 @@ def encode_route(obj):
             myString+="]}"
         myString+="]}"  
         return myString
-     
