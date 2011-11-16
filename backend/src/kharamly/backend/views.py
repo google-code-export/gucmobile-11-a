@@ -64,13 +64,23 @@ def getdirections(request, origin, destination, sensor, alternatives):
             duration_value = leg['duration']['value']
             start_address = leg['start_address']
             end_address = leg['end_address']
+            start_loc = leg['start_location']
+            end_loc = leg['end_location']
+            s_node = Node(latitude = start_loc['lat'], 
+                              longitude = start_loc['lng'])
+            s_node.save()
+            e_node = Node(latitude = end_loc['lat'], 
+                            longitude = end_loc['lng'])
+            e_node.save()
             steps = leg['steps']
             current_leg = Leg(duration_text = duration_text, 
                               duration_value = duration_value, 
                               distance_text = distance_text, 
                               distance_value = distance_value, 
                               start_address = start_address, 
-                              end_address = end_address)
+                              end_address = end_address,
+                              start_location = s_node, 
+                              end_location = e_node)
             current_leg.save()
             for step in steps:
                 html = step['html_instructions']

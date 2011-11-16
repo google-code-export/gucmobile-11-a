@@ -24,6 +24,8 @@ class Leg(models.Model):
     duration_value = models.IntegerField()
     start_address = models.TextField()
     end_address = models.TextField()
+    start_location = models.ForeignKey(Node, related_name='start_node')
+    end_location = models.ForeignKey(Node, related_name='end_node')
     
 class Route(models.Model):
     summary = models.CharField(max_length=200)
