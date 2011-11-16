@@ -1,4 +1,5 @@
 # Create your views here.
+# testing git reset --hard
 from ctypes import util
 from django.conf import settings
 from django.core import serializers
