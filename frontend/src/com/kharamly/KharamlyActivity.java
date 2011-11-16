@@ -81,11 +81,11 @@ public class KharamlyActivity extends MapActivity {
 
 		});
 		
-		steps = Directions.getDirectionData("maadi", "zamalek",getBaseContext(),txtMsg);
+		steps = Directions.getDirectionData2("maadi", "zamalek",getBaseContext(),txtMsg);
 		((LocalReceiver)receiver).resetPath(steps);
 	//	mc.animateTo(steps.get(0).source);
-	//	Toast.makeText(getBaseContext(), "exception" + steps.size(),
-	//			 Toast.LENGTH_SHORT).show();
+	Toast.makeText(getBaseContext(), "number of steps" + steps.size(),
+				 Toast.LENGTH_SHORT).show();
 	//	mc.setZoom(12);
 		mapView.invalidate();
 		
