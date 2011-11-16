@@ -36,7 +36,7 @@ def getdirections(request, origin, destination, sensor, alternatives):
     # destination = get_original_param(destination)
     url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=' + sensor + '&alternatives=' + alternatives
     result = json.load(urllib.urlopen(url))
-    return HttpResponse(models.getdirections(origin, destination, sensor, alternatives, request))
+    return HttpResponse(models.getdirections(origin, destination, sensor, alternatives, result))
     
 def getalternative (request, location, destination):
     return HttpResponse(models.getalternative(location, destination))
