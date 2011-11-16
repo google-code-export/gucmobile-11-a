@@ -116,7 +116,7 @@ def getdirections(origin, destination, sensor, alternatives, result):
 #@param Location: The start Node id of the step the user currently at
 #@param Destination: The Destination of the user in the form of a node id
 #@return: A JSON object containting the alternative route(s)
-def getalternative (location, destination):
+def getalternatives(location, destination):
     #First i will check if the alternative can be fetched from the database
     startNode = Node.objects.get(id = location)
     endNode = Node.objects.get(id = destination)

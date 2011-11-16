@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from kharamly.backend import models
+from kharamly.backend.models import *
 import urllib, json
 
 # For now this will return dummie results, for the frontend to process and visualize
@@ -21,9 +21,9 @@ def api(request, lng, lat, who):
 
 # Testing to call model from view
 def test_method_in_views(request, test_value):
-    return HttpResponse(models.test_method_in_models(test_value))
+    return HttpResponse(test_method_in_models(test_value))
 
-def getdirections(request, origin, destination, sensor, alternatives):
+def directions(request, origin, destination, sensor, alternatives):
     origin = origin.replace('-', '.').replace('_', ',')
     # origin = origin.replace('_', ',')
     destination = destination.replace('-', '.').replace('_', ',')
@@ -36,7 +36,7 @@ def getdirections(request, origin, destination, sensor, alternatives):
     # destination = get_original_param(destination)
     url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=' + sensor + '&alternatives=' + alternatives
     result = json.load(urllib.urlopen(url))
-    return HttpResponse(models.getdirections(origin, destination, sensor, alternatives, result))
+    return HttpResponse(getdirections(origin, destination, sensor, alternatives, result))
     
-def getalternative (request, location, destination):
-    return HttpResponse(models.getalternative(location, destination))
+def alternatives(request, location, destination):
+    return HttpResponse(getalternatives(location, destination))
