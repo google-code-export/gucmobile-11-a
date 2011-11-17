@@ -47,6 +47,7 @@ def test_method_in_models(num):
 # <origin> & <destination> can be address or long & lat
 
 def getdirections(origin, destination, sensor, alternatives, result):
+    from decimal import *
     routes = result['routes']
     for route in routes :
         summ = route['summary']
@@ -62,11 +63,11 @@ def getdirections(origin, destination, sensor, alternatives, result):
             end_address = leg['end_address']
             start_loc = leg['start_location']
             end_loc = leg['end_location']
-            s_node = Node(latitude = start_loc['lat'], 
-                              longitude = start_loc['lng'])
+            s_node = Node(latitude = Decimal(str(start_loc['lat'])), 
+                              longitude = Decimal(str(start_loc['lng'])))
             s_node.save()
-            e_node = Node(latitude = end_loc['lat'], 
-                            longitude = end_loc['lng'])
+            e_node = Node(latitude = Decimal(str(end_loc['lat'])), 
+                            longitude = Decimal(str(end_loc['lng'])))
             e_node.save()
             steps = leg['steps']
             current_leg = Leg(duration_text = duration_text, 
@@ -86,11 +87,11 @@ def getdirections(origin, destination, sensor, alternatives, result):
                 duration_value = step['duration']['value']
                 start_location = step['start_location']
                 end_location = step['end_location']
-                start_node = Node(latitude = start_location['lat'], 
-                                  longitude = start_location['lng'])
+                start_node = Node(latitude = Decimal(str(start_location['lat'])), 
+                                  longitude = Decimal(str(start_location['lng'])))
                 start_node.save()
-                end_node = Node(latitude = end_location['lat'], 
-                                longitude = end_location['lng'])
+                end_node = Node(latitude = Decimal(str(end_location['lat'])), 
+                                longitude = Decimal(str(end_location['lng'])))
                 end_node.save()
                 current_step = Step(html_instructions = html,
                                      duration_text = duration_text, 
@@ -150,8 +151,9 @@ def getalternatives(location, destination):
                             routes.append(currentRoute)
     return routes if len(routes) > 1 else None
     
-#@author: Shanab
-#This method populates the database with dummy data
+    
+# @author: Shanab
+# This method populates the database with dummy data
 def populator():
     import random
     Node.objects.all().delete()
