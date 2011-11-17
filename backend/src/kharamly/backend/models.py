@@ -172,7 +172,6 @@ def getalternatives(location, destination):
                             currentRoute.save()
                             routes.append(currentRoute)
     return routes if len(routes) > 1 else None
-<<<<<<< HEAD
 
 # Author : Ahmed Abouraya
 # takes a JSONObject and updates all steps speeds with the information in the database
@@ -279,7 +278,7 @@ def evaluate(origin, destination,result,speed,CurrentStep,startTime):
 				if counter>0:
 				#request for alternatives
 					return updateResult(getalternatives(origin, destination))
-		return updateResult(result))
+		return updateResult(result)
 # used for testing			 
 def test_evaluate(origin, destination,leg,speed,CurrentStep):
 	steps = leg.steps
@@ -338,4 +337,4 @@ def populator():
         lon = random.randint(-99, 99)
         lat = random.randint(-99, 99)
         Node(longitude = lon, latitude = lat).save()
->>>>>>> 6c6ed617ad18d2b5488424845d9d587ae8ef309b
+
