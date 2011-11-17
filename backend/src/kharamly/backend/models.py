@@ -148,7 +148,6 @@ def getalternatives(location, destination):
                             currentRoute.legs.add(current_leg)
                             currentRoute.save()
                             routes.append(currentRoute)
-    # return len(routes) > 1 ? routes : None
     return routes if len(routes) > 1 else None
     
 #@author: Shanab
@@ -165,4 +164,3 @@ def populator():
         lon = random.randint(-99, 99)
         lat = random.randint(-99, 99)
         Node(longitude = lon, latitude = lat).save()
-    
