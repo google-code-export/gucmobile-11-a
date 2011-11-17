@@ -1,4 +1,6 @@
 from django.db import models
+import datetime
+
 
 # Create your models here.
 # testing git reset --hard
@@ -6,15 +8,28 @@ class Node(models.Model):
     latitude = models.DecimalField(verbose_name='latitude', name='latitude', max_digits=11, decimal_places=9)
     longitude = models.DecimalField(verbose_name='longitude', name='longitude', max_digits=12, decimal_places=9)
 
+    def __unicode__(self):
+        return str(self.latitude)+","+str(self.longitude)
+
 class Step(models.Model):
     html_instructions = models.TextField()
     distance_text = models.CharField(max_length=200)
-    distance_value = models.IntegerField();
+    distance_value = models.IntegerField()
     duration_text = models.CharField(max_length=200)
-    duration_value = models.IntegerField();
+    duration_value = models.IntegerField()
     start_location = models.ForeignKey(Node, related_name='start')
     end_location = models.ForeignKey(Node, related_name='end')
 
+    def __unicode__(self):
+        return str(self.start_location) + "|" + str(self.end_location)
+
+class Step_History(models.Model):
+    step = models.ForeignKey(Step, related_name='current_step')
+    time = models.DateTimeField()
+    speed=models.FloatField()
+
+    def __unicode(self):
+        return str(self.step)+","+str(self.time)
 
 class Leg(models.Model):
     steps = models.ManyToManyField(Step)
@@ -26,10 +41,17 @@ class Leg(models.Model):
     end_address = models.TextField()
     start_location = models.ForeignKey(Node, related_name='start_node')
     end_location = models.ForeignKey(Node, related_name='end_node')
-    
+	
+    def __unicode(self):
+        return str(self.start_location) + "," + str(self.end_location)
+		    
+
 class Route(models.Model):
     summary = models.CharField(max_length=200)
     legs = models.ManyToManyField(Leg)
+	
+    def __unicode(self):
+        return self.summary
     
     
 #####################################################################
@@ -156,3 +178,150 @@ def getalternatives(location, destination):
                             routes.append(currentRoute)
     # return len(routes) > 1 ? routes : None
     return routes if len(routes) > 1 else None
+
+# Author : Ahmed Abouraya
+# takes a JSONObject and updates all steps speeds with the information in the database
+def updateResult(result):
+	routes = result['routes']
+	for route in routes :
+		summ = route['summary']
+		legs = route['legs']
+
+		for leg in legs :
+			distance_text = leg['distance']['text']
+			distance_value = leg['distance']['value']
+			duration_text = leg['duration']['text']
+			duration_value = leg['duration']['value']
+			start_address = leg['start_address']
+			end_address = leg['end_address']
+			start_loc = leg['start_location']
+			end_loc = leg['end_location']
+			steps = leg['steps']
+			for step in steps:
+				html = step['html_instructions']
+				distance_text = step['distance']['text']
+				distance_value = step['distance']['value']
+				duration_text = step['duration']['text']
+				duration_value = step['duration']['value']
+				current_start_location = step['start_location']
+				current_end_location = step['end_location']
+				stepHistoryList=Step_History.objects.filter(step__start_location__latitude=current_start_location['lat'],step__start_location__longitude=current_start_location['lng'],step__end_location__latitude=current_end_location['lat'],step__end_location__longitude=current_end_location['lng'])[:5]
+				counter=0
+				avgSpeed=0
+				for s in stepHistoryList.all():
+					counter=counter+1
+					avgSpeed=avgSpeed+s.speed
+				if counter==0:
+					step['speed']=-1
+				else:				
+					avgSpeed=avgSpeed/counter
+					step['speed']=avgSpeed
+
+# calculates distance between two nodes
+def getDistance(current,target):
+	lat = current['lat'] / 1E6 - target['lat']  / 1E6;
+	lng = current['lng']  / 1E6 - current['lng']  / 1E6;
+	return math.sqrt(lat*lat+lng*lng)
+	
+# checks if the current road is blocked,if so it updates the database
+# loops over all steps, when the currentStep is reached, checks whether the driver has reached the end of the step or not if yes insert information in database
+# checks for future steps if they're blocked if yes checks fro alternatives
+def evaluate(origin, destination,result,speed,CurrentStep,startTime):
+		
+	routes = result['routes']
+	for route in routes :
+		summ = route['summary']
+		legs = route['legs']
+
+		for leg in legs :
+			distance_text = leg['distance']['text']
+			distance_value = leg['distance']['value']
+			duration_text = leg['duration']['text']
+			duration_value = leg['duration']['value']
+			start_address = leg['start_address']
+			end_address = leg['end_address']
+			start_loc = leg['start_location']
+			end_loc = leg['end_location']
+			steps = leg['steps']
+
+			flag=True
+			#check if speed is 0 insert current step as blocked
+			if blockedRoad(speed):
+				currentStepHistory = Step_History(step = CurrentStep,time=datetime.datetime.now(),speed=0)
+				currentStepHistory.save()
+
+			for step in steps:
+
+				if step==CurrentStep:
+				#if current step is not reached check if the user has reached it's end
+					flag=False
+					if getDistance(origin,currentStep['end_location'])<0.0002 :
+						currentStepHistory = Step_History(step = CurrentStep,time=datetime.datetime.now(),speed=(startTime-datetime.datetime.now())/CurrentStep['distance']['value'])
+					currentStepHistory.save()
+				
+				if flag :
+				#if currentStep is not reached skip
+					continue
+
+
+				#if currentStep is reached check if a future step is blocked
+
+
+
+				html = step['html_instructions']
+				distance_text = step['distance']['text']
+				distance_value = step['distance']['value']
+				duration_text = step['duration']['text']
+				duration_value = step['duration']['value']
+				current_start_location = step['start_location']
+				current_end_location = step['end_location']
+	
+				stepHistoryLists=Step_History.objects.filter(step__start_location__latitude=current_start_location['lat'],step__start_location__longitude=current_start_location['lng'],step__end_location__latitude=current_end_location['lat'],step__end_location__longitude=current_end_location['lng'])[:5]
+				counter=0
+				for s in stepHistoryLists.all():
+					if blockedRoad(s.speed):
+						counter=counter+1
+				if counter>0:
+				#request for alternatives
+					return updateResult(getalternatives(origin, destination))
+# used for testing			 
+def test_evaluate(origin, destination,leg,speed,CurrentStep):
+	steps = leg.steps
+	flag=True
+	#check if speed is 0 insert current step as blocked
+	if blockedRoad(speed):
+		currentStepHistory = Step_History(step = CurrentStep,time=datetime.datetime.now(),speed=0)
+		currentStepHistory.save()
+	#insert current step as blocked
+	for curStep in steps.all():
+		#if currentStep is not reached skip
+		if curStep==CurrentStep:
+			flag=False
+		else:
+			continue
+		#if currentStep is reached check if a future step is blocked
+
+
+
+		#html = step['html_instructions']
+		#distance_text = step['distance']['text']
+		#distance_value = step['distance']['value']
+		#duration_text = step['duration']['text']
+		#duration_value = step['duration']['value']
+		current_start_location = curStep.start_location
+		current_end_location = curStep.end_location
+
+		stepHistoryLists=Step_History.objects.filter(step__start_location=current_start_location)[:5]
+		counter=0
+		for s in stepHistoryLists.all():
+			if blockedRoad(s.speed):
+				counter=counter+1
+		if counter>0:
+		#request for alternatives
+			#return getalternatives(origin, destination)
+			return True
+	return False
+#determines whether a road is blocked or not
+def blockedRoad(speed):
+	return speed == 0
+   

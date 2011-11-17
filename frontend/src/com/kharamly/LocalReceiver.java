@@ -150,7 +150,7 @@ public class LocalReceiver extends BroadcastReceiver {
 		mapView.invalidate();
 	}
 
-	private void texting(String msg, GeoPoint p) {
+/*	private void texting(String msg, GeoPoint p) {
 		try {
 			SmsManager smsMgr = SmsManager.getDefault();
 			// Parameter of sendTextMessage are:
@@ -185,7 +185,7 @@ public class LocalReceiver extends BroadcastReceiver {
 		} catch (Exception e) {
 		}
 	}// texting
-
+*/
 	private void appendToTextView(String text){
 		if(textViewAvailable)
 			txtMsgq.append(text);	
