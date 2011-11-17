@@ -279,6 +279,7 @@ def evaluate(origin, destination,result,speed,CurrentStep,startTime):
 				if counter>0:
 				#request for alternatives
 					return updateResult(getalternatives(origin, destination))
+		return updateResult(result))
 # used for testing			 
 def test_evaluate(origin, destination,leg,speed,CurrentStep):
 	steps = leg.steps
