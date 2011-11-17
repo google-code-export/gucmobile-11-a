@@ -214,7 +214,7 @@ def updateResult(result):
 # calculates distance between two nodes
 def getDistance(current,target):
 	lat = current['lat'] / 1E6 - target['lat']  / 1E6;
-	lng = current['lng']  / 1E6 - current['lng']  / 1E6;
+	lng = current['lng']  / 1E6 - target['lng']  / 1E6;
 	return math.sqrt(lat*lat+lng*lng)
 	
 # checks if the current road is blocked,if so it updates the database
