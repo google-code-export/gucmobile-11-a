@@ -150,3 +150,19 @@ def getalternatives(location, destination):
                             routes.append(currentRoute)
     # return len(routes) > 1 ? routes : None
     return routes if len(routes) > 1 else None
+    
+#@author: Shanab
+#This method populates the database with dummy data
+def populator():
+    import random
+    Node.objects.all().delete()
+    Step.objects.all().delete()
+    Leg.objects.all().delete()
+    Route.objects.all().delete()
+    print "Deleted all data in models"
+
+    for i in range(0,20):
+        lon = random.randint(-99, 99)
+        lat = random.randint(-99, 99)
+        Node(longitude = lon, latitude = lat).save()
+    
