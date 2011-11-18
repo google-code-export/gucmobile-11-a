@@ -22,6 +22,8 @@ class Step(models.Model):
 
     def __unicode__(self):
         return str(self.start_location.id) + ", " + str(self.end_location.id)
+    class Meta:
+        ordering = ["id"]
 
 class Step_History(models.Model):
     step = models.ForeignKey(Step, related_name='current_step')
@@ -332,4 +334,29 @@ def blockedRoad(speed):
 	return speed == 0
 
 def compute_subroutes(leg, step):
+    start_node = step.end_location
+    end_node = leg.end_location
+    legs = Leg.objects.filter(steps__start_location = start_node).filter(steps__end_location = end_node)
     
+    for leg in legs:
+        find_and_create_subroute(leg, start_node, end_node)
+    pass
+    
+def find_and_create_subroute(leg, start_node, end_node):
+    steps = leg.steps.all()
+    i = 0
+    for step in steps:
+        if step.start_location == start_node:
+            start_index = i
+            break
+        i += 1
+    i = 0
+    for step in steps[start_index:]:
+        if step.end_location == end_node:
+            end_index = i
+            break
+        i += 1
+    end_index += 1
+    steps = steps[start_index:end_index]
+    print steps
+    pass
