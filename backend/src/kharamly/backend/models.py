@@ -1,5 +1,7 @@
-from django.db import models
 from datetime import datetime
+from django.db import models
+import math
+
 # from decimal import *
 
 # Create your models here.
@@ -129,48 +131,94 @@ def getdirections(origin, destination, result):
     return result
 
 #@author: Monayri
-#@param Location: The start Node id of the step the user currently at
-#@param Destination: The Destination of the user in the form of a node id
-#@return: A JSON object containting the alternative route(s)
-def getalternatives(location, destination):
+#@param myStep: The Step that i am currently at
+#@param legID: The id of the leg i am taking
+#@param destination: The destination Node
+#@return: list of routes
+def getalternatives(legID, myStep, destination):
     #First i will check if the alternative can be fetched from the database
-    startNode = Node.objects.get(id = location)
-    endNode = Node.objects.get(id = destination)
-    startStep = Step.objects.filter(start_location = location)
-    endStep = Step.objects.filter(end_location = destination)
-    print endNode.longitude
-    legs = Leg.objects.all()
+#    startNode = Node.objects.get(id = location)
+#    endNode = Node.objects.get(id = destination)
+#    startStep = Step.objects.filter(start_location = location)
+#    endStep = Step.objects.filter(end_location = destination)
+#    print endNode.longitude
+#    legs = Leg.objects.all()
+#    routes = []
+#    if(startStep != None and endStep!= None):
+#        print startStep
+#        print endStep
+#        for leg in legs :
+#            data = leg.steps.all()
+#            current_steps = []
+#            for cstep in data:
+#                current_steps.append(cstep)
+#            for step in startStep :
+#                for step2 in endStep : 
+#                    if step in current_steps:
+#                        if step2 in current_steps:
+#                            routeSummary = "" # Should Contain the route summary
+#                            currentRoute = Route(summary = routeSummary)
+#                            currentRoute.save()
+#                            current_leg = Leg(duration_text = "", 
+#                              duration_value = 1, 
+#                              distance_text = "", 
+#                              distance_value = 1, 
+#                              start_address = "longitude:" + str(startNode.longitude) + "latitude: " + str(startNode.latitude), 
+#                              end_address = "longitude:" + str(endNode.longitude) + "latitude: " + str(endNode.latitude))
+#                            current_leg.save()
+#                            for x in range(current_steps.index(step), current_steps.index(step2)):
+#                                current_leg.steps.add(current_steps[x])
+#                                current_steps[x].save()
+#                            current_leg.save()
+#                            currentRoute.legs.add(current_leg)
+#                            currentRoute.save()
+#                            routes.append(currentRoute)
+
+    #First i will call the subRoutes Method 
+    
+    Leg = Leg.objects.get(id = legID)
     routes = []
-    if(startStep != None and endStep!= None):
-        print startStep
-        print endStep
-        for leg in legs :
-            data = leg.steps.all()
-            current_steps = []
-            for cstep in data:
-                current_steps.append(cstep)
-            for step in startStep :
-                for step2 in endStep : 
-                    if step in current_steps:
-                        if step2 in current_steps:
-                            routeSummary = "" # Should Contain the route summary
-                            currentRoute = Route(summary = routeSummary)
-                            currentRoute.save()
-                            current_leg = Leg(duration_text = "", 
-                              duration_value = 1, 
-                              distance_text = "", 
-                              distance_value = 1, 
-                              start_address = "longitude:" + str(startNode.longitude) + "latitude: " + str(startNode.latitude), 
-                              end_address = "longitude:" + str(endNode.longitude) + "latitude: " + str(endNode.latitude))
-                            current_leg.save()
-                            for x in range(current_steps.index(step), current_steps.index(step2)):
-                                current_leg.steps.add(current_steps[x])
-                                current_steps[x].save()
-                            current_leg.save()
-                            currentRoute.legs.add(current_leg)
-                            currentRoute.save()
-                            routes.append(currentRoute)
-    return routes if len(routes) > 1 else None
+    if(len(routes)==0):
+        return 
+    steps =[] 
+    duration = 0
+    distance = 0
+    for step in Leg.steps:
+        if(step != myStep):
+            steps.append(step)
+            duration += step.duration_value
+            distance += step.distance_value
+        else:
+            break
+    for route in routes:
+        for leg in route.legs:
+            sum =""
+            current_route=Route(summary=sum)
+            current_route.save()
+            distance_text = ""
+            distance_value = distance + leg.distance_value
+            duration_text = ""
+            duration_value = duration + leg.duration_value
+            start_address = Leg.start_address
+            end_address = leg.end_address
+            start_loc = Leg.start_location
+            end_loc = leg.end_location
+            current_leg = Leg(duration_text = duration_text, 
+                              duration_value = duration_value, 
+                              distance_text = distance_text, 
+                              distance_value = distance_value, 
+                              start_address = start_address, 
+                              end_address = end_address,
+                              start_location = start_loc, 
+                              end_location = end_loc)
+            current_leg.save()
+            current_leg.steps.extend(steps)
+            current_leg.steps.extend(leg.steps)
+            current_leg.save()
+            current_route.legs.add(current_leg)
+            current_route.save()
+            
+    return routes 
 
 # Author : Ahmed Abouraya
 # takes a JSONObject and updates all steps speeds with the information in the database
@@ -243,7 +291,7 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 			flag=True
 			#check if speed is 0 insert current step as blocked
 			if blockedRoad(speed):
-				currentStepHistory = Step_History(step = CurrentStep,time=datetime.now(),speed=0)
+				currentStepHistory = Step_History(step = currentStep,time=datetime.now(),speed=0)
 				currentStepHistory.save()
 
 			for step in steps:
