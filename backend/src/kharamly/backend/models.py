@@ -201,8 +201,8 @@ def getalternatives(legID, myStep, destination):
             break
     for route in routes:
         for leg in route.legs:
-            sum =""
-            current_route=Route(summary=sum)
+            summ =""
+            current_route=Route(summary=summ)
             current_route.save()
             distance_text = ""
             distance_value = distance + leg.distance_value
