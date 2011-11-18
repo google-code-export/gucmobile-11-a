@@ -29,12 +29,7 @@ def route_blockage(request):
 def directions(request, origin, destination, sensor, alternatives):
     url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=' + sensor + '&alternatives=' + alternatives
     result = json.load(urllib.urlopen(url))
-<<<<<<< HEAD
-		
-    return HttpResponse(getdirections(origin, destination, sensor, alternatives, result))
-=======
     return HttpResponse(json.dumps(getdirections(origin, destination, sensor, alternatives, result)))
->>>>>>> 6c6ed617ad18d2b5488424845d9d587ae8ef309b
     
 def alternatives(request, location, destination):
     return HttpResponse(getalternatives(location, destination))
