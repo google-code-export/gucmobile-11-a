@@ -119,14 +119,13 @@ def getdirections(origin, destination):
                 end_node = get_node(latitude=end_location['lat'],
                                 longitude=end_location['lng'])
                 # end_node.save()
-                current_step = Step(html_instructions=html,
-                                     duration_text=duration_text,
-                                     duration_value=duration_value,
-                                     distance_text=distance_text,
-                                     distance_value=distance_value,
-                                     start_location=start_node,
-                                     end_location=end_node)
-                current_step.save()
+                current_step = get_step(html,
+                                     duration_text,
+                                     duration_value,
+                                     distance_text,
+                                     distance_value,
+                                     start_node,
+                                     end_node)
                 current_leg.steps.add(current_step)
             current_leg.save()
             current_route.legs.add(current_leg)
@@ -140,6 +139,21 @@ def get_node(longitude, latitude):
         node = Node(longitude=longitude, latitude=latitude)
         node.save()
     return node
+
+def get_step(html, duration_text, duration_value,
+             distance_text,distance_value, start_node,end_node):
+    try:
+        current_step = Step.objects.get(start_location = start_node, end_location = end_node)
+    except Step.DoesNotExist:
+        current_step = Step(html_instructions=html,
+                            duration_text=duration_text,
+                            duration_value=duration_value,
+                            distance_text=distance_text,
+                            distance_value=distance_value,
+                            start_location=start_node,
+                            end_location=end_node)
+        current_step.save()
+    return current_step
         
 #@author: Monayri
 #@param myStep: The Step that i am currently at
