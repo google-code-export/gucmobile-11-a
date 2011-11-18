@@ -320,8 +320,6 @@ def test_evaluate(origin, destination,leg,speed,CurrentStep):
 #determines whether a road is blocked or not
 def blockedRoad(speed):
 	return speed == 0
-   
-#=======
     
 ############################
 # @author: Shanab
