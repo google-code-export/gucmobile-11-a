@@ -1,11 +1,7 @@
 from datetime import datetime
-<<<<<<< HEAD
 import urllib, json
-=======
 from django.db import models
 import math
-
->>>>>>> 43bdeae2d19359fc921d4284a645c6c51def395e
 # from decimal import *
 
 # Create your models here.
