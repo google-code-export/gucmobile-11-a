@@ -28,7 +28,7 @@ class Step_History(models.Model):
     time = models.DateTimeField()
     speed=models.FloatField()
 
-    def __unicode(self):
+    def __unicode__(self):
         return str(self.step)+","+str(self.time)
 
 class Leg(models.Model):
@@ -42,7 +42,7 @@ class Leg(models.Model):
     start_location = models.ForeignKey(Node, related_name='start_node')
     end_location = models.ForeignKey(Node, related_name='end_node')
 	
-    def __unicode(self):
+    def __unicode__(self):
         return str(self.start_location) + "," + str(self.end_location)
 		    
 
@@ -50,7 +50,7 @@ class Route(models.Model):
     summary = models.CharField(max_length=200)
     legs = models.ManyToManyField(Leg)
 	
-    def __unicode(self):
+    def __unicode__(self):
         return self.summary
     
     
