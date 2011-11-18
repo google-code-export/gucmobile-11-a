@@ -5,9 +5,9 @@ import urllib, json
 # For now this will return dummie results, for the frontend to process and visualize
 # Later versions will trigger and use the proper actions defined by others
 def api(request, lng, lat, who):
-    evaluate()
+    # evaluate()
     response = {"steps" : 
-            [{"s_lng": 31.24906000000001, "s_lat": 30.065440, "e_lng": 31.256110, "e_lat": 30.099050, "col": 1},
+            [{"s_lng": 31.25006000000001, "s_lat": 30.065440, "e_lng": 31.256110, "e_lat": 30.099050, "col": 1},
             {"s_lng": 31.256110, "s_lat": 30.099050, "e_lng": 31.255410, "e_lat": 30.105590, "col": 2},
             {"s_lng": 31.255410, "s_lat": 30.105590, "e_lng": 31.252130, "e_lat": 30.113050, "col": 3},
             {"s_lng": 31.252130, "s_lat": 30.113050, "e_lng": 31.243610, "e_lat": 30.12307000000001, "col": 120},

@@ -9,6 +9,7 @@ import android.location.*;
 import android.os.*;
 import android.util.*;
 import android.view.*;
+import android.view.View.*;
 import android.widget.*;
 import com.google.android.maps.*;
 import org.apache.http.*;
@@ -28,6 +29,7 @@ public class KharamlyActivity extends MapActivity {
 	private final static String API_URL = "http://10.0.2.2:8000/api/";
 	private final static int TIMEOUT_MILLISEC = 0;
 	private final static String TAG_NAME = "Kharamly";
+	private String destination = "29.994192,31.444588"; // GUC ;)
 	
 	/** 
 	 * Called when the activity is first created. 
@@ -44,7 +46,12 @@ public class KharamlyActivity extends MapActivity {
 		
 		mapView.getOverlays().add(myLocationOverlay);
 		myLocationOverlay.enableMyLocation();
-        
+        //         new PromptDialog(KharamlyActivity.this, R.string.title, R.string.enter_comment){
+        //     public boolean onOkClicked(String input) {
+        //                 toast(input);
+        //                 return true;
+        //     }
+        // };
 		myLocationOverlay.runOnFirstFix(new Runnable() {
 			public void run() {
 				mapView.getController().animateTo(myLocationOverlay.getMyLocation());
@@ -64,17 +71,23 @@ public class KharamlyActivity extends MapActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.block :
-			Intent i = new Intent(KharamlyActivity.this, ReportBlocked.class);
-			startActivity(i);
-		default:
-			return super.onOptionsItemSelected(item);
+    		case R.id.block :
+    			Intent i = new Intent(KharamlyActivity.this, ReportBlocked.class);
+    			startActivity(i);
+    		default:
+    			return super.onOptionsItemSelected(item);
 		}
 	}
 	
 	@Override
 	protected boolean isRouteDisplayed() {
 	    return true;
+	}
+    
+	
+	public void toast(String message) {
+	    Log.e(TAG_NAME, message);
+	    Toast.makeText(this, message, Toast.LENGTH_LONG);
 	}
 	
 	public static void background(final Runnable r) {
@@ -111,6 +124,7 @@ public class KharamlyActivity extends MapActivity {
 		
 		@Override
 		public void onLocationChanged(Location location) {
+    		
 		    float speed = location.getSpeed();
             mapController.setZoom(speed <= 5 ? 21 : 
                                                 speed >= 28 ? 15 : 

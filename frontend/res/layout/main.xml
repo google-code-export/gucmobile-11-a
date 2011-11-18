@@ -4,5 +4,6 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:clickable="true"
+	android:longClickable="true"
     android:apiKey="0xOoX7nNhhQOud_FxUn9at75skt25TH8pk2-fHQ"
 />
