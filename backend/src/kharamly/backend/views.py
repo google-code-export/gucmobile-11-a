@@ -16,8 +16,8 @@ def api(request, lng, lat, who):
     }
     return HttpResponse(json.dumps(response), mimetype="application/json")
     
-# FOR TESTING PURPOSES,  ADD A VIEW THAT CALLS YOUR MODEL CLASS
-###############################################################
+### FOR TESTING PURPOSES,  ADD A VIEW THAT CALLS YOUR MODEL METHOD
+##################################################################
 
 # Testing to call model from view
 def test_method_in_views(request, test_value):

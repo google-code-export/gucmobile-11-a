@@ -199,7 +199,10 @@ def updateResult(result):
 				duration_value = step['duration']['value']
 				current_start_location = step['start_location']
 				current_end_location = step['end_location']
-				stepHistoryList=Step_History.objects.filter(step__start_location__latitude=current_start_location['lat'],step__start_location__longitude=current_start_location['lng'],step__end_location__latitude=current_end_location['lat'],step__end_location__longitude=current_end_location['lng'])[:5]
+				stepHistoryList = Step_History.objects.filter(step__start_location__latitude=current_start_location['lat'],
+				                    step__start_location__longitude=current_start_location['lng'],
+				                    step__end_location__latitude=current_end_location['lat'],
+				                    step__end_location__longitude=current_end_location['lng'])[:5]
 				counter=0
 				avgSpeed=0
 				for s in stepHistoryList.all():
