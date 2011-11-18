@@ -9,7 +9,7 @@ class Node(models.Model):
     longitude = models.DecimalField(verbose_name='longitude', name='longitude', max_digits=12, decimal_places=9)
 
     def __unicode__(self):
-        return str(self.latitude)+","+str(self.longitude)
+        return str(self.id) + ":" + str(self.latitude) + "," + str(self.longitude)
 
 class Step(models.Model):
     html_instructions = models.TextField()
@@ -21,7 +21,7 @@ class Step(models.Model):
     end_location = models.ForeignKey(Node, related_name='end')
 
     def __unicode__(self):
-        return str(self.start_location) + "|" + str(self.end_location)
+        return str(self.start_location.id) + "," + str(self.end_location.id)
 
 class Step_History(models.Model):
     step = models.ForeignKey(Step, related_name='current_step')
