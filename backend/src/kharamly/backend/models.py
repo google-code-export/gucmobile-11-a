@@ -86,12 +86,12 @@ def getdirections(origin, destination, result):
             end_address = leg['end_address']
             start_loc = leg['start_location']
             end_loc = leg['end_location']
-            s_node = Node(latitude = start_loc['lat'], 
+            s_node = get_node(latitude = start_loc['lat'], 
                               longitude = start_loc['lng'])
-            s_node.save()
-            e_node = Node(latitude = end_loc['lat'], 
+            # s_node.save()
+            e_node = get_node(latitude = end_loc['lat'], 
                             longitude = end_loc['lng'])
-            e_node.save()
+            # e_node.save()
             steps = leg['steps']
             current_leg = Leg(duration_text = duration_text, 
                               duration_value = duration_value, 
@@ -102,6 +102,7 @@ def getdirections(origin, destination, result):
                               start_location = s_node, 
                               end_location = e_node)
             current_leg.save()
+            current_leg_steps = []
             for step in steps:
                 html = step['html_instructions']
                 distance_text = step['distance']['text']
@@ -110,12 +111,12 @@ def getdirections(origin, destination, result):
                 duration_value = step['duration']['value']
                 start_location = step['start_location']
                 end_location = step['end_location']
-                start_node = Node(latitude = start_location['lat'], 
+                start_node = get_node(latitude = start_location['lat'], 
                                   longitude = start_location['lng'])
-                start_node.save()
-                end_node = Node(latitude = end_location['lat'], 
+                # start_node.save()
+                end_node = get_node(latitude = end_location['lat'], 
                                 longitude = end_location['lng'])
-                end_node.save()
+                # end_node.save()
                 current_step = Step(html_instructions = html,
                                      duration_text = duration_text, 
                                      duration_value = duration_value, 
@@ -125,11 +126,19 @@ def getdirections(origin, destination, result):
                                      end_location = end_node)
                 current_step.save()
                 current_leg.steps.add(current_step)
-                current_leg.save()
+            current_leg.save()
             current_route.legs.add(current_leg)
-            current_route.save()
+        current_route.save()
     return result
 
+def get_node(longitude, latitude):
+    try:
+        node = Node.objects.get(longitude = longitude, latitude = latitude)
+    except Node.DoesNotExist:
+        node = Node(longitude = longitude, latitude = latitude)
+        node.save()
+    return node
+        
 #@author: Monayri
 #@param myStep: The Step that i am currently at
 #@param legID: The id of the leg i am taking
