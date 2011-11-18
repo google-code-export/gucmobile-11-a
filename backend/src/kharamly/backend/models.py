@@ -210,6 +210,7 @@ def updateResult(result):
 				else:				
 					avgSpeed=avgSpeed/counter
 					step['speed']=avgSpeed
+	return result
 
 # calculates distance between two nodes
 def getDistance(current,target):
