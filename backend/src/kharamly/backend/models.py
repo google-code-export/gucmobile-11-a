@@ -68,7 +68,7 @@ def test_method_in_models(num):
 # <sensor> & <alternatives> take the value true or false only
 # <origin> & <destination> can be address or long & lat
 
-def getdirections(origin, destination, sensor, alternatives, result):
+def getdirections(origin, destination, result):
     routes = result['routes']
     for route in routes :
         summ = route['summary']
