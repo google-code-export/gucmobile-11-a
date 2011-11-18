@@ -1,5 +1,5 @@
 from django.db import models
-import datetime
+from datetime import datetime
 # from decimal import *
 
 # Create your models here.
@@ -243,7 +243,7 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 			flag=True
 			#check if speed is 0 insert current step as blocked
 			if blockedRoad(speed):
-				currentStepHistory = Step_History(step = CurrentStep,time=datetime.datetime.now(),speed=0)
+				currentStepHistory = Step_History(step = CurrentStep,time=datetime.now(),speed=0)
 				currentStepHistory.save()
 
 			for step in steps:
@@ -251,8 +251,8 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 				#if current step is not reached check if the user has reached it's end
 					flag=False
 					if getDistance(origin,currentStep['end_location'])<0.0002 :
-						currentStepHistory = Step_History(step = currentStep,time=datetime.datetime.now(),
-						                            speed=(startTime-datetime.datetime.now())/currentStep['distance']['value'])
+						currentStepHistory = Step_History(step = currentStep,time=datetime.now(),
+						                            speed=(startTime-datetime.now())/currentStep['distance']['value'])
 					currentStepHistory.save()
 				
 				if flag :
@@ -271,7 +271,8 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 	
 				stepHistoryLists=Step_History.objects.filter(step__start_location__latitude=current_start_location['lat'],
 				                                        step__start_location__longitude=current_start_location['lng'],
-				                                        step__end_location__latitude=current_end_location['lat'],step__end_location__longitude=current_end_location['lng'])[:5]
+				                                        step__end_location__latitude=current_end_location['lat'],
+				                                        step__end_location__longitude=current_end_location['lng'])[:5]
 				counter=0
 				for s in stepHistoryLists.all():
 					if blockedRoad(s.speed):
@@ -287,7 +288,7 @@ def test_evaluate(origin, destination,leg,speed,CurrentStep):
 	flag=True
 	#check if speed is 0 insert current step as blocked
 	if blockedRoad(speed):
-		currentStepHistory = Step_History(step = CurrentStep,time=datetime.datetime.now(),speed=0)
+		currentStepHistory = Step_History(step = CurrentStep,time=datetime.now(),speed=0)
 		currentStepHistory.save()
 	#insert current step as blocked
 	for curStep in steps.all():
@@ -320,19 +321,3 @@ def test_evaluate(origin, destination,leg,speed,CurrentStep):
 #determines whether a road is blocked or not
 def blockedRoad(speed):
 	return speed == 0
-    
-############################
-# @author: Shanab
-# This method populates the database with dummy data
-def populator():
-    import random
-    Node.objects.all().delete()
-    Step.objects.all().delete()
-    Leg.objects.all().delete()
-    Route.objects.all().delete()
-    print "Deleted all data in models"
-
-    for i in range(0,20):
-        lon = random.randint(-99, 99)
-        lat = random.randint(-99, 99)
-        Node(longitude = lon, latitude = lat).save()
