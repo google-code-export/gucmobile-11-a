@@ -145,6 +145,7 @@ public class KharamlyActivity extends MapActivity {
             HttpGet httpget = new HttpGet(API_URL + 
                                         location.getLatitude() + "," + location.getLongitude() + "/" + 
                                         destination + "/" +
+                                        location.getSpeed() + "/" +
                                         Installation.id(KharamlyActivity.this));
             try {
                 HttpResponse httpresponse = httpclient.execute(httpget);

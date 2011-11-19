@@ -1,15 +1,20 @@
 from django.http import HttpResponse
 from kharamly.backend.models import *
+from datetime import datetime
 import urllib, json
 
-def api(request, from, to, who):
+def api(request, from, to, speed, who):
+    
     from = from.split(",")
     to = to.split(",")
     to_node = get_node(to[0], to[1])
     from_node = get_node(from[0], from[1])
     # my_step could be kept tracked of, but what about sending it untracked everytime?
-    result = getalternatives(None, None, to_node, from_node)
-    
+    # my_step = get_step_from_node(from_node)
+    my_step = None
+    result = getalternatives(None, my_step, to_node, from_node)
+    result = evaluate()
+    Ping_Log(step = my_step, speed = speed, who = who, time = datetime.now()).save()
     response  = {"steps": []}
     for route : result['routes']
         for leg : route['legs']

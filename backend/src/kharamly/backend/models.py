@@ -4,7 +4,10 @@ from django.db import models
 import math
 
 class Ping_Log(models.Model):
-    pass
+    step = models.ForeignKey(Step)
+    speed = models.FloatField() # in m/s
+    who = models.CharField(max_length = 200)
+    time = models.DateTimeField()
     
 class Node(models.Model):
     latitude = models.FloatField()
@@ -354,7 +357,7 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
                         flag=True
                         #check if speed is 0 insert current step as blocked
                         if blockedRoad(speed):
-                                currentStepHistory = Step_History(step = currentStep,time=datetime.now(),speed=0)
+                                currentStepHistory = Step_History(step = currentStep, time = datetime.now(), speed = 0)
                                 currentStepHistory.save()
 
                         for step in steps:
@@ -533,3 +536,21 @@ def sum_distance_values(steps):
 # returns the summation of duration values for the provided list of steps
 def sum_duration_values(steps):
     return reduce(add, map(get_duration_value, steps))
+
+# @author kamasheto
+# gets step from the given node
+def get_step_from_node(node):
+    pass
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
