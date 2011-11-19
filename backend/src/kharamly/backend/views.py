@@ -44,8 +44,24 @@ def api(request, orig, dest, speed, who):
 def test_method_in_views(request, test_value):
     return HttpResponse(test_method_in_models(test_value))
 
-def route_blockage(request):
-	return HttpResponse(test_evaluate(Node.objects.get(id=1), Node.objects.get(id=3), Leg.objects.get(id=1),0, Step.objects.get(id=1)))
+def route_blockage(request, origin, destination):
+	#url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=true&alternatives=true'
+	#result = json.load(urllib.urlopen(url))
+	#getdirections(origin, destination, result)
+	#return json.dumps(updateResult(result))
+	#return HttpResponse(json.dumps(updateResult(result)))
+	A=datetime.now()
+	B=datetime.now()+timedelta(minutes=30)
+	timeDiff = B-A
+	print timeDiff
+ 	days = timeDiff.days*24*60
+ 	hours = timeDiff.seconds*3600
+  	minutes = timeDiff.seconds*60
+  	seconds = timeDiff.seconds
+	
+	return HttpResponse(seconds+minutes+hours+days)
+
+	#return HttpResponse(evaluate(Node.objects.get(id=1), Node.objects.get(id=3), Leg.objects.get(id=1),0, Step.objects.get(id=1)))
 
 def directions(request, origin, destination):
     return HttpResponse(json.dumps(getdirections(origin, destination)))
