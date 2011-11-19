@@ -452,10 +452,10 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 def blockedRoad(speed):
 	return speed == 0
 
-# @author:              Shanab
-# @param leg:           current leg that the user is moving in (can be None)
-# @param step:          current step that the user is moving in
-# @param destination:   destination node for the user
+# @author:  Shanab
+# @param    leg:            current leg that the user is moving in (can be None)
+# @param    step:           current step that the user is moving in
+# @param    destination:    destination node for the user
 # The method tries to find the possible subroutes that can go from
 # the end node of the provided step to the end of the provided leg.
 # Also the method saves the newly found subroute
@@ -476,11 +476,11 @@ def compute_subroutes(leg, step, destination):
         return []
     pass
 
-# @author:              Shanab
-# @param legs:          All the legs that have a path that will lead
+# @author:  Shanab
+# @param    legs:       All the legs that have a path that will lead
 #                       from start_node to end_node
-# @param start_node:    the start node of the subroute
-# @param end_node:      the end node of the subroute
+# @param    start_node: the start node of the subroute
+# @param    end_node:   the end node of the subroute
 # The method finds the subroute that will lead from the provided
 # start node to the provided end node in the input leg
 def find_and_create_subroute(legs, start_node, end_node):
@@ -546,13 +546,13 @@ def sum_distance_values(steps):
     return reduce(add, map(get_distance_value, steps))
 
 # @author:      Shanab
-# @param steps: a list of steps
+# @param        steps: a list of steps
 # returns the summation of duration values for the provided list of steps
 def sum_duration_values(steps):
     return reduce(add, map(get_duration_value, steps))
 
 # @author:      Shanab
-# @param leg
+# @param        leg
 # returns an ordered list of steps where the end node of a step
 # is the start node of the next step
 def ordered_steps(leg):
