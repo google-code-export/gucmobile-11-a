@@ -457,9 +457,12 @@ def blockedRoad(speed):
 # @param    step:           current step that the user is moving in
 # @param    destination:    destination node for the user
 # The method tries to find the possible subroutes that can go from
-# the end node of the provided step to the end of the provided leg.
-# Also the method saves the newly found subroute
-# If there wasn't any subroutes found, the method will return None!
+# the end node of the provided step to the provided destination.
+# Also the method saves the newly found subroute.
+# If there wasn't any subroutes found, the method will return *[]*!
+# If destination wasn't provided the method tries to find subroutes
+# that can go from the end node of the provided step to the end node
+# of the provided leg
 def compute_subroutes(leg, step, destination):
     start_node = step.end_location
     end_node = destination
