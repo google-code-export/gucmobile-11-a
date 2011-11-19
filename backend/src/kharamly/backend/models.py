@@ -6,12 +6,6 @@ import math
 # A entity of users, for later usage
 class Device(models.Model):
     installation_id = models.CharField(max_length = 64)
-
-class Ping_Log(models.Model):
-    step = models.ForeignKey(Step)
-    speed = models.FloatField() # in m/s
-    who = models.ForeignKey(Device)
-    time = models.DateTimeField()
     
 class Node(models.Model):
     latitude = models.FloatField()
@@ -41,6 +35,12 @@ class Step_History(models.Model):
 
     def __unicode__(self):
         return str(self.step) + "," + str(self.time)
+
+class Ping_Log(models.Model):
+    step = models.ForeignKey(Step)
+    speed = models.FloatField() # in m/s
+    who = models.ForeignKey(Device)
+    time = models.DateTimeField()
 
 class Leg(models.Model):
     steps = models.ManyToManyField(Step)
@@ -172,11 +172,12 @@ def get_step(html, duration_text, duration_value,
 def getalternatives(leg, myStep, destination, location):
     #First i will call the subRoutes Method 
     if myStep == None:
-        return getdirections(location.latitude+","+location.start_location.longitude, destination.start_location.latitude+","+destination.longitude)
+        return getdirections(str(location.latitude)+","+str(location.longitude), str(destination.latitude)+","+str(destination.longitude))
 #    routes = compute_subroutes(leg, myStep)
     routes =[]
     if(len(routes)==0):
-        return getdirections(myStep.start_location.latitude+","+myStep.start_location.longitude, destination.start_location.latitude+","+destination.longitude)
+        return getdirections(str(myStep.start_location.latitude)+","+str(myStep.start_location.longitude), 
+                            str(destination.start_location.latitude)+","+str(destination.longitude))
     if leg != None :
         steps =[] 
         duration = 0
@@ -304,6 +305,7 @@ def getDistance(current,target):
 # loops over all steps, when the currentStep is reached, checks whether the driver has reached the end of the step or not if yes insert information in database
 # checks for future steps if they're blocked if yes checks for alternatives
 def evaluate_route(result, speed, my_step):
+    # print result
     routes = result['routes']
     alternatives = []
     for route in routes:
@@ -529,10 +531,18 @@ def sum_duration_values(steps):
 
 # @author kamasheto
 # gets step from the given node
-def get_step_from_node(node):
+def get_step_from_node(n):
     # lets pretend we can get a step by checking if a node is between its start and end points
     # this obviously has flaws but lets see how it goes from there
-    pass
+    for step in Step.objects.all():
+        # check if this node can lie in this step
+        s, e = step.start_location, step.end_location
+        if ((s.latitude <= n.latitude and n.latitude <= e.latitude and s.longitude <= n.longitude and n.longitude <= e.longitude) or
+            (s.latitude >= n.latitude and n.latitude >= e.latitude and s.longitude <= n.longitude and n.longitude <= e.longitude) or
+            (s.latitude >= n.latitude and n.latitude >= e.latitude and s.longitude >= n.longitude and n.longitude >= e.longitude) or
+            (s.latitude <= n.latitude and n.latitude <= e.latitude and s.longitude >= n.longitude and n.longitude >= e.longitude)):
+            return step
+    return None # couldn't find a step
     
 def get_step_speed(step):
     logs = list(Ping_Log.objects.filter(step = step, time__gte=datetime.now() - timedelta(seconds = 10)))
@@ -550,3 +560,16 @@ def get_device(who):
         d = Device(installation_id = who)
         d.save()
     return d
+    
+def get_color_from_speed(speed):
+    if speed <= 5:
+        return 0xff000000 # black
+    elif speed <= 10:
+        return 0xffff0000 # red
+    elif speed <= 15:
+        return 0xffff8000  # orange
+    elif speed <= 20:
+        return 0xffffff00 # yellow
+    else:
+        return 0xff0000ff # green
+        

@@ -3,27 +3,37 @@ from kharamly.backend.models import *
 from datetime import datetime
 import urllib, json
 
-def api(request, from, to, speed, who):
-    from = from.split(",")
-    to = to.split(",")
-    to_node = get_node(to[0], to[1])
-    from_node = get_node(from[0], from[1])
+"""
+@author kamasheto
+The API call. This is optimized for frequent calls in the form:
+    http://url/to/action/30.091538,31.31633/29.994192,31.444588/10/android_id
+    30.091538,31.31633 - from 
+    29.994192,31.444588 - to
+    10 - speed
+    android_id - Installation device ID
+"""
+def api(request, orig, dest, speed, who):
+    orig = orig.split(",")
+    dest = dest.split(",")
+    from_node = get_node(orig[0], orig[1])
+    to_node = get_node(dest[0], dest[1])
     # my_step could be kept tracked of, but what about sending it untracked everytime?
     # my_step = None
-    my_step = get_step_from_node(from_node, to_node)
-    Ping_Log(step = my_step, speed = speed, who = get_device(who), time = datetime.now()).save()
+    my_step = get_step_from_node(from_node)
+    if my_step:
+        Ping_Log(step = my_step, speed = speed, who = get_device(who), time = datetime.now()).save()
     result = getalternatives(None, my_step, to_node, from_node)
     routes = evaluate_route(result, speed, my_step)
     response  = {"steps": []}
-    for route : routes
-        for leg : route['legs']
-            for step : leg['steps']
+    for route in routes:
+        for leg in route['legs']:
+            for step in leg['steps']:
                 response['steps'].append({
-                    "s_lat": step.start_location.latitude,
-                    "s_lng": step.start_location.longitude,
-                    "e_lat": step.end_location.latitude,
-                    "e_lng": step.end_location.longitude,
-                    "col": step
+                    "s_lat": step['start_location']['latitude'],
+                    "s_lng": step['start_location']['longitude'],
+                    "e_lat": step['end_location']['latitude'],
+                    "e_lng": step['end_location']['longitude'],
+                    "col": get_color_from_speed(step['speed']),
                 })
     return HttpResponse(json.dumps(response), mimetype="application/json")
     
