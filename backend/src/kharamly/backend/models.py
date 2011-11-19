@@ -347,8 +347,12 @@ def compute_subroutes(leg, step, destination):
     print "Start location:\t" + str(start_node)
     print "End location:\t" + str(end_node)
     legs = list(Leg.objects.filter(steps__start_location = start_node).filter(steps__end_location = end_node))
-    legs.remove(leg)
-    print "Found " + str(len(legs)) + " legs!"
+    # If one of the filtered legs happens to be the input leg, then remove it
+    try:
+        legs.remove(leg)
+    except:
+        pass
+    print "Found " + str(len(legs)) + " leg(s)!"
     if len(legs) != 0:
         return find_and_create_subroute(legs, start_node, end_node)
     else:
@@ -388,9 +392,11 @@ def find_and_create_subroute(legs, start_node, end_node):
                             distance_value  = sum_distance_values(subroute_steps),
                             start_location  = start_node,
                             end_location    = end_node)
+            new_leg.save()                
             new_leg.steps = subroute_steps
             new_leg.save()
-            new_route = Route().save()
+            new_route = Route()
+            new_route.save()
             new_route.legs.add(new_leg)
             new_route.save()
             result_routes.append(new_route)
