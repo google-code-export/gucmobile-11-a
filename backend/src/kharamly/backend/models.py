@@ -173,9 +173,8 @@ def getalternatives(leg, myStep, destination, location):
     #First i will call the subRoutes Method 
     if myStep == None:
         return getdirections(str(location.latitude)+","+str(location.longitude), str(destination.latitude)+","+str(destination.longitude))
-#    routes = compute_subroutes(leg, myStep)
-    routes = []
-    if(len(routes)==0):
+    routes = compute_subroutes(leg, myStep, destination)
+    if not routes:
         return getdirections(str(myStep.start_location.latitude)+","+str(myStep.start_location.longitude), 
                             str(destination.latitude)+","+str(destination.longitude))
     if leg != None :
