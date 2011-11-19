@@ -1,12 +1,16 @@
-from datetime import datetime
+from datetime import *
 import urllib, json
 from django.db import models
 import math
 
+# A entity of users, for later usage
+class Device(models.Model):
+    installation_id = models.CharField(max_length = 64)
+
 class Ping_Log(models.Model):
     step = models.ForeignKey(Step)
     speed = models.FloatField() # in m/s
-    who = models.CharField(max_length = 200)
+    who = models.ForeignKey(Device)
     time = models.DateTimeField()
     
 class Node(models.Model):
@@ -74,7 +78,6 @@ def test_method_in_models(num):
 # Author : Moataz Mekki
 # <sensor> & <alternatives> take the value true or false only
 # <origin> & <destination> can be address or long & lat
-
 def getdirections(origin, destination):
     url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=true&alternatives=true'
     result = json.load(urllib.urlopen(url))
@@ -167,44 +170,6 @@ def get_step(html, duration_text, duration_value,
 #@param destination: The destination Node
 #@return: list of routes
 def getalternatives(leg, myStep, destination, location):
-    #First i will check if the alternative can be fetched from the database
-#    startNode = Node.objects.get(id = location)
-#    endNode = Node.objects.get(id = destination)
-#    startStep = Step.objects.filter(start_location = location)
-#    endStep = Step.objects.filter(end_location = destination)
-#    print endNode.longitude
-#    legs = Leg.objects.all()
-#    routes = []
-#    if(startStep != None and endStep!= None):
-#        print startStep
-#        print endStep
-#        for leg in legs :
-#            data = leg.steps.all()
-#            current_steps = []
-#            for cstep in data:
-#                current_steps.append(cstep)
-#            for step in startStep :
-#                for step2 in endStep : 
-#                    if step in current_steps:
-#                        if step2 in current_steps:
-#                            routeSummary = "" # Should Contain the route summary
-#                            currentRoute = Route(summary = routeSummary)
-#                            currentRoute.save()
-#                            current_leg = Leg(duration_text = "", 
-#                              duration_value = 1, 
-#                              distance_text = "", 
-#                              distance_value = 1, 
-#                              start_address = "longitude:" + str(startNode.longitude) + "latitude: " + str(startNode.latitude), 
-#                              end_address = "longitude:" + str(endNode.longitude) + "latitude: " + str(endNode.latitude))
-#                            current_leg.save()
-#                            for x in range(current_steps.index(step), current_steps.index(step2)):
-#                                current_leg.steps.add(current_steps[x])
-#                                current_steps[x].save()
-#                            current_leg.save()
-#                            currentRoute.legs.add(current_leg)
-#                            currentRoute.save()
-#                            routes.append(currentRoute)
-
     #First i will call the subRoutes Method 
     if myStep == None:
         return getdirections(location.latitude+","+location.start_location.longitude, destination.start_location.latitude+","+destination.longitude)
@@ -288,6 +253,7 @@ def getalternatives(leg, myStep, destination, location):
 
 # Author : Ahmed Abouraya
 # takes a JSONObject and updates all steps speeds with the information in the database
+# Logic added to evaluate ^k
 def updateResult(result):
         routes = result['routes']
         for route in routes :
@@ -337,68 +303,92 @@ def getDistance(current,target):
 # checks if the current road is blocked,if so it updates the database
 # loops over all steps, when the currentStep is reached, checks whether the driver has reached the end of the step or not if yes insert information in database
 # checks for future steps if they're blocked if yes checks for alternatives
-def evaluate(origin, destination, result, speed, currentStep, startTime):
-        routes = result['routes']
-        for route in routes :
-                summ = route['summary']
-                legs = route['legs']
+def evaluate_route(result, speed, my_step):
+    routes = result['routes']
+    alternatives = []
+    for route in routes:
+            summ = route['summary']
+            legs = route['legs']
+            for leg in legs:
+                    # distance_text = leg['distance']['text']
+                    # distance_value = leg['distance']['value']
+                    # duration_text = leg['duration']['text']
+                    # duration_value = leg['duration']['value']
+                    # start_address = leg['start_address']
+                    # end_address = leg['end_address']
+                    # start_loc = leg['start_location']
+                    # end_loc = leg['end_location']
+                    steps = leg['steps']
+                    # flag=True
+                    # #check if speed is 0 insert current step as blocked
+                    # if blockedRoad(speed):
+                    #         currentStepHistory = Step_History(step = currentStep, time = datetime.now(), speed = 0)
+                    #         currentStepHistory.save()
 
-                for leg in legs :
-                        distance_text = leg['distance']['text']
-                        distance_value = leg['distance']['value']
-                        duration_text = leg['duration']['text']
-                        duration_value = leg['duration']['value']
-                        start_address = leg['start_address']
-                        end_address = leg['end_address']
-                        start_loc = leg['start_location']
-                        end_loc = leg['end_location']
-                        steps = leg['steps']
-
-                        flag=True
-                        #check if speed is 0 insert current step as blocked
-                        if blockedRoad(speed):
-                                currentStepHistory = Step_History(step = currentStep, time = datetime.now(), speed = 0)
-                                currentStepHistory.save()
-
-                        for step in steps:
-                                if step==currentStep:
-                                #if current step is not reached check if the user has reached it's end
-                                        flag=False
-                                        if getDistance(origin,currentStep['end_location'])<0.0002 :
-                                                currentStepHistory = Step_History(step = currentStep,time=datetime.now(),
-                                                                            speed=(startTime-datetime.now())/currentStep['distance']['value'])
-                                        currentStepHistory.save()
+                    for s, step in enumerate(steps):
+                        step['speed'] = 1
+                        if my_step == step:
+                            for i in range(s + 1, len(steps)):
+                                f_step = steps[i] # future step, calc speed
+                                max_speed = get_step_speed(f_step)
+                                # sexier algo maybe?
+                                f_step['speed'] = max_speed
+                                if blocked_road(max_speed):
+                                    dest = steps[-1].end_location
+                                    dest = get_node(dest['latitude'], dest['longitude'])
+                                    start = get_node(step['start_location']['latitude'], step['start_location']['longitude'])
+                                    alternatives.append(getalternatives(leg, f_step, dest, step.start_location))
+                            break
+    for alt in alternatives:
+        for route in alt['routes']:
+            for leg in route['legs']:
+                for step in leg['steps']:
+                    step['speed'] = get_step_speed(Step.objects.get(start_location = get_node(step['start_location']['latitude'], step['start_location']['longitude']),
+                                                                    end_location = get_node(step['end_location']['latitude'], step['end_location']['longitude'])))
+            routes.append(route)
+    return routes
+                                # this is our step, now check the logs and report blockages
                                 
-                                if flag :
-                                #if currentStep is not reached skip
-                                        continue
+                            
+                            
+                                # if step==currentStep:
+                                # #if current step is not reached check if the user has reached it's end
+                                #         flag=False
+                                #         if getDistance(origin,currentStep['end_location'])<0.0002 :
+                                #                 currentStepHistory = Step_History(step = currentStep,time=datetime.now(),
+                                #                                             speed=(startTime-datetime.now())/currentStep['distance']['value'])
+                                #         currentStepHistory.save()
+                                
+                                # if flag :
+                                # #if currentStep is not reached skip
+                                #         continue
 
                                 #if currentStep is reached check if a future step is blocked
 
 
-				html = step['html_instructions']
-				distance_text = step['distance']['text']
-				distance_value = step['distance']['value']
-				duration_text = step['duration']['text']
-				duration_value = step['duration']['value']
-				current_start_location = step['start_location']
-				current_end_location = step['end_location']
-	
-				stepHistoryLists=Step_History.objects.filter(step__start_location__latitude=current_start_location['lat'],
-				                                        step__start_location__longitude=current_start_location['lng'],
-				                                        step__end_location__latitude=current_end_location['lat'],
-				                                        step__end_location__longitude=current_end_location['lng'])[:5]
-				counter=0
-				for s in stepHistoryLists.all():
-					if blockedRoad(s.speed):
-						counter=counter+1
-				if counter>0:
-				#request for alternatives
-					return updateResult(getalternatives(leg, step, destination, origin))
-		return updateResult(result)
+        #                           html = step['html_instructions']
+        #                           distance_text = step['distance']['text']
+        #                           distance_value = step['distance']['value']
+        #                           duration_text = step['duration']['text']
+        #                           duration_value = step['duration']['value']
+        #                           current_start_location = step['start_location']
+        #                           current_end_location = step['end_location']
+        # 
+        #                           stepHistoryLists=Step_History.objects.filter(step__start_location__latitude=current_start_location['lat'],
+        #                                                                   step__start_location__longitude=current_start_location['lng'],
+        #                                                                   step__end_location__latitude=current_end_location['lat'],
+        #                                                                   step__end_location__longitude=current_end_location['lng'])[:5]
+        #                           counter=0
+        #                           for s in stepHistoryLists.all():
+        #                               if blockedRoad(s.speed):
+        #                                   counter=counter+1
+        #                           if counter>0:
+        #                           #request for alternatives
+        #                               return updateResult(getalternatives(leg, step, destination, origin))
+        # return updateResult(result)
 
 # used for testing                       
-def test_evaluate(origin, destination,leg,speed,CurrentStep):
+def test_evaluate(origin, destination, leg,speed,CurrentStep):
         steps = leg.steps
         flag=True
         #check if speed is 0 insert current step as blocked
@@ -434,8 +424,8 @@ def test_evaluate(origin, destination,leg,speed,CurrentStep):
         return False
         
 #determines whether a road is blocked or not
-def blockedRoad(speed):
-	return speed == 0
+def blocked_road(speed):
+	return speed < 5
 
 # @author:              Shanab
 # @param leg:           current leg that the user is moving in (can be None)
@@ -540,17 +530,23 @@ def sum_duration_values(steps):
 # @author kamasheto
 # gets step from the given node
 def get_step_from_node(node):
+    # lets pretend we can get a step by checking if a node is between its start and end points
+    # this obviously has flaws but lets see how it goes from there
     pass
     
+def get_step_speed(step):
+    logs = list(Ping_Log.objects.filter(step = step, time__gte=datetime.now() - timedelta(seconds = 10)))
+    # if we have a moving car, use its speed as the actual speed!
+    max_speed = -1 # remember to use -1 as a check for no-one there, empty street maybe?
+    for log in logs:
+        max_speed = max(max_speed, log.speed)
+    return max_speed
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+def get_device(who):
+    try:
+        d = Device.objects.get(installation_id = who)
+    except:
+        # register device for the first time
+        d = Device(installation_id = who)
+        d.save()
+    return d

@@ -12,7 +12,7 @@ import android.provider.*;
  */
 public class Installation {
     private static String sID = null;
-    private static final String INSTALLATION = "INSTALLATION";
+    private static final String INSTALLATION = "KHARAMLY_INSTALLATION_ID";
     
     /**
      * Usage: 
