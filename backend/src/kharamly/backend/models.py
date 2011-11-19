@@ -76,11 +76,13 @@ def getdirections(origin, destination):
     url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=true&alternatives=true'
     result = json.load(urllib.urlopen(url))
     routes = result['routes']
+    all_routes = []
     for route in routes :
         summ = route['summary']
         legs = route['legs']
         current_route = Route(summary=summ)
         current_route.save()
+        all_routes.append(current_route)
         for leg in legs :
             distance_text = leg['distance']['text']
             distance_value = leg['distance']['value']
@@ -106,7 +108,6 @@ def getdirections(origin, destination):
                               start_location=s_node,
                               end_location=e_node)
             current_leg.save()
-            current_leg_steps = []
             for step in steps:
                 html = step['html_instructions']
                 distance_text = step['distance']['text']
@@ -132,7 +133,7 @@ def getdirections(origin, destination):
             current_leg.save()
             current_route.legs.add(current_leg)
         current_route.save()
-    return routes
+    return all_routes
 
 def get_node(longitude, latitude):
     try:
