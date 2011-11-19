@@ -29,7 +29,7 @@ public class KharamlyActivity extends MapActivity {
 	private final static String API_URL = "http://10.0.2.2:8000/api/";
 	private final static int TIMEOUT_MILLISEC = 0;
 	private final static String TAG_NAME = "Kharamly";
-	private String destination = "29.994192,31.444588"; // GUC ;)
+	private String destination = "29.985067,31.43873"; // GUC ;)
 	
 	/** 
 	 * Called when the activity is first created. 

@@ -6,9 +6,9 @@ import urllib, json
 """
 @author kamasheto
 The API call. This is optimized for frequent calls in the form:
-    http://url/to/action/30.091538,31.31633/29.994192,31.444588/10/android_id
+    http://url/to/action/30.091538,31.31633/29.985067,31.43873/10/android_id
     30.091538,31.31633 - from 
-    29.994192,31.444588 - to
+    29.994192,31.444588 - to (GUC location)
     10 - speed
     android_id - Installation device ID
 """
@@ -29,10 +29,10 @@ def api(request, orig, dest, speed, who):
         for leg in route['legs']:
             for step in leg['steps']:
                 response['steps'].append({
-                    "s_lat": step['start_location']['latitude'],
-                    "s_lng": step['start_location']['longitude'],
-                    "e_lat": step['end_location']['latitude'],
-                    "e_lng": step['end_location']['longitude'],
+                    "s_lat": step['start_location']['lat'],
+                    "s_lng": step['start_location']['lng'],
+                    "e_lat": step['end_location']['lat'],
+                    "e_lng": step['end_location']['lng'],
                     "col": get_color_from_speed(step['speed']),
                 })
     return HttpResponse(json.dumps(response), mimetype="application/json")

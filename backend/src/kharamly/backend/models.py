@@ -80,15 +80,16 @@ def test_method_in_models(num):
 # <origin> & <destination> can be address or long & lat
 def getdirections(origin, destination):
     url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=true&alternatives=true'
+    # print "making request to %s" % url
     result = json.load(urllib.urlopen(url))
     routes = result['routes']
-    all_routes = []
+    # all_routes = []
     for route in routes :
         summ = route['summary']
         legs = route['legs']
         current_route = Route(summary=summ)
         current_route.save()
-        all_routes.append(current_route)
+        # all_routes.append(current_route)
         for leg in legs :
             distance_text = leg['distance']['text']
             distance_value = leg['distance']['value']
@@ -139,9 +140,9 @@ def getdirections(origin, destination):
             current_leg.save()
             current_route.legs.add(current_leg)
         current_route.save()
-    return all_routes
+    return result
 
-def get_node(longitude, latitude):
+def get_node(latitude, longitude):
     try:
         node = Node.objects.get(longitude=longitude, latitude=latitude)
     except Node.DoesNotExist:
@@ -174,10 +175,10 @@ def getalternatives(leg, myStep, destination, location):
     if myStep == None:
         return getdirections(str(location.latitude)+","+str(location.longitude), str(destination.latitude)+","+str(destination.longitude))
 #    routes = compute_subroutes(leg, myStep)
-    routes =[]
+    routes = []
     if(len(routes)==0):
         return getdirections(str(myStep.start_location.latitude)+","+str(myStep.start_location.longitude), 
-                            str(destination.start_location.latitude)+","+str(destination.longitude))
+                            str(destination.latitude)+","+str(destination.longitude))
     if leg != None :
         steps =[] 
         duration = 0
