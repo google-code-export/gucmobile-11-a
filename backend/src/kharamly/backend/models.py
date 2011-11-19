@@ -333,30 +333,96 @@ def test_evaluate(origin, destination,leg,speed,CurrentStep):
 def blockedRoad(speed):
 	return speed == 0
 
-def compute_subroutes(leg, step):
+# @author:              Shanab
+# @param leg:           current leg that the user is moving in (can be None)
+# @param step:          current step that the user is moving in
+# @param destination:   destination node for the user
+# The method tries to find the possible subroutes that can go from
+# the end node of the provided step to the end of the provided leg.
+# Also the method saves the newly found subroute
+# If there wasn't any subroutes found, the method will return None!
+def compute_subroutes(leg, step, destination):
     start_node = step.end_location
-    end_node = leg.end_location
-    legs = Leg.objects.filter(steps__start_location = start_node).filter(steps__end_location = end_node)
-    
+    end_node = destination
+    print "Start location:\t" + str(start_node)
+    print "End location:\t" + str(end_node)
+    legs = list(Leg.objects.filter(steps__start_location = start_node).filter(steps__end_location = end_node))
+    legs.remove(leg)
+    print "Found " + str(len(legs)) + " legs!"
+    if len(legs) != 0:
+        return find_and_create_subroute(legs, start_node, end_node)
+    else:
+        return []
+    pass
+
+# @author:              Shanab
+# @param legs:          All the legs that have a path that will lead
+#                       from start_node to end_node
+# @param start_node:    the start node of the subroute
+# @param end_node:      the end node of the subroute
+# The method finds the subroute that will lead from the provided
+# start node to the provided end node in the input leg
+def find_and_create_subroute(legs, start_node, end_node):
+    result_routes = []
     for leg in legs:
-        find_and_create_subroute(leg, start_node, end_node)
-    pass
-    
-def find_and_create_subroute(leg, start_node, end_node):
-    steps = leg.steps.all()
-    i = 0
-    for step in steps:
-        if step.start_location == start_node:
-            start_index = i
-            break
-        i += 1
-    i = 0
-    for step in steps[start_index:]:
-        if step.end_location == end_node:
-            end_index = i
-            break
-        i += 1
-    end_index += 1
-    steps = steps[start_index:end_index]
-    print steps
-    pass
+        steps = leg.steps.all()
+        i = 0
+        for step in steps:
+            if step.start_location == start_node:
+                start_index = i
+                break
+            i += 1
+        i = 0
+        for step in steps[start_index:]:
+            if step.end_location == end_node:
+                end_index = i
+                break
+            i += 1
+        end_index += 1
+        print "Start index:\t" + str(start_index)
+        print "End index:\t" + str(end_index)
+        subroute_steps = steps[start_index:end_index]
+        if len(subroute_steps) != len(steps):       # if the subroute length was equal to the route length
+                                                    # this means the route doesn't need to be saved
+            new_leg =   Leg(duration_value  = sum_duration_values(subroute_steps),
+                            distance_value  = sum_distance_values(subroute_steps),
+                            start_location  = start_node,
+                            end_location    = end_node)
+            new_leg.steps = subroute_steps
+            new_leg.save()
+            new_route = Route().save()
+            new_route.legs.add(new_leg)
+            new_route.save()
+            result_routes.append(new_route)
+        else:
+            route = leg.route_set.all()[0]
+            result_routes.append(route)
+    return result_routes
+
+# @author:  Shanab
+# @param:   x
+# @param:   y
+# returns the addition of two numbers x and y
+def add(x,y): return x + y
+
+# @author:  Shanab
+# @param    step
+# returns the distance value of the provided step
+def get_distance_value(step): return step.distance_value
+
+# @author:  Shanab
+# @param    step
+# returns the duration value of the provided step
+def get_duration_value(step): return step.duration_value
+
+# @author:      Shanab
+# @param steps: a list of steps
+# returns the summation of distance values for the provided list of steps
+def sum_distance_values(steps):
+    return reduce(add, map(get_distance_value, steps))
+
+# @author:      Shanab
+# @param steps: a list of steps
+# returns the summation of duration values for the provided list of steps
+def sum_duration_values(steps):
+    return reduce(add, map(get_duration_value, steps))
