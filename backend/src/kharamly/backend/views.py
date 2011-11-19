@@ -2,17 +2,25 @@ from django.http import HttpResponse
 from kharamly.backend.models import *
 import urllib, json
 
-# For now this will return dummie results, for the frontend to process and visualize
-# Later versions will trigger and use the proper actions defined by others
-def api(request, lng, lat, who):
-    # evaluate()
-    response = {"steps" : 
-            [{"s_lng": 31.25006000000001, "s_lat": 30.065440, "e_lng": 31.256110, "e_lat": 30.099050, "col": 1},
-            {"s_lng": 31.256110, "s_lat": 30.099050, "e_lng": 31.255410, "e_lat": 30.105590, "col": 2},
-            {"s_lng": 31.255410, "s_lat": 30.105590, "e_lng": 31.252130, "e_lat": 30.113050, "col": 3},
-            {"s_lng": 31.252130, "s_lat": 30.113050, "e_lng": 31.243610, "e_lat": 30.12307000000001, "col": 120},
-            {"s_lng": 31.243610, "s_lat": 30.12307000000001, "e_lng": 31.236110, "e_lat": 30.132170, "col": 60}]
-    }
+def api(request, from, to, who):
+    from = from.split(",")
+    to = to.split(",")
+    to_node = get_node(to[0], to[1])
+    from_node = get_node(from[0], from[1])
+    # my_step could be kept tracked of, but what about sending it untracked everytime?
+    result = getalternatives(None, None, to_node, from_node)
+    
+    response  = {"steps": []}
+    for route : result['routes']
+        for leg : route['legs']
+            for step : leg['steps']
+                response['steps'].append({
+                    "s_lat": step.start_location.latitude,
+                    "s_lng": step.start_location.longitude,
+                    "e_lat": step.end_location.latitude,
+                    "e_lng": step.end_location.longitude,
+                    "col": step
+                })
     return HttpResponse(json.dumps(response), mimetype="application/json")
     
 ### FOR TESTING PURPOSES,  ADD A VIEW THAT CALLS YOUR MODEL METHOD

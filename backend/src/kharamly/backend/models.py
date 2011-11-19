@@ -2,10 +2,10 @@ from datetime import datetime
 import urllib, json
 from django.db import models
 import math
-# from decimal import *
 
-# Create your models here.
-# testing git reset --hard
+class Ping_Log(models.Model):
+    pass
+    
 class Node(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
@@ -242,7 +242,6 @@ def getalternatives(legID, myStep, destination):
             current_leg.save()
             current_route.legs.add(current_leg)
             current_route.save()
-            
     return routes 
 
 # Author : Ahmed Abouraya

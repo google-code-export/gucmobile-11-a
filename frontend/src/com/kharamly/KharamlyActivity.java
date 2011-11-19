@@ -143,8 +143,8 @@ public class KharamlyActivity extends MapActivity {
             // Source: http://www.codeproject.com/KB/android/jsonandroidphp.aspx
             HttpClient httpclient = new DefaultHttpClient();
             HttpGet httpget = new HttpGet(API_URL + 
-                                        location.getLongitude() + "/" + 
-                                        location.getLatitude() + "/" + 
+                                        location.getLatitude() + "," + location.getLongitude() + "/" + 
+                                        destination + "/" +
                                         Installation.id(KharamlyActivity.this));
             try {
                 HttpResponse httpresponse = httpclient.execute(httpget);
