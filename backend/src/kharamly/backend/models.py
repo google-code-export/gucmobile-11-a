@@ -1,4 +1,3 @@
-
 from datetime import *
 from django.db import models
 import urllib, json, math
