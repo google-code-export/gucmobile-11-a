@@ -71,9 +71,12 @@ class Route(models.Model):
 def test_method_in_models(num):
     return num * 2
 
-# Author : Moataz Mekki
-# <sensor> & <alternatives> take the value true or false only
-# <origin> & <destination> can be address or long & lat
+# @author: Moataz Mekki
+# takes "from" & "to" locations/addresses, calls Google maps
+# gets the routes required, saves them in the database
+# @param origin: can be address or long & lat
+# @param destination: can be address or long & lat
+# @return: list of routes between the origin & the destination
 
 def getdirections(origin, destination):
     url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=true&alternatives=true'
