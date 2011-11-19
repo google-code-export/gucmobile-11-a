@@ -444,8 +444,6 @@ def blockedRoad(speed):
 def compute_subroutes(leg, step, destination):
     start_node = step.end_location
     end_node = destination
-    print "Start location:\t" + str(start_node)
-    print "End location:\t" + str(end_node)
     legs = list(Leg.objects.filter(steps__start_location = start_node).filter(steps__end_location = end_node))
     # If one of the filtered legs happens to be the input leg, then remove it
     try:
@@ -469,14 +467,14 @@ def compute_subroutes(leg, step, destination):
 def find_and_create_subroute(legs, start_node, end_node):
     result_routes = []
     for leg in legs:
-        steps = leg.steps.all()
+        steps = ordered_steps(leg)
+        print "Steps: " + str(steps)
         i = 0
         for step in steps:
             if step.start_location == start_node:
                 start_index = i
                 break
             i += 1
-        i = 0
         for step in steps[start_index:]:
             if step.end_location == end_node:
                 end_index = i
@@ -486,6 +484,7 @@ def find_and_create_subroute(legs, start_node, end_node):
         print "Start index:\t" + str(start_index)
         print "End index:\t" + str(end_index)
         subroute_steps = steps[start_index:end_index]
+        print "Subroute Steps: " + str(subroute_steps)
         if len(subroute_steps) != len(steps):       # if the subroute length was equal to the route length
                                                     # this means the route doesn't need to be saved
             new_leg =   Leg(duration_value  = sum_duration_values(subroute_steps),
@@ -532,3 +531,20 @@ def sum_distance_values(steps):
 # returns the summation of duration values for the provided list of steps
 def sum_duration_values(steps):
     return reduce(add, map(get_duration_value, steps))
+
+# @author:      Shanab
+# @param leg
+# returns an ordered list of steps where the end node of a step
+# is the start node of the next step
+def ordered_steps(leg):
+    result = []
+    steps = list(leg.steps.all())
+    node = leg.start_location
+    end_node = leg.end_location
+    while True:
+        temp_step = [step for step in steps if step.start_location == node][0]
+        result.append(temp_step)
+        node = temp_step.end_location
+        if node == end_node:
+            break
+    return result
