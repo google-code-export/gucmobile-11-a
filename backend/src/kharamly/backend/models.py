@@ -64,11 +64,10 @@ class Route(models.Model):
         return self.summary
     
     
-#####################################################################
-## BUSINESS LOGIC
-## IN PYTHON, IT IS ADVISED TO KEEP LOGIC IN THE MODELS
-#####################################################################
-#####################################################################
+"""
+    BUSINESS LOGIC
+    IN PYTHON, IT IS ADVISED TO KEEP LOGIC IN THE MODELS
+"""
 
 # Test method in model
 def test_method_in_models(num):
@@ -144,6 +143,10 @@ def getdirections(origin, destination):
         current_route.save()
     return result
 
+"""
+Returns a node from the latitude and longitude given
+@author kamasheto
+"""
 def get_node(latitude, longitude):
     try:
         node = Node.objects.get(longitude=longitude, latitude=latitude)
@@ -303,9 +306,10 @@ def getDistance(current,target):
         lng = current['lng']  / 1E6 - target['lng']  / 1E6;
         return math.sqrt(lat*lat+lng*lng)
         
-# checks if the current road is blocked,if so it updates the database
-# loops over all steps, when the currentStep is reached, checks whether the driver has reached the end of the step or not if yes insert information in database
-# checks for future steps if they're blocked if yes checks for alternatives
+"""
+Modified version of evaluate (look below) optimized for integration
+@author kamasheto
+"""
 def evaluate_route(result, speed, my_step):
     # print result
     routes = result['routes']
@@ -351,17 +355,10 @@ def evaluate_route(result, speed, my_step):
                                                                     end_location = get_node(step['end_location']['latitude'], step['end_location']['longitude'])))
             routes.append(route)
     return routes
-                                # this is our step, now check the logs and report blockages
-                                
-                            
-                            
-                                # if step==currentStep:
-                                # #if current step is not reached check if the user has reached it's end
-                                #         flag=False
-                                #         if getDistance(origin,currentStep['end_location'])<0.0002 :
-                                #                 currentStepHistory = Step_History(step = currentStep,time=datetime.now(),
-                                #                                             speed=(startTime-datetime.now())/currentStep['distance']['value'])
-                                #         currentStepHistory.save()
+
+# checks if the current road is blocked,if so it updates the database
+# loops over all steps, when the currentStep is reached, checks whether the driver has reached the end of the step or not if yes insert information in database
+# checks for future steps if they're blocked if yes checks for alternatives
 def evaluate(origin, destination, result, speed, currentStep, startTime):
 
 	routes = result['routes']
@@ -596,8 +593,10 @@ def ordered_steps(leg):
     return result
 
 
-# @author kamasheto
-# gets step from the given node
+"""
+Gets step from a given node
+@author kamasheto
+"""
 def get_step_from_node(n):
     # lets pretend we can get a step by checking if a node is between its start and end points
     # this obviously has flaws but lets see how it goes from there

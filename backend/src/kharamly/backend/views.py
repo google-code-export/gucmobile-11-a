@@ -4,13 +4,14 @@ from datetime import datetime
 import urllib, json
 
 """
-@author kamasheto
 The API call. This is optimized for frequent calls in the form:
     http://url/to/action/30.091538,31.31633/29.985067,31.43873/10/android_id
     30.091538,31.31633 - from 
     29.994192,31.444588 - to (GUC location)
     10 - speed
     android_id - Installation device ID
+    
+@author kamasheto
 """
 def api(request, orig, dest, speed, who):
     orig = orig.split(",")
