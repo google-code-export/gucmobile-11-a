@@ -1,5 +1,5 @@
 from django.db import models
-from datetime import datetime
+from datetime import datetime,timedelta
 # from decimal import *
 
 # Create your models here.
@@ -244,6 +244,7 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 			#check if speed is 0 insert current step as blocked
 			if blockedRoad(speed):
 				currentStepHistory = Step_History(step = CurrentStep,time=datetime.now(),speed=0)
+								#fix step=currentStep, a database object and JSON object				
 				currentStepHistory.save()
 
 			for step in steps:
@@ -251,9 +252,20 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 				#if current step is not reached check if the user has reached it's end
 					flag=False
 					if getDistance(origin,currentStep['end_location'])<0.0002 :
-						currentStepHistory = Step_History(step = currentStep,time=datetime.now(),
-						                            speed=(startTime-datetime.now())/currentStep['distance']['value'])
-					currentStepHistory.save()
+					#	currentStepHistory = Step_History(step = currentStep,time=datetime.now(),
+						            
+				#fix step=currentStep, a database object and JSON object
+						timeDiff=(startTime-datetime.now())
+						days = timeDiff.days*24*60
+					 	hours = timeDiff.seconds*3600
+					  	minutes = timeDiff.seconds*60
+					  	seconds = timeDiff.seconds
+						spd=(days+hours+minutes+seconds)/currentStep['distance']['value']
+						currentStepHistory = Step_History(step__start_location__latitude=currentStep['start_location']['lat'],
+						step__start_location__longtitude=currentStep['start_location']['lng'],
+						step__end_location__latitude=currentStep['end_location']['lat'],
+						step__end_location__longitude=currentStep['end_location']['lng'],time=datetime.now(),speed=spd)
+						currentStepHistory.save()
 				
 				if flag :
 				#if currentStep is not reached skip
@@ -279,9 +291,10 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 						counter=counter+1
 				if counter>0:
 				#request for alternatives
-					return updateResult(getalternatives(origin, destination))
-		return updateResult(result)
-
+					return True
+					#return updateResult(getalternatives(origin, destination))
+		#return updateResult(result)
+		return False
 # used for testing			 
 def test_evaluate(origin, destination,leg,speed,CurrentStep):
 	steps = leg.steps
