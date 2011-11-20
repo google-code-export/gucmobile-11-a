@@ -66,7 +66,7 @@ class Route(models.Model):
     
 """
     BUSINESS LOGIC
-    IN PYTHON, IT IS ADVISED TO KEEP LOGIC IN THE MODELS
+    IN DJANGO, IT IS ADVISED TO KEEP LOGIC IN THE MODELS
 """
 
 # Test method in model
