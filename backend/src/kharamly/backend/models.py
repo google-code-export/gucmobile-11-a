@@ -628,7 +628,9 @@ def get_device(who):
     return d
     
 def get_color_from_speed(speed):
-    if speed <= 5:
+    if speed == -1:
+        return 0xff0000ff # blue
+    elif speed <= 5:
         return 0xff000000 # black
     elif speed <= 10:
         return 0xffff0000 # red
@@ -637,4 +639,4 @@ def get_color_from_speed(speed):
     elif speed <= 20:
         return 0xffffff00 # yellow
     else:
-        return 0xff0000ff # green
+        return 0xff00ff00 # green
