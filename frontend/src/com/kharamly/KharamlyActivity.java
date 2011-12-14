@@ -26,7 +26,7 @@ public class KharamlyActivity extends MapActivity {
 	MyCustomizedLocationOverlay myLocationOverlay;
 	List<MapRouteOverlay> routeOverlay = new ArrayList<MapRouteOverlay>();
 	
-	private final static String API_URL = "http://kharamly.g-beehive.com/api/";
+	private final static String API_URL = "http://kharamly.alwaysdata.net/api/";
 	private final static int TIMEOUT_MILLISEC = 0;
 	private final static String TAG_NAME = "Kharamly";
 	private String destination = "29.985067,31.43873"; // GUC ;)
