@@ -45,6 +45,10 @@ def api(request, orig, dest, speed, who):
 def test_method_in_views(request, test_value):
     return HttpResponse(test_method_in_models(test_value))
 
+def test_twitter(request, user_name):
+    return HttpResponse(getLoginInfo(user_name))
+
+
 def route_blockage(request, origin, destination):
 	#url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=true&alternatives=true'
 	#result = json.load(urllib.urlopen(url))

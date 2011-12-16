@@ -83,7 +83,7 @@ public class KharamlyActivity extends MapActivity {
 	protected boolean isRouteDisplayed() {
 	    return true;
 	}
-    
+
 	
 	public void toast(String message) {
 	    Log.e(TAG_NAME, message);

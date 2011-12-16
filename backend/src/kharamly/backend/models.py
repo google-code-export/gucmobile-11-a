@@ -13,6 +13,12 @@ class Node(models.Model):
     def __unicode__(self):
         return str(self.id) + ":" + str(self.latitude) + ", " + str(self.longitude)
 
+class User_loginInfo(models.Model):
+    twitterUsername = models.CharField(max_length=200)
+    token = models.CharField(max_length=200)
+    secret = models.CharField(max_length=200)
+
+
 class Step(models.Model):
     html_instructions = models.TextField()
     distance_text = models.CharField(max_length=200)
@@ -257,6 +263,31 @@ def getalternatives(leg, myStep, destination, location):
         response["routes"]+=r             
     return response
 
+
+
+
+
+def getLoginInfo(userName):
+	userInfo = User_loginInfo.objects.filter(twitterUserName=userName)
+ 	ret['token']=userInfo__token
+	ret['secret']=userInfo__secret
+	print json.dumps(ret, skipkeys=True)	
+	return ret
+
+def setLoginInfo(userName,tok,sec):
+	userInfo = User_loginInfo.objects.filter(twitterUserName=userName,token=tok,secret=sec)
+    	userInfo.save()
+              
+#def getNodesAround(lat,lng):
+#	userInfo = User_loginInfo.objects.filter(twitterUserName=userName,token=tok,secret=sec)
+#    	userInfo.save()
+#	node=
+#class Node(models.Model):
+#    latitude = models.FloatField()
+#    longitude = models.FloatField()
+
+ 
+                
 # Author : Ahmed Abouraya
 # takes a JSONObject and updates all steps speeds with the information in the database
 # Logic added to evaluate ^k
