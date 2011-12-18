@@ -267,16 +267,21 @@ def getalternatives(leg, myStep, destination, location):
 
 
 
-def getLoginInfo(userName):
-	userInfo = User_loginInfo.objects.filter(twitterUserName=userName)
- 	ret['token']=userInfo__token
-	ret['secret']=userInfo__secret
-	print json.dumps(ret, skipkeys=True)	
-	return ret
+def getLoginInfo(userName):	
+	userInfo = User_loginInfo.objects.filter(twitterUsername=userName)
+	for s in userInfo.all():
+		return { 'token':s.token, 'secret':s.secret } 
 
-def setLoginInfo(userName,tok,sec):
-	userInfo = User_loginInfo.objects.filter(twitterUserName=userName,token=tok,secret=sec)
+def saveTwitterUserInfo(userName,tok,sec):
+	userInfo = User_loginInfo(twitterUserName=userName,token=tok,secret=sec)
     	userInfo.save()
+ 
+
+def checkUserExists(userName):
+	userInfo = User_loginInfo.objects.filter(twitterUsername=userName)
+	for s in userInfo.all():
+		return True
+	return False
               
 #def getNodesAround(lat,lng):
 #	userInfo = User_loginInfo.objects.filter(twitterUserName=userName,token=tok,secret=sec)
