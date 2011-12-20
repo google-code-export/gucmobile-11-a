@@ -46,6 +46,8 @@ class Ping_Log(models.Model):
     speed = models.FloatField() # in m/s
     who = models.ForeignKey(Device)
     time = models.DateTimeField()
+    number_of_checkins = models.IntegerField()
+    persistence = models.IntegerField()
 
 class Leg(models.Model):
     steps = models.ManyToManyField(Step)
