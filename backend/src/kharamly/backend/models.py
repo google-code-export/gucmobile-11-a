@@ -70,7 +70,13 @@ class Route(models.Model):
 	
     def __unicode__(self):
         return self.summary
-    
+
+
+class Badge(models.Model):
+    devices = models.ManyToManyField(Device)
+    name = models.CharField(max_length=80)
+    value = models.CharField(max_length=80)
+    description = models.CharField(max_length=600)
     
 """
     BUSINESS LOGIC
