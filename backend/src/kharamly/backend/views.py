@@ -18,11 +18,12 @@ def api(request, orig, dest, speed, who):
     dest = dest.split(",")
     from_node = get_node(orig[0], orig[1])
     to_node = get_node(dest[0], dest[1])
+    who = get_device(who)
     # my_step could be kept tracked of, but what about sending it untracked everytime?
     # my_step = None
     my_step = get_step_from_node(from_node)
     if my_step:
-        Ping_Log(step = my_step, speed = speed, who = get_device(who), time = datetime.now()).save()
+        Ping_Log(step = my_step, speed = speed, who, time = datetime.now()).save()
     result = getalternatives(None, my_step, to_node, from_node)
     routes = evaluate_route(result, speed, my_step)
     response  = {"steps": []}
@@ -36,6 +37,7 @@ def api(request, orig, dest, speed, who):
                     "e_lng": step['end_location']['lng'],
                     "col": get_color_from_speed(step['speed']),
                 })
+    badge = speed_badge_handler(who, speed)
     return HttpResponse(json.dumps(response), mimetype="application/json")
     
 ### FOR TESTING PURPOSES,  ADD A VIEW THAT CALLS YOUR MODEL METHOD

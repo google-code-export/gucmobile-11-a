@@ -1,0 +1,25 @@
+[
+  {
+    "model": "backend.device",
+    "pk": 1,
+    "fields": {
+      "installation_id": "123456"
+    }
+  },
+  
+  {
+    "model": "backend.device",
+    "pk": 2,
+    "fields": {
+      "installation_id": "181781"
+    }
+  },
+  
+  {
+    "model": "backend.device",
+    "pk": 3,
+    "fields": {
+      "installation_id": "123987"
+    }
+  }
+]

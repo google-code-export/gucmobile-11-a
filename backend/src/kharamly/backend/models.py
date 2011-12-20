@@ -6,6 +6,16 @@ import urllib, json, math
 class Device(models.Model):
     installation_id = models.CharField(max_length = 64)
     
+    def has_badge(badge):
+        """
+        Return: 
+            True if the user has acquired the badge, False otherwise
+        Arguments:
+            badge: Any badge object
+        Author: Shanab
+        """
+        return badge in self.badge_set.all()
+    
 class Node(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
@@ -82,10 +92,6 @@ class Badge(models.Model):
     BUSINESS LOGIC
     IN DJANGO, IT IS ADVISED TO KEEP LOGIC IN THE MODELS
 """
-
-# Test method in model
-def test_method_in_models(num):
-    return num * 2
 
 # @author: Moataz Mekki
 # takes "from" & "to" locations/addresses, calls Google maps
@@ -684,3 +690,32 @@ def get_color_from_speed(speed):
         return 0xffffff00 # yellow
     else:
         return 0xff00ff00 # green
+        
+def to_kph(speed_in_mps):
+    """Convert from meters per second to kilometers per hour"""
+    return speed_in_mps * 60 * 60 / 1000.0
+    
+################## START OF BADGE HANDLERS ##################
+def speed_badge_handler(who, speed):
+    """
+    Return:
+        a badge if the user reached a speed that acquires this badge,
+        and if he/she hasn't already acquired this badge
+    Arguments:
+        who: Device object
+        speed: The speed of the user in this ping    
+    Author: Shanab
+    """
+    speed = to_kph(speed)
+    badge = None
+    if speed >= 180:
+        badge = Badge.objects.get(name="speedster", value=180)
+    elif speed >= 140:
+        badge = Badge.objects.get(name="speedster", value=140)
+    elif speed >= 100:
+        badge = Badge.objects.get(name="speedster", value=100)
+        
+    if badge and not who.has_badge(badge):
+        who.badge_set.add(badge)
+        
+    return badge
