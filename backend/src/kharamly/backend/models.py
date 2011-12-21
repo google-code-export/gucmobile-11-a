@@ -791,13 +791,16 @@ def badge_handler(who, speed):
     checkin_badge = checkin_badge_handler(who)
     if checkin_badge:
         badges.append(checkin_badge)
+    badger_badge = badger_badge_handler(who)
     return badges
     
 def speed_badge_handler(who, speed):
     """
     Return:
         a badge if the user reached a speed that acquires this badge,
-        and if he/she hasn't already acquired this badge
+        and if he/she hasn't already acquired this badge.
+        Returns None if the user hasn't acquired any speedster badges,
+        or if he acquired one previously.
     Arguments:
         who: Device object
         speed: The speed of the user
@@ -829,8 +832,10 @@ def checkin_badge_values():
 def checkin_badge_handler(who):
     """
     Return:
-        a badge if this is either the first time,
-        or the [50,100,500,1000,...]th time the user uses the application
+        a badge if this is either the first time, or the
+        [50,100,500,1000,...]th time the user uses the application.
+        Returns None if the user hasn't acquired any checkin badges,
+        or if he already acquired it previously.
     Arguments:
         who: Device object
     Author: Shanab
@@ -841,3 +846,17 @@ def checkin_badge_handler(who):
         who.badge_set.add(badge)
     return badge
 
+def badger_badge_handler(who):
+    """
+    Return:
+        The "badger" badge if the user acquired all set of badges
+        (except for the badger badge of course), else returns None.
+    Arguments:
+        who: Device object
+    Author: Shanab
+    """
+    badge = None
+    if who.badge_set.objects.all() == Badge.objects.count() - 1:
+        badge = Badge.objects.get(name="badger")
+        who.badge_set.add(badge)
+    return badge
