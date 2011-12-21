@@ -39,7 +39,6 @@ public abstract class PromptDialog extends AlertDialog.Builder implements OnClic
         dialog.dismiss();
     }
 
-    @Override
     public void onClick(DialogInterface dialog, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
             if (onOkClicked(input.getText().toString())) {

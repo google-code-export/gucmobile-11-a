@@ -264,8 +264,8 @@ def getalternatives(leg, myStep, destination, location):
     for route in routes :
         r = [{"summary" : route.summary, "legs":[]}]
         for leg in route.legs:
-            start_node = Node.objects.get(leg.start_location.id)
-            end_node = Node.objects.get(leg.end_location.id)
+            start_node = Node.objects.get(id=leg.start_location.id)
+            end_node = Node.objects.get(id=leg.end_location.id)
             l = [{"distance" : {"text":leg.distance_text, 
                                "value": leg.distance_value}, 
                  "end_address": leg.end_address,
@@ -277,8 +277,8 @@ def getalternatives(leg, myStep, destination, location):
                  "steps" : []
                  }]
             for step in leg.steps:
-                start_node2 = Node.objects.get(step.start_location.id)
-                end_node2 = Node.objects.get(step.end_location.id)
+                start_node2 = Node.objects.get(id=step.start_location.id)
+                end_node2 = Node.objects.get(id=step.end_location.id)
                 s = [{"distance" : {"text": step.distance_text,
                                    "value": step.distance_value},
                      "duration" : {"text": step.duration_text,
@@ -296,11 +296,11 @@ def getalternatives(leg, myStep, destination, location):
 
 
 
-
 def getLoginInfo(userName):	
 	userInfo = User_loginInfo.objects.filter(twitterUsername=userName)
 	for s in userInfo.all():
 		return { 'token':s.token, 'secret':s.secret } 
+
 
 def saveTwitterUserInfo(userName,tok,sec):
 	userInfo = User_loginInfo(twitterUserName=userName,token=tok,secret=sec)
@@ -445,8 +445,8 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 
 			flag=True
 			#check if speed is 0 insert current step as blocked
-			if blockedRoad(speed):
-				currentStepHistory = Step_History(step = CurrentStep,time=datetime.now(),speed=0)
+			if blocked_road(speed):
+				currentStepHistory = Step_History(step = currentStep,time=datetime.now(),speed=0)
 								#fix step=currentStep, a database object and JSON object				
 				currentStepHistory.save()
 
@@ -493,7 +493,7 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 
                         flag=True
                         #check if speed is 0 insert current step as blocked
-                        if blockedRoad(speed):
+                        if blocked_road(speed):
                                 currentStepHistory = Step_History(step = currentStep,time=datetime.now(),speed=0)
                                 currentStepHistory.save()
 
@@ -526,7 +526,7 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 				                                        step__end_location__longitude=current_end_location['lng'])[:5]
 				counter=0
 				for s in stepHistoryLists.all():
-					if blockedRoad(s.speed):
+					if blocked_road(s.speed):
 						counter=counter+1
 				if counter>0:
 				#request for alternatives
@@ -706,6 +706,48 @@ def get_color_from_speed(speed):
         return 0xffffff00 # yellow
     else:
         return 0xff00ff00 # green
+
+
+""""
+This Method checks if a step is blocked according to speed
+@param step: the object step to be checked
+@return: Boolean indicating if the step is blocked or not
+@author Monayri
+"""
+def ifStepBlocked(step):
+    speed = get_step_speed(step)
+    if speed == -1 :
+        return False 
+    else:
+        if speed <= 5:
+            return True
+        else:
+            return True
+
+""""
+This Method gets the steps of a route
+@param route: the route object that its steps are needed
+@return: a list of steps
+@author Monayri
+"""  
+def getRouteSteps(route):
+    myLeg = route.legs[0]
+    steps = myLeg.steps
+    return steps      
+
+
+""""
+This Method checks if a route is blocked according to speed
+@param step: the route object to be checked
+@return: Boolean indicating if the route is blocked or not
+@author Monayri
+"""
+def ifRouteBlocked(route):
+    steps = getRouteSteps(route)
+    for step in steps:
+        if ifStepBlocked(step):
+            return True
+
         
 def to_kph(speed_in_mps):
     """Convert from meters per second to kilometers per hour"""
@@ -777,3 +819,4 @@ def checkin_badge_handler(who):
         badge = Badge.objects.get(name="checkin",value=who.number_of_checkins)
         who.badge_set.add(badge)
     return badge
+
