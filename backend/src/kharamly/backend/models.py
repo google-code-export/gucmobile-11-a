@@ -7,7 +7,7 @@ class Device(models.Model):
     installation_id = models.CharField(max_length = 64)
     number_of_checkins = models.IntegerField(default=0)
     
-    def has_badge(badge):
+    def has_badge(self, badge):
         """
         Return: 
             True if the user has acquired the badge, False otherwise
