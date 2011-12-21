@@ -206,13 +206,18 @@ public class KharamlyActivity extends MapActivity {
                                         destination + "/" +
                                         location.getSpeed() + "/" +
                                         Installation.id(KharamlyActivity.this));
+            
+            
+            String x = API_URL + 
+            location.getLatitude() + "," + location.getLongitude() + "/" + 
+            destination + "/" +
+            location.getSpeed() + "/" +
+            Installation.id(KharamlyActivity.this);
             try {
                 HttpResponse httpresponse = httpclient.execute(httpget);
                 String responseBody = convertStreamToString(httpresponse.getEntity().getContent());
-                
                 JSONObject json = new JSONObject(responseBody);
                 JSONArray jArray = json.getJSONArray("steps");
-                
                 ArrayList<HashMap<String, Integer>> mylist = new ArrayList<HashMap<String, Integer>>();
 
                 for (int i = 0; i < jArray.length(); i++) {
@@ -237,12 +242,13 @@ public class KharamlyActivity extends MapActivity {
                     
                     if (center == null) {
                         center = start;
+                       
                     }
                     
                     overlays.add(new MapRouteOverlay(start, end, step.get("col")));
                 }
                 
-                mapView.invalidate();                
+                mapView.invalidate();       
     		    mapController.animateTo(center);
                 
             } catch (Exception e) {
@@ -276,4 +282,5 @@ public class KharamlyActivity extends MapActivity {
             super.draw(canvas, mapView, shadow);
         }
 	}
+	
 }
