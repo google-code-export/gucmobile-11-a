@@ -24,6 +24,8 @@ def api(request, orig, dest, speed, who):
     my_step = get_step_from_node(from_node)
     if my_step:
         Ping_Log(step = my_step, speed = speed, who, time = datetime.now()).save()
+        who.increment_checkins()
+        
     result = getalternatives(None, my_step, to_node, from_node)
     routes = evaluate_route(result, speed, my_step)
     response  = {"steps": []}

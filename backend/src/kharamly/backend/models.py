@@ -16,6 +16,23 @@ class Device(models.Model):
         Author: Shanab
         """
         return badge in self.badge_set.all()
+        
+    def increment_checkins(self):
+        """
+        Return:
+            pass
+        Effect:
+            Increments the number of checkins if the difference between
+            the latest ping and the one before it is more than 1 hour
+        Author: Shanab
+        """
+        last_two_pings = Ping_Log.objects.filter(who=self).reverse()[:2]
+        # the if statement checks if this is the user's first ping, or if
+        # the difference between the latest 2 pings is more than one hour
+        if len(last_two_pings) < 2 or last_two_pings[0].time - last_two_pings[1].time >= timedelta(hours=1):
+            self.number_of_checkins += 1
+            self.save()
+        pass
     
     def __unicode__(self):
         return str(self.installation_id)
@@ -44,6 +61,7 @@ class Step(models.Model):
 
     def __unicode__(self):
         return str(self.start_location.id) + ", " + str(self.end_location.id)
+        
     class Meta:
         ordering = ["id"]
 
@@ -61,6 +79,9 @@ class Ping_Log(models.Model):
     who = models.ForeignKey(Device)
     time = models.DateTimeField()
     persistence = models.IntegerField()
+    
+    def __unicode__(self):
+        return str(self.time)
     
     class Meta:
         ordering = ["time"]
