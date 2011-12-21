@@ -18,11 +18,12 @@ def api(request, orig, dest, speed, who):
     dest = dest.split(",")
     from_node = get_node(orig[0], orig[1])
     to_node = get_node(dest[0], dest[1])
+    who = get_device(who)
     # my_step could be kept tracked of, but what about sending it untracked everytime?
     # my_step = None
     my_step = get_step_from_node(from_node)
     if my_step:
-        Ping_Log(step = my_step, speed = speed, who = get_device(who), time = datetime.now()).save()
+        Ping_Log(step = my_step, speed = speed, who, time = datetime.now()).save()
     result = getalternatives(None, my_step, to_node, from_node)
     routes = evaluate_route(result, speed, my_step)
     response  = {"steps": []}
@@ -36,6 +37,9 @@ def api(request, orig, dest, speed, who):
                     "e_lng": step['end_location']['lng'],
                     "col": get_color_from_speed(step['speed']),
                 })
+                
+    badges = badge_handler(who, speed)
+    
     return HttpResponse(json.dumps(response), mimetype="application/json")
 
 
@@ -64,9 +68,18 @@ def update(stepId, routeId, speed, who):
 def test_method_in_views(request, test_value):
     return HttpResponse(test_method_in_models(test_value))
 
-def test_twitter(request, user_name):
-    return HttpResponse(getLoginInfo(user_name))
 
+def getTwitterLoginInfo(request, user_name):
+    print user_name
+    return HttpResponse(json.dumps(getLoginInfo(user_name)))
+
+def checkUserExists(request, user_name):
+    print user_name
+    return HttpResponse(saveTwitterUserInfo(user_name,token,secret))
+
+def saveTwitterUserInfo(request, user_name,token,secret):
+    print user_name
+    return HttpResponse(saveTwitterUserInfo(user_name,token,secret))
 
 def route_blockage(request, origin, destination):
 	#url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=true&alternatives=true'

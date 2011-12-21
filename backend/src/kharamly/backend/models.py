@@ -5,6 +5,20 @@ import urllib, json, math
 # A entity of users, for later usage
 class Device(models.Model):
     installation_id = models.CharField(max_length = 64)
+    number_of_checkins = models.IntegerField(default=0)
+    
+    def has_badge(badge):
+        """
+        Return: 
+            True if the user has acquired the badge, False otherwise
+        Arguments:
+            badge: Any badge object
+        Author: Shanab
+        """
+        return badge in self.badge_set.all()
+    
+    def __unicode__(self):
+        return str(self.installation_id)
     
 class Node(models.Model):
     latitude = models.FloatField()
@@ -46,6 +60,10 @@ class Ping_Log(models.Model):
     speed = models.FloatField() # in m/s
     who = models.ForeignKey(Device)
     time = models.DateTimeField()
+    persistence = models.IntegerField()
+    
+    class Meta:
+        ordering = ["time"]
 
 class Leg(models.Model):
     steps = models.ManyToManyField(Step)
@@ -68,16 +86,28 @@ class Route(models.Model):
 	
     def __unicode__(self):
         return self.summary
+
+
+class Badge(models.Model):
+    devices = models.ManyToManyField(Device)
+    name = models.CharField(max_length=80)
+    value = models.CharField(max_length=80)
+    description = models.CharField(max_length=600)
+    
+    def __unicode__(self):
+        string = str(self.name)
+        if self.value:
+            string += ", " + str(self.value)
+        return string
+        
+    class Meta:
+        ordering = ["id"]
     
     
 """
     BUSINESS LOGIC
     IN DJANGO, IT IS ADVISED TO KEEP LOGIC IN THE MODELS
 """
-
-# Test method in model
-def test_method_in_models(num):
-    return num * 2
 
 # @author: Moataz Mekki
 # takes "from" & "to" locations/addresses, calls Google maps
@@ -265,18 +295,23 @@ def getalternatives(leg, myStep, destination, location):
 
 
 
-# Commented By MONAYRI for ERRORS
 
-#def getLoginInfo(userName):
-#    userInfo = User_loginInfo.objects.filter(twitterUserName=userName)
-#    ret['token']=userInfo__token
-#    ret['secret']=userInfo__secret
-#    print json.dumps(ret, skipkeys=True)	
-#    return ret
+def getLoginInfo(userName):	
+	userInfo = User_loginInfo.objects.filter(twitterUsername=userName)
+	for s in userInfo.all():
+		return { 'token':s.token, 'secret':s.secret } 
 
-def setLoginInfo(userName,tok,sec):
-	userInfo = User_loginInfo.objects.filter(twitterUserName=userName,token=tok,secret=sec)
+
+def saveTwitterUserInfo(userName,tok,sec):
+	userInfo = User_loginInfo(twitterUserName=userName,token=tok,secret=sec)
     	userInfo.save()
+ 
+
+def checkUserExists(userName):
+	userInfo = User_loginInfo.objects.filter(twitterUsername=userName)
+	for s in userInfo.all():
+		return True
+	return False
               
 #def getNodesAround(lat,lng):
 #	userInfo = User_loginInfo.objects.filter(twitterUserName=userName,token=tok,secret=sec)
@@ -712,3 +747,76 @@ def ifRouteBlocked(route):
     for step in steps:
         if ifStepBlocked(step):
             return True
+
+        
+def to_kph(speed_in_mps):
+    """Convert from meters per second to kilometers per hour"""
+    return speed_in_mps * 60 * 60 / 1000.0
+    
+################## START OF BADGE HANDLERS ##################
+def badge_handler(who, speed):
+    """
+    Return:
+        a list of badges that the user has acquired
+    Arguments:
+        who: Device object
+        speed: The speed of the user
+    Author: Shanab
+    """
+    badges = []
+    speed_badge = speed_badge_handler(who, speed)
+    if speed_badge:
+        badges.append(speed_badge)
+    checkin_badge = checkin_badge_handler(who)
+    if checkin_badge:
+        badges.append(checkin_badge)
+    return badges
+    
+def speed_badge_handler(who, speed):
+    """
+    Return:
+        a badge if the user reached a speed that acquires this badge,
+        and if he/she hasn't already acquired this badge
+    Arguments:
+        who: Device object
+        speed: The speed of the user
+    Author: Shanab
+    """
+    speed = to_kph(speed)
+    badge = None
+    if speed >= 180:
+        badge = Badge.objects.get(name="speedster", value=180)
+    elif speed >= 140:
+        badge = Badge.objects.get(name="speedster", value=140)
+    elif speed >= 100:
+        badge = Badge.objects.get(name="speedster", value=100)
+        
+    if badge and not who.has_badge(badge):
+        who.badge_set.add(badge)
+        
+    return badge
+    
+def checkin_badge_values():
+    """
+    Return:
+        a list of integers where each number represents
+        the number of checkins that the user must get
+        in order to acquire a "checkin" badge.
+    """
+    return map(lambda x:int(x.value), Badge.objects.filter(name="checkin"))
+    
+def checkin_badge_handler(who):
+    """
+    Return:
+        a badge if this is either the first time,
+        or the [50,100,500,1000,...]th time the user uses the application
+    Arguments:
+        who: Device object
+    Author: Shanab
+    """
+    badge = None
+    if who.number_of_checkins in checkin_badge_values():
+        badge = Badge.objects.get(name="checkin",value=who.number_of_checkins)
+        who.badge_set.add(badge)
+    return badge
+
