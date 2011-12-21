@@ -5,6 +5,7 @@ import urllib, json, math
 # A entity of users, for later usage
 class Device(models.Model):
     installation_id = models.CharField(max_length = 64)
+    number_of_checkins = models.IntegerField(default=0)
     
     def has_badge(badge):
         """
@@ -15,6 +16,9 @@ class Device(models.Model):
         Author: Shanab
         """
         return badge in self.badge_set.all()
+    
+    def __unicode__(self):
+        return str(self.installation_id)
     
 class Node(models.Model):
     latitude = models.FloatField()
@@ -56,8 +60,10 @@ class Ping_Log(models.Model):
     speed = models.FloatField() # in m/s
     who = models.ForeignKey(Device)
     time = models.DateTimeField()
-    number_of_checkins = models.IntegerField()
     persistence = models.IntegerField()
+    
+    class Meta:
+        ordering = ["time"]
 
 class Leg(models.Model):
     steps = models.ManyToManyField(Step)
@@ -87,6 +93,16 @@ class Badge(models.Model):
     name = models.CharField(max_length=80)
     value = models.CharField(max_length=80)
     description = models.CharField(max_length=600)
+    
+    def __unicode__(self):
+        string = str(self.name)
+        if self.value:
+            string += ", " + str(self.value)
+        return string
+        
+    class Meta:
+        ordering = ["id"]
+    
     
 """
     BUSINESS LOGIC
@@ -696,6 +712,24 @@ def to_kph(speed_in_mps):
     return speed_in_mps * 60 * 60 / 1000.0
     
 ################## START OF BADGE HANDLERS ##################
+def badge_handler(who, speed):
+    """
+    Return:
+        a list of badges that the user has acquired
+    Arguments:
+        who: Device object
+        speed: The speed of the user
+    Author: Shanab
+    """
+    badges = []
+    speed_badge = speed_badge_handler(who, speed)
+    if speed_badge:
+        badges.append(speed_badge)
+    checkin_badge = checkin_badge_handler(who)
+    if checkin_badge:
+        badges.append(checkin_badge)
+    return badges
+    
 def speed_badge_handler(who, speed):
     """
     Return:
@@ -703,7 +737,7 @@ def speed_badge_handler(who, speed):
         and if he/she hasn't already acquired this badge
     Arguments:
         who: Device object
-        speed: The speed of the user in this ping    
+        speed: The speed of the user
     Author: Shanab
     """
     speed = to_kph(speed)
@@ -718,4 +752,28 @@ def speed_badge_handler(who, speed):
     if badge and not who.has_badge(badge):
         who.badge_set.add(badge)
         
+    return badge
+    
+def checkin_badge_values():
+    """
+    Return:
+        a list of integers where each number represents
+        the number of checkins that the user must get
+        in order to acquire a "checkin" badge.
+    """
+    return map(lambda x:int(x.value), Badge.objects.filter(name="checkin"))
+    
+def checkin_badge_handler(who):
+    """
+    Return:
+        a badge if this is either the first time,
+        or the [50,100,500,1000,...]th time the user uses the application
+    Arguments:
+        who: Device object
+    Author: Shanab
+    """
+    badge = None
+    if who.number_of_checkins in checkin_badge_values():
+        badge = Badge.objects.get(name="checkin",value=who.number_of_checkins)
+        who.badge_set.add(badge)
     return badge

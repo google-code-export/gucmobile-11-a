@@ -37,7 +37,9 @@ def api(request, orig, dest, speed, who):
                     "e_lng": step['end_location']['lng'],
                     "col": get_color_from_speed(step['speed']),
                 })
-    badge = speed_badge_handler(who, speed)
+                
+    badges = badge_handler(who, speed)
+    
     return HttpResponse(json.dumps(response), mimetype="application/json")
     
 ### FOR TESTING PURPOSES,  ADD A VIEW THAT CALLS YOUR MODEL METHOD
