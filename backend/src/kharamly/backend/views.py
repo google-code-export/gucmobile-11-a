@@ -37,6 +37,25 @@ def api(request, orig, dest, speed, who):
                     "col": get_color_from_speed(step['speed']),
                 })
     return HttpResponse(json.dumps(response), mimetype="application/json")
+
+
+
+"""
+A Method that handle the pings coming from the device updating the info of the road taken by the user
+    
+@author Monayri
+"""
+
+def update(stepId, routeId, speed, who):
+    myStep = Step.objects.get(pk=stepId)
+    myRoute = Route.objects.get(pk=routeId)
+    if myStep:
+        Ping_Log(step = myStep, speed = speed, who = get_device(who), time = datetime.now()).save()
+    
+    #Here i will check if the route is going to be blocked 
+    
+    #If yes i will search for another route
+    #if no then i will send an empty response
     
 ### FOR TESTING PURPOSES,  ADD A VIEW THAT CALLS YOUR MODEL METHOD
 ##################################################################
