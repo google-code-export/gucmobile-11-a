@@ -768,11 +768,6 @@ def ifRouteBlocked(route):
     for step in steps:
         if ifStepBlocked(step):
             return True
-
-        
-def to_kph(speed_in_mps):
-    """Convert from meters per second to kilometers per hour"""
-    return speed_in_mps * 60 * 60 / 1000.0
     
 ################## START OF BADGE HANDLERS ##################
 def badge_handler(who, speed):
@@ -793,6 +788,7 @@ def badge_handler(who, speed):
         badges.append(checkin_badge)
     badger_badge = badger_badge_handler(who)
     return badges
+    
     
 def speed_badge_handler(who, speed):
     """
@@ -820,14 +816,6 @@ def speed_badge_handler(who, speed):
         
     return badge
     
-def checkin_badge_values():
-    """
-    Return:
-        a list of integers where each number represents
-        the number of checkins that the user must get
-        in order to acquire a "checkin" badge.
-    """
-    return map(lambda x:int(x.value), Badge.objects.filter(name="checkin"))
     
 def checkin_badge_handler(who):
     """
@@ -846,6 +834,7 @@ def checkin_badge_handler(who):
         who.badge_set.add(badge)
     return badge
 
+
 def badger_badge_handler(who):
     """
     Return:
@@ -860,3 +849,93 @@ def badger_badge_handler(who):
         badge = Badge.objects.get(name="badger")
         who.badge_set.add(badge)
     return badge
+    
+    
+# def adventurer_badge_handler(who):
+#     """
+#     Return:
+#         Adventurer badge if the user used the application for
+#         10 days in a month, or None
+#     Arguments:
+#         who: Device object
+#     Author: Shanab
+#     """
+#     badge = None
+#     
+#     return badge
+    
+    
+def time_badge_handler(who):
+    """
+    Return:
+        Either one of [Adventurer, Addict, Fanboy, Super User] badges
+        if the user used the application for [10 days in a month,
+        10 consecutive days, 30 consecutive days, 60 consecutive days] respectively.
+        None otherwise or if the user already acquired the badge before.
+    Arguments:
+        who: Device object
+    Author: Shanab
+    """
+    badge = None
+    adventurer_badge = Badge.objects.get(name="adventurer")
+    addict_badge = Badge.objects.get(name="addict")
+    fanboy_badge = Badge.objects.get(name="fanboy")
+    super_user_badge = Badge.objects.get(name="super-user")
+    usage_dates = Ping_Log.objects.filter(who=who).dates('time', 'day').reverse()
+    badges = who.badge_set.all()
+    # For the user to acquire any of the listed badges
+    # He has to have used the application for more than 10 days
+    if len(usage_dates) >= 10:
+        if not adventurer_badge in badges:
+            end_date = usage_dates[0] - timedelta(days=30)
+            usage_dates_in_past_30_days = filter(lambda i: i >= end_date, usage_dates)
+            if len(usage_dates_in_past_30_days) == 10:
+                who.badge_set.add(adventurer_badge)
+                return adventurer_badge
+        elif not addict_badge in badges:
+            badge = consecutive_time_badge_handler(who, addict_badge, 10, usage_dates)
+        elif not fanboy_badge in badges:
+            badge = consecutive_time_badge_handler(who, fanboy_badge, 30, usage_dates)
+        elif not super_user_badge in badges:
+            badge = consecutive_time_badge_handler(who, super_user_badge, 60, usage_dates)
+    return badge
+
+################### Badge Helpers ################
+def to_kph(speed_in_mps):
+    """Convert from meters per second to kilometers per hour"""
+    return speed_in_mps * 60 * 60 / 1000.0
+    
+    
+def checkin_badge_values():
+    """
+    Return:
+        a list of integers where each number represents
+        the number of checkins that the user must get
+        in order to acquire a "checkin" badge.
+    Author: Shanab
+    """
+    return map(lambda x:int(x.value), Badge.objects.filter(name="checkin"))
+
+def consecutive_time_badge_handler(who, badge, consecutive_days, usage_dates):
+    """
+    Return: Input badge if the user used the application for {consecutive_days} consecutive days,
+            None otherwise
+    Arguments:
+        who: Device object
+        badge: Badge object
+        consecutive_days: Number of consecutive days that the user must've
+                          used the application in order to acquire the input badge
+        usage_dates: An array containing the dates of days that the user used the application in
+    Effect:
+        Creates a relation between the user "who" and the badge "badge"
+        if the user acquired this badge
+    Author: Shanab
+    """
+    end_date = usage_dates[0] - timedelta(consecutive_days)
+    filtered_usage_dates = filter(lambda i: i >= end_date, usage_dates)
+    if len(filtered_usage_dates) == consecutive_days:
+        who.badge_set.add(badge)
+        return badge
+    else:
+        return None
+################### END OF BADGE HANDLERS ###################
