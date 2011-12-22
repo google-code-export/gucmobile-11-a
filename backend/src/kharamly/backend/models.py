@@ -78,7 +78,7 @@ class Ping_Log(models.Model):
     speed = models.FloatField() # in m/s
     who = models.ForeignKey(Device)
     time = models.DateTimeField()
-    persistence = models.IntegerField()
+    persistence = models.IntegerField(default=1)
     
     def __unicode__(self):
         return str(self.time)
@@ -786,7 +786,12 @@ def badge_handler(who, speed):
     checkin_badge = checkin_badge_handler(who)
     if checkin_badge:
         badges.append(checkin_badge)
+    time_badge = time_badge_handler(who)
+    if time_badge:
+        badges.append(time_badge)
     badger_badge = badger_badge_handler(who)
+    if badger_badge:
+        badges.append(badger_badge)
     return badges
     
     
@@ -850,28 +855,14 @@ def badger_badge_handler(who):
         who.badge_set.add(badge)
     return badge
     
-    
-# def adventurer_badge_handler(who):
-#     """
-#     Return:
-#         Adventurer badge if the user used the application for
-#         10 days in a month, or None
-#     Arguments:
-#         who: Device object
-#     Author: Shanab
-#     """
-#     badge = None
-#     
-#     return badge
-    
-    
+        
 def time_badge_handler(who):
     """
     Return:
         Either one of [Adventurer, Addict, Fanboy, Super User] badges
         if the user used the application for [10 days in a month,
-        10 consecutive days, 30 consecutive days, 60 consecutive days] respectively.
-        None otherwise or if the user already acquired the badge before.
+        10 consecutive days, 30 consecutive days, 60 consecutive days] respectively;
+        Or None otherwise or if the user already acquired the badge previously.
     Arguments:
         who: Device object
     Author: Shanab
@@ -898,6 +889,22 @@ def time_badge_handler(who):
             badge = consecutive_time_badge_handler(who, fanboy_badge, 30, usage_dates)
         elif not super_user_badge in badges:
             badge = consecutive_time_badge_handler(who, super_user_badge, 60, usage_dates)
+    return badge
+    
+
+def persistent_time_badge_handler(who):
+    """
+    Return:
+        Either one of [Road Warrior, Wheel Junkie] badges
+        if the user was reported using the application continuously
+        for [3, 5] hours respectively; Or None otherwise or if the
+        user acquired this badge previously.
+    Arguments:
+        who: Device object
+    Author: Shanab
+    """
+    badge = None
+    
     return badge
 
 ################### Badge Helpers ################
