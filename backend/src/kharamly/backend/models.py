@@ -792,6 +792,12 @@ def badge_handler(who, speed):
     badger_badge = badger_badge_handler(who)
     if badger_badge:
         badges.append(badger_badge)
+    persistent_time_badge = persistent_time_badge_handler(who)
+    if persistent_time_badge_handler:
+        badges.append(persistent_time_badge)
+    persistent_time_and_speed_badge = persistent_time_and_speed_badge_handler(who, speed)
+    if persistent_time_and_speed_badge_handler:
+        badges.append(persistent_time_and_speed_badge_handler)
     return badges
     
     
@@ -804,7 +810,7 @@ def speed_badge_handler(who, speed):
         or if he acquired one previously.
     Arguments:
         who: Device object
-        speed: The speed of the user
+        speed: The speed of the user in mps
     Author: Shanab
     """
     speed = to_kph(speed)
@@ -906,15 +912,54 @@ def persistent_time_badge_handler(who):
     badge = None
     if len(Ping_Log.objects.filter(who=who)) >= 2:
         last_ping = Ping_Log.objects.filter(who=who).reverse()[0]
-        usage = Ping_Log.objects.filter(who=who, persistence=last_ping.persistence)
-        start_time_of_trip = usage[0].time
-        end_time_of_trip = usage.reverse()[0].time
+        trip = Ping_Log.objects.filter(who=who, persistence=last_ping.persistence)
+        start_time_of_trip = trip[0].time
+        end_time_of_trip = trip.reverse()[0].time
         if end_time_of_trip - start_time_of_trip >= timedelta(hours=3):
             badge = Badge.objects.get(name="road-warrior")
             who.badge_set.add(badge)
         elif end_time_of_trip - start_time_of_trip >= timedelta(hours=5):
             badge = Badge.objects.get(name="wheel-junkie")
             who.badge_set.add(badge)
+    return badge
+
+
+def persistent_time_and_speed_badge_handler(who, speed):
+    """
+    Return:
+        Either one of [Turtle Speed, Grandma, Snail Like]
+        badges if the user was reported driving at an average speed
+        <= [10, 5, 2] kph respectively for +30 minutes;
+        Or Lunatic badge if the user was reported driving at
+        an average speed >= 140 kph for +20 minutes;
+        Or Wacko badge if the user was reported driving at
+        an average speed >= 180 for +10 minutes;
+        Or None otherwise or if the user acquired this badge previously
+    Arguments:
+        who: Device object
+        speed: The speed of the user in mps
+    Author: Shanab
+    """
+    badge = None
+    if len(Ping_Log.objects.filter(who=who)) >= 2:
+        last_ping = Ping_Log.objects.filter(who=who).reverse()[0]
+        trip = Ping_Log.objects.filter(who=who, persistence=last_ping.persistence)
+        start_time_of_trip = trip[0].time
+        end_time_of_trip = trip.reverse()[0].time
+        average_trip_speed = to_kph(sum(trip.values_list('speed', flat=True)) / len(trip))
+        if average_trip_speed >= 180 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=10):
+            badge = Badge.objects.get(name="wacko")
+        elif average_trip_speed >= 140 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
+            badge = Badge.objects.get(name="lunatic")
+        elif average_trip_speed <= 10 and average_trip_speed >= 5 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
+            badge = Badge.objects.get(name="turtle-speed")
+        elif average_trip_speed <= 5 and average_trip_speed >= 2 end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
+            badge = Badge.objects.get(name="grandma")
+        elif average_trip_speed <= 2 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
+            badge = Badge.objects.get(name="snail-like")
+
+    if badge:
+        who.badge_set.add(badge)
     return badge
 
 ################### Badge Helpers ################
