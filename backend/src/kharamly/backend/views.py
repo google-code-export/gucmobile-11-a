@@ -32,7 +32,7 @@ def api(request, orig, dest, speed, who):
                 persistence = pings[0]
         else:
             persistence = 1
-        Ping_Log(step=my_step, speed=speed, who, time=datetime.now(), persistence=persistence).save()
+        Ping_Log(step=my_step, speed=speed, who=who, time=datetime.now(), persistence=persistence).save()
         who.increment_checkins()
         
     result = getalternatives(None, my_step, to_node, from_node)
