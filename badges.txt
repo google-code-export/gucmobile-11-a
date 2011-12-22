@@ -38,11 +38,11 @@ Badges:
     
   - Requires speed + persistent time:
     - Badges:
-      * Turtle speed: Moved on a speed < 10 km/hr && > 5 km/h for > 30 minutes.
-      * Grandma: Moved on a speed < 5 km/h && > 2 km/h for > 30 minutes.
-      * Snail like: Moved on a speed < 2 km/h for > 30 minutes.
-      * Lunatic: Moved on a speed > 140 km/hr && < 180 km/h for > 20 minutes.
-      * Wacko: Moved on a speed > 180 km/hr > 10 minutes.
+      * Turtle speed: Moved on an average speed < 10 km/hr && > 5 km/h for > 30 minutes.
+      * Grandma: Moved on an average speed < 5 km/h && > 2 km/h for > 30 minutes.
+      * Snail like: Moved on an average speed < 2 km/h for > 30 minutes.
+      * Lunatic: Moved on an average speed > 140 km/hr && < 180 km/h for > 20 minutes.
+      * Wacko: Moved on an average speed > 180 km/hr > 10 minutes.
     - Implementation: (duration, speed)
       Check the duration of the *first* ping that has the *last* persistence number in ping_log table. Map the speeds of all the pings, and do a simultaneous check on all of them.
     
