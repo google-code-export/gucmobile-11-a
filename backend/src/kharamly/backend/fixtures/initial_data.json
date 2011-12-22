@@ -185,29 +185,5 @@
       "name": "badger",
       "description": "Acquired when the user acquires all badges"
     }
-  },
-  
-  {
-    "model": "backend.device",
-    "pk": 1,
-    "fields": {
-      "installation_id": "1"
-    }
-  },
-  
-  {
-    "model": "backend.device",
-    "pk": 2,
-    "fields": {
-      "installation_id": "2"
-    }
-  },
-  
-  {
-    "model": "backend.device",
-    "pk": 3,
-    "fields": {
-      "installation_id": "3"
-    }
   }
 ]
