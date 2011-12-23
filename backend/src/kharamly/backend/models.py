@@ -212,6 +212,7 @@ def get_node(latitude, longitude):
         node.save()
     return node
 
+
 def get_step(html, duration_text, duration_value,
              distance_text,distance_value, start_node,end_node):
     try:
@@ -315,35 +316,32 @@ def getalternatives(leg, myStep, destination, location):
     return response
 
 
+# Author : Ahmed Abouraya
+# takes longitude and latitude of a certain place, and returns all steps around this place in radius radius
+def get_steps_around(lng, lat,radius):
+	steps=Step.objects.all()
+	L = list() # empty list
+	for s in steps:
+		if math.sqrt(pow(abs(s.start_location.longitude-lng),2)+pow(abs(s.start_location.latitude-lat),2))<radius:
+			stepHistoryList = Step_History.objects.filter(step__start_location__latitude=s.start_location.latitude,
+                                                    step__start_location__longitude=s.start_location.longitude,
+                                                    step__end_location__latitude=s.end_location.latitude,
+                                                    step__end_location__longitude=s.end_location.longitude)[:5]
+                	counter=0
+                        avgSpeed=0
+                        for a in stepHistoryList.all():
+                                counter=counter+1
+                                avgSpeed=avgSpeed+a.speed
+                        if counter==0:
+                               avgSpeed=-1
+                        else:                           
+                                avgSpeed=avgSpeed/counter
+			L.append     ({'start_location_longitude':s.start_location.longitude,'start_location_latitude':s.start_location.latitude,'end_location_longitude':s.end_location.longitude
+,'end_location_latitude':s.end_location.latitude,'avg_speed':avgSpeed
+})
 
-
-def getLoginInfo(userName):	
-	userInfo = User_loginInfo.objects.filter(twitterUsername=userName)
-	for s in userInfo.all():
-		return { 'token':s.token, 'secret':s.secret } 
-
-
-def saveTwitterUserInfo(userName,tok,sec):
-	userInfo = User_loginInfo(twitterUserName=userName,token=tok,secret=sec)
-    	userInfo.save()
- 
-
-def checkUserExists(userName):
-	userInfo = User_loginInfo.objects.filter(twitterUsername=userName)
-	for s in userInfo.all():
-		return True
-	return False
-              
-#def getNodesAround(lat,lng):
-#	userInfo = User_loginInfo.objects.filter(twitterUserName=userName,token=tok,secret=sec)
-#    	userInfo.save()
-#	node=
-#class Node(models.Model):
-#    latitude = models.FloatField()
-#    longitude = models.FloatField()
-
- 
-                
+	return 	json.dumps(L)
+             
 # Author : Ahmed Abouraya
 # takes a JSONObject and updates all steps speeds with the information in the database
 # Logic added to evaluate ^k
@@ -386,13 +384,14 @@ def updateResult(result):
                                         avgSpeed=avgSpeed/counter
                                         step['speed']=avgSpeed
         return result
-
+# Ahmed Abouraya
 # calculates distance between two nodes
 def getDistance(current,target):
         lat = current['lat'] / 1E6 - target['lat']  / 1E6;
         lng = current['lng']  / 1E6 - target['lng']  / 1E6;
         return math.sqrt(lat*lat+lng*lng)
-        
+ 
+
 """
 Modified version of evaluate (look below) optimized for integration
 @author kamasheto

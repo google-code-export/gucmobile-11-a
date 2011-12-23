@@ -92,6 +92,13 @@ def saveTwitterUserInfo(request, user_name,token,secret):
     print user_name
     return HttpResponse(saveTwitterUserInfo(user_name,token,secret))
 
+def inRadius(request,longitude,latitude,radius):
+    print 'hi'
+   
+    return HttpResponse(get_steps_around(float(longitude), float(latitude),float(radius)))
+
+
+
 def route_blockage(request, origin, destination):
 	#url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=true&alternatives=true'
 	#result = json.load(urllib.urlopen(url))
