@@ -7,8 +7,6 @@ admin.autodiscover()
 urlpatterns = patterns('backend.views',
     url(r'^api/(?P<orig>(.)+)/(?P<dest>(.)+)/(?P<speed>(.)+)/(?P<who>[\w\-_]+)$', 'api'),
     url(r'^test/(?P<test_value>(.)+)', 'test_method_in_views'),
-    url(r'^getTwitterLoginInfo/(?P<user_name>(.)+)', 'getTwitterLoginInfo'),
-    url(r'^checkUserExists/(?P<user_name>(.)+)', 'checkUserExists'),
     url(r'^test_evaluate/(?P<origin>(.)+)/(?P<destination>(.)+)/([a-z]+)/([a-z]+)/$', 'route_blockage'),
     url(r'^directions/(?P<origin>(.)+)/(?P<destination>(.)+)/$', 'directions'),
     url(r'^inRadius/(?P<longitude>(.)+)/(?P<latitude>(.)+)/(?P<radius>(.)+)/$', 'inRadius'),
