@@ -1,11 +1,16 @@
 package com.kharamly;
 
+
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
@@ -15,14 +20,18 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.RectF;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -66,6 +75,8 @@ public class KharamlyActivity extends MapActivity {
 	        buildAlertMessageNoGps();
 	    }
 		
+	    HttpClient httpclient = new DefaultHttpClient();
+        HttpGet httpget = new HttpGet("http://maps.googleapis.com/maps/api/directions/json?origin=30.060421,31.498468&destination=29.985104,31.43888&sensor=true&alternatives=true");
 		mapView = (MapView) findViewById(R.id.mapView);
 		mapView.setBuiltInZoomControls(true);
 		
@@ -207,49 +218,67 @@ public class KharamlyActivity extends MapActivity {
                                         location.getSpeed() + "/" +
                                         Installation.id(KharamlyActivity.this));
             
-            
-            String x = API_URL + 
-            location.getLatitude() + "," + location.getLongitude() + "/" + 
-            destination + "/" +
-            location.getSpeed() + "/" +
-            Installation.id(KharamlyActivity.this);
             try {
-                HttpResponse httpresponse = httpclient.execute(httpget);
-                String responseBody = convertStreamToString(httpresponse.getEntity().getContent());
-                JSONObject json = new JSONObject(responseBody);
-                JSONArray jArray = json.getJSONArray("steps");
-                ArrayList<HashMap<String, Integer>> mylist = new ArrayList<HashMap<String, Integer>>();
-
+            	ArrayList<HashMap<String, Integer>> mylist = new ArrayList<HashMap<String, Integer>>();
+            	HttpResponse httpresponse = httpclient.execute(httpget);
+            	String responseBody = convertStreamToString(httpresponse.getEntity().getContent());
+            	JSONObject json = new JSONObject(responseBody);
+            	JSONArray jArray = json.getJSONArray("steps");
+            	List<Overlay> overlays = mapView.getOverlays();
                 for (int i = 0; i < jArray.length(); i++) {
                     JSONObject e = jArray.getJSONObject(i);
-
-                    HashMap<String, Integer> map = new HashMap<String, Integer>();
-                    map.put("s_lng", (int) (e.getDouble("s_lng") * 1E6));
-                    map.put("s_lat", (int) (e.getDouble("s_lat") * 1E6));
-                    map.put("e_lng", (int) (e.getDouble("e_lng") * 1E6));
-                    map.put("e_lat", (int) (e.getDouble("e_lat") * 1E6));
-                    map.put("col", e.getInt("col"));
-
-                    mylist.add(map);
-                }
-                
-                // Process mylist (list of hashmaps) to show on map
-                List<Overlay> overlays = mapView.getOverlays();
-                GeoPoint center = null;
-                for (HashMap<String, Integer> step : mylist) {
-                    GeoPoint start = new GeoPoint(step.get("s_lat"), step.get("s_lng"));
-                    GeoPoint end = new GeoPoint(step.get("e_lat"), step.get("e_lng"));
+                    StringBuffer urlString = new StringBuffer();
+                    urlString.append("http://maps.google.com/maps?f=d&hl=en");
+                    urlString.append("&saddr=");// from
+                    urlString.append(e.getDouble("s_lat")+","+e.getDouble("s_lng"));
+                    urlString.append("&daddr=");// to
+                    urlString.append(e.getDouble("e_lat")+","+e.getDouble("e_lng"));
+                    urlString.append("&ie=UTF8&0&om=0&output=dragdir"); //DRAGDIR RETURNS JSON
+                    String url = urlString.toString();
+                    URL inUrl = new URL(url);
+                    URLConnection yc = inUrl.openConnection();
+                    BufferedReader in = new BufferedReader( new InputStreamReader(yc.getInputStream()));
+                    String inputLine;
+                    String encoded = "";
+                    while ((inputLine = in.readLine()) != null)
+                        encoded = encoded.concat(inputLine);
+                    in.close();
+                    String polyline = encoded.split("points:")[1].split(",")[0];
+                    polyline = polyline.replace("\"", "");
+                    polyline = polyline.replace("\\\\", "\\");
                     
-                    if (center == null) {
-                        center = start;
-                       
+                    ArrayList<GeoPoint> geopoints = new ArrayList<GeoPoint>();
+                    int index = 0, len = polyline.length();
+                    int lat = 0, lng = 0;
+                    while (index < len) {
+                        int b, shift = 0, result = 0;
+                        do {
+                            b = polyline.charAt(index++) - 63;
+                            result |= (b & 0x1f) << shift;
+                            shift += 5;
+                        } while (b >= 0x20);
+                        int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+                        lat += dlat;
+                        shift = 0;
+                        result = 0;
+                        do {
+                            b = polyline.charAt(index++) - 63;
+                            result |= (b & 0x1f) << shift;
+                            shift += 5;
+                        } while (b >= 0x20);
+                        int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+                        lng += dlng;
+                        GeoPoint p = new GeoPoint((int) (((double) lat / 1E5) * 1E6), (int) (((double) lng / 1E5) * 1E6));
+                        geopoints.add(p);
                     }
-                    
-                    overlays.add(new MapRouteOverlay(start, end, step.get("col")));
+                    int color = e.getInt("col");
+                    overlays.add(new MapRouteOverlay(geopoints, color));
                 }
                 
+                GeoPoint loc = new GeoPoint((int)(location.getLatitude()*1000000), (int)(location.getLongitude()*1000000));
+                overlays.add(new MapRouteOverlay(loc));
                 mapView.invalidate();       
-    		    mapController.animateTo(center);
+    		    mapController.animateTo(loc);
                 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -259,27 +288,55 @@ public class KharamlyActivity extends MapActivity {
 	
 	public class MapRouteOverlay extends Overlay {
         private GeoPoint gp1;
-        private GeoPoint gp2;
         private int color;
-
-        public MapRouteOverlay(GeoPoint gp1, GeoPoint gp2, int color) {
-            this.gp1 = gp1;
-            this.gp2 = gp2;
-            this.color = color;
+        private boolean marker;
+        private Bitmap bmp;
+        private ArrayList<GeoPoint> pointList;
+        
+        
+        public MapRouteOverlay(GeoPoint gp1){
+        	this.marker = true;
+        	this.gp1 = gp1;
+        	bmp = BitmapFactory.decodeResource(getResources(), R.drawable.car);
         }
         
+        public MapRouteOverlay(ArrayList<GeoPoint> pointList, int color){
+        	this.pointList= pointList;
+        	this.color = color;
+        }
+        @Override
         public void draw(Canvas canvas, MapView mapView, boolean shadow) {
-            Projection projection = mapView.getProjection();
-            Paint paint = new Paint();
-            Point point = new Point();
-            projection.toPixels(gp1, point);
-            paint.setColor(color);
-            Point point2 = new Point();
-            projection.toPixels(gp2, point2);
-            paint.setStrokeWidth(5);
-            paint.setAlpha(120);
-            canvas.drawLine(point.x, point.y, point2.x, point2.y, paint);
-            super.draw(canvas, mapView, shadow);
+        	super.draw(canvas, mapView, shadow);
+        	
+        	if(marker){
+        		Point point = new Point();
+                mapView.getProjection().toPixels(gp1, point);                                      
+                int x = point.x - bmp.getWidth() / 2;                                              
+                int y = point.y - bmp.getHeight();                                                 
+                canvas.drawBitmap(bmp, x, y, null);  
+        	}else{
+                Point current = new Point();
+                Path path = new Path();
+                Projection projection = mapView.getProjection();
+                
+                Iterator<GeoPoint> iterator = pointList.iterator();
+                if (iterator.hasNext()) {
+                    projection.toPixels(iterator.next(), current);
+                    path.moveTo((float) current.x, (float) current.y);
+                } else return;
+                while(iterator.hasNext()) {
+                    projection.toPixels(iterator.next(), current);
+                    path.lineTo((float) current.x, (float) current.y);
+                }
+
+                Paint pathPaint = new Paint();
+                pathPaint.setAntiAlias(true);
+                pathPaint.setStrokeWidth(4.0f);
+                pathPaint.setColor(color);
+                pathPaint.setStyle(Paint.Style.STROKE);
+                canvas.drawPath(path, pathPaint);
+        	}
+            
         }
 	}
 	
