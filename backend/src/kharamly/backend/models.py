@@ -856,7 +856,7 @@ def badger_badge_handler(who):
     Author: Shanab
     """
     badge = None
-    if who.badge_set.objects.all() == Badge.objects.count() - 1:
+    if who.badge_set.count() == Badge.objects.count() - 1:
         badge = Badge.objects.get(name="badger")
         who.badge_set.add(badge)
     return badge
@@ -953,7 +953,7 @@ def persistent_time_and_speed_badge_handler(who, speed):
             badge = Badge.objects.get(name="lunatic")
         elif average_trip_speed <= 10 and average_trip_speed >= 5 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
             badge = Badge.objects.get(name="turtle-speed")
-        elif average_trip_speed <= 5 and average_trip_speed >= 2 end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
+        elif average_trip_speed <= 5 and average_trip_speed >= 2 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
             badge = Badge.objects.get(name="grandma")
         elif average_trip_speed <= 2 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
             badge = Badge.objects.get(name="snail-like")
