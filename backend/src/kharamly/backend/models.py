@@ -44,12 +44,6 @@ class Node(models.Model):
     def __unicode__(self):
         return str(self.id) + ":" + str(self.latitude) + ", " + str(self.longitude)
 
-class User_loginInfo(models.Model):
-    twitterUsername = models.CharField(max_length=200)
-    token = models.CharField(max_length=200)
-    secret = models.CharField(max_length=200)
-
-
 class Step(models.Model):
     html_instructions = models.TextField()
     distance_text = models.CharField(max_length=200)
@@ -316,8 +310,11 @@ def getalternatives(leg, myStep, destination, location):
     return response
 
 
-# Author : Ahmed Abouraya
-# takes longitude and latitude of a certain place, and returns all steps around this place in radius radius
+#@Author : Ahmed Abouraya
+#Takes a node and radius and returns all steps around this node in a radius radius
+#@param lng: longitude of the node
+#@param lat: latitude of the node
+#@param radius:radius of the region
 def get_steps_around(lng, lat,radius):
 	steps=Step.objects.all()
 	L = list() # empty list
@@ -342,8 +339,9 @@ def get_steps_around(lng, lat,radius):
 
 	return 	json.dumps(L)
              
-# Author : Ahmed Abouraya
+#@Author : Ahmed Abouraya
 # takes a JSONObject and updates all steps speeds with the information in the database
+#@param result JSONObject
 # Logic added to evaluate ^k
 def updateResult(result):
         routes = result['routes']
@@ -384,8 +382,10 @@ def updateResult(result):
                                         avgSpeed=avgSpeed/counter
                                         step['speed']=avgSpeed
         return result
-# Ahmed Abouraya
+#@Author : Ahmed Abouraya
 # calculates distance between two nodes
+#@param current: first node
+#@param target : second node
 def getDistance(current,target):
         lat = current['lat'] / 1E6 - target['lat']  / 1E6;
         lng = current['lng']  / 1E6 - target['lng']  / 1E6;
@@ -442,9 +442,16 @@ def evaluate_route(result, speed, my_step):
             routes.append(route)
     return routes
 
+# @Author: Ahmed Abouraya
 # checks if the current road is blocked,if so it updates the database
 # loops over all steps, when the currentStep is reached, checks whether the driver has reached the end of the step or not if yes insert information in database
 # checks for future steps if they're blocked if yes checks for alternatives
+# @param origin: start node
+# @param destination: destination node
+# @param result : JSONObject
+# @param speed : current speed
+# @param currentStep : current step
+# @param startTime : start time of the current step
 def evaluate(origin, destination, result, speed, currentStep, startTime):
 
 	routes = result['routes']
@@ -553,7 +560,8 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 					return updateResult(getalternatives(leg, step, destination, origin))
 		return updateResult(result)
 
-
+#@author: Ahmed Abouraya
+#@param  speed: current speed
 #determines whether a road is blocked or not
 def blocked_road(speed):
 	return speed < 5
