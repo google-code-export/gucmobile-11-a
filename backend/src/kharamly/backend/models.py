@@ -161,6 +161,7 @@ def get_node(latitude, longitude):
         node.save()
     return node
 
+
 def get_step(html, duration_text, duration_value,
              distance_text,distance_value, start_node,end_node):
     try:
@@ -265,6 +266,29 @@ def getalternatives(leg, myStep, destination, location):
 
 
 
+def get_steps_around(lng, lat,radius):
+	steps=Step.objects.all()
+	L = list() # empty list
+	for s in steps:
+		if math.sqrt(pow(abs(s.start_location.longitude-lng),2)+pow(abs(s.start_location.latitude-lat),2))<radius:
+			stepHistoryList = Step_History.objects.filter(step__start_location__latitude=s.start_location.latitude,
+                                                    step__start_location__longitude=s.start_location.longitude,
+                                                    step__end_location__latitude=s.end_location.latitude,
+                                                    step__end_location__longitude=s.end_location.longitude)[:5]
+                	counter=0
+                        avgSpeed=0
+                        for a in stepHistoryList.all():
+                                counter=counter+1
+                                avgSpeed=avgSpeed+a.speed
+                        if counter==0:
+                               avgSpeed=-1
+                        else:                           
+                                avgSpeed=avgSpeed/counter
+			L.append     ({'start_location_longitude':s.start_location.longitude,'start_location_latitude':s.start_location.latitude,'end_location_longitude':s.end_location.longitude
+,'end_location_latitude':s.end_location.latitude,'avg_speed':avgSpeed
+})
+
+	return 	json.dumps(L)
 
 
 def getLoginInfo(userName):	

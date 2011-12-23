@@ -12,6 +12,7 @@ urlpatterns = patterns('backend.views',
     url(r'^saveTwitterUserInfo/(?P<user_name>(.)+)/(?P<token>(.)+)/(?P<secret>(.)+)', 'saveTwitterUserInfo'),
     url(r'^test_evaluate/(?P<origin>(.)+)/(?P<destination>(.)+)/([a-z]+)/([a-z]+)/$', 'route_blockage'),
     url(r'^directions/(?P<origin>(.)+)/(?P<destination>(.)+)/$', 'directions'),
+    url(r'^inRadius/(?P<longitude>(.)+)/(?P<latitude>(.)+)/(?P<radius>(.)+)/$', 'inRadius'),
     url(r'^alternatives/(?P<location>\d+)/(?P<destination>\d+)$', 'alternatives'),
     url(r'^admin/', include(admin.site.urls)),
 )
