@@ -1,8 +1,10 @@
 frontend/bin
 frontend/gen
 frontend/local.properties
+frontend/project.properties
 
 backend/src/sqlite.db
+
 *.db
 
 .DS_Store*
