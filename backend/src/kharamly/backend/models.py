@@ -863,7 +863,7 @@ def badger_badge_handler(who):
     Author: Shanab
     """
     badge = None
-    if who.badge_set.objects.all() == Badge.objects.count() - 1:
+    if who.badge_set.count() == Badge.objects.count() - 1:
         badge = Badge.objects.get(name="badger")
         who.badge_set.add(badge)
     return badge
