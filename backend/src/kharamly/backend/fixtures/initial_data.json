@@ -1,0 +1,189 @@
+[
+  {
+    "model": "backend.badge",
+    "pk": 1,
+    "fields": {
+      "name": "checkin",
+      "value": 1,
+      "description": "Acquired the first time the user uses the application"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 2,
+    "fields": {
+      "name": "checkin",
+      "value": 50,
+      "description": "Acquired the 50th time the user uses the application"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 3,
+    "fields": {
+      "name": "checkin",
+      "value": 100,
+      "description": "Acquired the 100th time the user uses the application"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 4,
+    "fields": {
+      "name": "checkin",
+      "value": 500,
+      "description": "Acquired the 500th time the user uses the application"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 5,
+    "fields": {
+      "name": "checkin",
+      "value": 1000,
+      "description": "Acquired the 1000th time the user uses the application"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 6,
+    "fields": {
+      "name": "adventurer",
+      "description": "Acquired when the user uses the application for 10 days in a month"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 7,
+    "fields": {
+      "name": "addict",
+      "description": "Acquired when the user uses the application for 10 consecutive days"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 8,
+    "fields": {
+      "name": "fanboy",
+      "description": "Acquired when the user uses the application for 30 consecutive days"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 9,
+    "fields": {
+      "name": "super-user",
+      "description": "Acquired when the user uses the application for 60 consecutive days"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 10,
+    "fields": {
+      "name": "road-warrior",
+      "description": "Acquired when the user drives for more than 3 hours"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 11,
+    "fields": {
+      "name": "wheel-junkie",
+      "description": "Acquired when the user drives for more than 5 hours"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 12,
+    "fields": {
+      "name": "speedster",
+      "value": 100,
+      "description": "Acquired when the user is tracked while driving at a speed between 100 and 140 km/h"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 13,
+    "fields": {
+      "name": "speedster",
+      "value": 140,
+      "description": "Acquired when the user is tracked while driving at a speed between 140 and 180 km/h"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 14,
+    "fields": {
+      "name": "speedster",
+      "value": 180,
+      "description": "Acquired when the user is tracked while driving at a speed of 180 km/h or above"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 15,
+    "fields": {
+      "name": "turtle-speed",
+      "description": "Acquired when the user is tracked to have moved at a speed between 5 & 10 km/h for more than 30 minutes"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 16,
+    "fields": {
+      "name": "grandma",
+      "description": "Acquired when the user is tracked to have moved at a speed between 2 & 5 km/h for more than 30 minutes"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 17,
+    "fields": {
+      "name": "snail-like",
+      "description": "Acquired when the user is tracked to have moved at a speed less than 2 km/h for more than 30 minutes"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 18,
+    "fields": {
+      "name": "lunatic",
+      "description": "Acquired when the user is tracked to have moved at a speed between 140 & 180 km/h for more than 30 minutes"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 19,
+    "fields": {
+      "name": "wacko",
+      "description": "Acquired when the user is tracked to have moved at a speed more than 180 km/h for more than 30 minutes"
+    }
+  },
+  
+  {
+    "model": "backend.badge",
+    "pk": 20,
+    "fields": {
+      "name": "badger",
+      "description": "Acquired when the user acquires all badges"
+    }
+  }
+]

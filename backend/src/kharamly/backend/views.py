@@ -18,11 +18,23 @@ def api(request, orig, dest, speed, who):
     dest = dest.split(",")
     from_node = get_node(orig[0], orig[1])
     to_node = get_node(dest[0], dest[1])
+    who = get_device(who)
     # my_step could be kept tracked of, but what about sending it untracked everytime?
     # my_step = None
     my_step = get_step_from_node(from_node)
     if my_step:
-        Ping_Log(step = my_step, speed = speed, who = get_device(who), time = datetime.now()).save()
+        pings = Ping_Log.objects.filter(who=who).reverse()
+        # persistence = pings[0].persistence + 1 if len(pings) != 0 and datetime.now() - pings[0].time >= timedelta(hours=1) else pings[0].persistence
+        if len(pings) != 0:
+            if datetime.now() - pings[0] >= timedelta(hours=1):
+                persistence = pings[0].persistence + 1
+            else:
+                persistence = pings[0]
+        else:
+            persistence = 1
+        Ping_Log(step=my_step, speed=speed, who=who, time=datetime.now(), persistence=persistence).save()
+        who.increment_checkins()
+        
     result = getalternatives(None, my_step, to_node, from_node)
     routes = evaluate_route(result, speed, my_step)
     response  = {"steps": []}
@@ -36,7 +48,29 @@ def api(request, orig, dest, speed, who):
                     "e_lng": step['end_location']['lng'],
                     "col": get_color_from_speed(step['speed']),
                 })
+                
+    badges = badge_handler(who, speed)
+    
     return HttpResponse(json.dumps(response), mimetype="application/json")
+
+
+
+"""
+A Method that handle the pings coming from the device updating the info of the road taken by the user
+    
+@author Monayri
+"""
+
+def update(stepId, routeId, speed, who):
+    myStep = Step.objects.get(pk=stepId)
+    myRoute = Route.objects.get(pk=routeId)
+    if myStep:
+        Ping_Log(step = myStep, speed = speed, who = get_device(who), time = datetime.now()).save()
+    
+    #Here i will check if the route is going to be blocked 
+    
+    #If yes i will search for another route
+    #if no then i will send an empty response
     
 ### FOR TESTING PURPOSES,  ADD A VIEW THAT CALLS YOUR MODEL METHOD
 ##################################################################

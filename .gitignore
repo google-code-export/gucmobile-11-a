@@ -3,6 +3,7 @@ frontend/gen
 frontend/local.properties
 
 backend/src/sqlite.db
+
 *.db
 
 .DS_Store*

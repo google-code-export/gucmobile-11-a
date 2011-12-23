@@ -5,6 +5,37 @@ import urllib, json, math
 # A entity of users, for later usage
 class Device(models.Model):
     installation_id = models.CharField(max_length = 64)
+    number_of_checkins = models.IntegerField(default=0)
+    
+    def has_badge(self, badge):
+        """
+        Return: 
+            True if the user has acquired the badge, False otherwise
+        Arguments:
+            badge: Any badge object
+        Author: Shanab
+        """
+        return badge in self.badge_set.all()
+        
+    def increment_checkins(self):
+        """
+        Return:
+            pass
+        Effect:
+            Increments the number of checkins if the difference between
+            the latest ping and the one before it is more than 1 hour
+        Author: Shanab
+        """
+        last_two_pings = Ping_Log.objects.filter(who=self).reverse()[:2]
+        # the if statement checks if this is the user's first ping, or if
+        # the difference between the latest 2 pings is more than one hour
+        if len(last_two_pings) < 2 or last_two_pings[0].time - last_two_pings[1].time >= timedelta(hours=1):
+            self.number_of_checkins += 1
+            self.save()
+        pass
+    
+    def __unicode__(self):
+        return str(self.installation_id)
     
 class Node(models.Model):
     latitude = models.FloatField()
@@ -30,6 +61,7 @@ class Step(models.Model):
 
     def __unicode__(self):
         return str(self.start_location.id) + ", " + str(self.end_location.id)
+        
     class Meta:
         ordering = ["id"]
 
@@ -46,6 +78,13 @@ class Ping_Log(models.Model):
     speed = models.FloatField() # in m/s
     who = models.ForeignKey(Device)
     time = models.DateTimeField()
+    persistence = models.IntegerField(default=1)
+    
+    def __unicode__(self):
+        return str(self.time)
+    
+    class Meta:
+        ordering = ["time"]
 
 class Leg(models.Model):
     steps = models.ManyToManyField(Step)
@@ -68,16 +107,28 @@ class Route(models.Model):
 	
     def __unicode__(self):
         return self.summary
+
+
+class Badge(models.Model):
+    devices = models.ManyToManyField(Device)
+    name = models.CharField(max_length=80)
+    value = models.CharField(max_length=80)
+    description = models.CharField(max_length=600)
+    
+    def __unicode__(self):
+        string = str(self.name)
+        if self.value:
+            string += ", " + str(self.value)
+        return string
+        
+    class Meta:
+        ordering = ["id"]
     
     
 """
     BUSINESS LOGIC
     IN DJANGO, IT IS ADVISED TO KEEP LOGIC IN THE MODELS
 """
-
-# Test method in model
-def test_method_in_models(num):
-    return num * 2
 
 # @author: Moataz Mekki
 # takes "from" & "to" locations/addresses, calls Google maps
@@ -235,8 +286,8 @@ def getalternatives(leg, myStep, destination, location):
     for route in routes :
         r = [{"summary" : route.summary, "legs":[]}]
         for leg in route.legs:
-            start_node = Node.objects.get(leg.start_location.id)
-            end_node = Node.objects.get(leg.end_location.id)
+            start_node = Node.objects.get(id=leg.start_location.id)
+            end_node = Node.objects.get(id=leg.end_location.id)
             l = [{"distance" : {"text":leg.distance_text, 
                                "value": leg.distance_value}, 
                  "end_address": leg.end_address,
@@ -248,8 +299,8 @@ def getalternatives(leg, myStep, destination, location):
                  "steps" : []
                  }]
             for step in leg.steps:
-                start_node2 = Node.objects.get(step.start_location.id)
-                end_node2 = Node.objects.get(step.end_location.id)
+                start_node2 = Node.objects.get(id=step.start_location.id)
+                end_node2 = Node.objects.get(id=step.end_location.id)
                 s = [{"distance" : {"text": step.distance_text,
                                    "value": step.distance_value},
                      "duration" : {"text": step.duration_text,
@@ -265,7 +316,8 @@ def getalternatives(leg, myStep, destination, location):
     return response
 
 
-
+# Author : Ahmed Abouraya
+# takes longitude and latitude of a certain place, and returns all steps around this place in radius radius
 def get_steps_around(lng, lat,radius):
 	steps=Step.objects.all()
 	L = list() # empty list
@@ -289,34 +341,7 @@ def get_steps_around(lng, lat,radius):
 })
 
 	return 	json.dumps(L)
-
-
-def getLoginInfo(userName):	
-	userInfo = User_loginInfo.objects.filter(twitterUsername=userName)
-	for s in userInfo.all():
-		return { 'token':s.token, 'secret':s.secret } 
-
-def saveTwitterUserInfo(userName,tok,sec):
-	userInfo = User_loginInfo(twitterUserName=userName,token=tok,secret=sec)
-    	userInfo.save()
- 
-
-def checkUserExists(userName):
-	userInfo = User_loginInfo.objects.filter(twitterUsername=userName)
-	for s in userInfo.all():
-		return True
-	return False
-              
-#def getNodesAround(lat,lng):
-#	userInfo = User_loginInfo.objects.filter(twitterUserName=userName,token=tok,secret=sec)
-#    	userInfo.save()
-#	node=
-#class Node(models.Model):
-#    latitude = models.FloatField()
-#    longitude = models.FloatField()
-
- 
-                
+             
 # Author : Ahmed Abouraya
 # takes a JSONObject and updates all steps speeds with the information in the database
 # Logic added to evaluate ^k
@@ -359,13 +384,14 @@ def updateResult(result):
                                         avgSpeed=avgSpeed/counter
                                         step['speed']=avgSpeed
         return result
-
+# Ahmed Abouraya
 # calculates distance between two nodes
 def getDistance(current,target):
         lat = current['lat'] / 1E6 - target['lat']  / 1E6;
         lng = current['lng']  / 1E6 - target['lng']  / 1E6;
         return math.sqrt(lat*lat+lng*lng)
-        
+ 
+
 """
 Modified version of evaluate (look below) optimized for integration
 @author kamasheto
@@ -439,8 +465,8 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 
 			flag=True
 			#check if speed is 0 insert current step as blocked
-			if blockedRoad(speed):
-				currentStepHistory = Step_History(step = CurrentStep,time=datetime.now(),speed=0)
+			if blocked_road(speed):
+				currentStepHistory = Step_History(step = currentStep,time=datetime.now(),speed=0)
 								#fix step=currentStep, a database object and JSON object				
 				currentStepHistory.save()
 
@@ -487,7 +513,7 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 
                         flag=True
                         #check if speed is 0 insert current step as blocked
-                        if blockedRoad(speed):
+                        if blocked_road(speed):
                                 currentStepHistory = Step_History(step = currentStep,time=datetime.now(),speed=0)
                                 currentStepHistory.save()
 
@@ -520,7 +546,7 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 				                                        step__end_location__longitude=current_end_location['lng'])[:5]
 				counter=0
 				for s in stepHistoryLists.all():
-					if blockedRoad(s.speed):
+					if blocked_road(s.speed):
 						counter=counter+1
 				if counter>0:
 				#request for alternatives
@@ -700,3 +726,277 @@ def get_color_from_speed(speed):
         return 0xffffff00 # yellow
     else:
         return 0xff00ff00 # green
+
+
+""""
+This Method checks if a step is blocked according to speed
+@param step: the object step to be checked
+@return: Boolean indicating if the step is blocked or not
+@author Monayri
+"""
+def ifStepBlocked(step):
+    speed = get_step_speed(step)
+    if speed == -1 :
+        return False 
+    else:
+        if speed <= 5:
+            return True
+        else:
+            return True
+
+""""
+This Method gets the steps of a route
+@param route: the route object that its steps are needed
+@return: a list of steps
+@author Monayri
+"""  
+def getRouteSteps(route):
+    myLeg = route.legs[0]
+    steps = myLeg.steps
+    return steps      
+
+
+""""
+This Method checks if a route is blocked according to speed
+@param step: the route object to be checked
+@return: Boolean indicating if the route is blocked or not
+@author Monayri
+"""
+def ifRouteBlocked(route):
+    steps = getRouteSteps(route)
+    for step in steps:
+        if ifStepBlocked(step):
+            return True
+    
+################## START OF BADGE HANDLERS ##################
+def badge_handler(who, speed):
+    """
+    Return:
+        a list of badges that the user has acquired
+    Arguments:
+        who: Device object
+        speed: The speed of the user
+    Author: Shanab
+    """
+    badges = []
+    speed_badge = speed_badge_handler(who, speed)
+    if speed_badge:
+        badges.append(speed_badge)
+    checkin_badge = checkin_badge_handler(who)
+    if checkin_badge:
+        badges.append(checkin_badge)
+    time_badge = time_badge_handler(who)
+    if time_badge:
+        badges.append(time_badge)
+    badger_badge = badger_badge_handler(who)
+    if badger_badge:
+        badges.append(badger_badge)
+    persistent_time_badge = persistent_time_badge_handler(who)
+    if persistent_time_badge_handler:
+        badges.append(persistent_time_badge)
+    persistent_time_and_speed_badge = persistent_time_and_speed_badge_handler(who, speed)
+    if persistent_time_and_speed_badge_handler:
+        badges.append(persistent_time_and_speed_badge_handler)
+    return badges
+    
+    
+def speed_badge_handler(who, speed):
+    """
+    Return:
+        a badge if the user reached a speed that acquires this badge,
+        and if he/she hasn't already acquired this badge.
+        Returns None if the user hasn't acquired any speedster badges,
+        or if he acquired one previously.
+    Arguments:
+        who: Device object
+        speed: The speed of the user in mps
+    Author: Shanab
+    """
+    speed = to_kph(speed)
+    badge = None
+    if speed >= 180:
+        badge = Badge.objects.get(name="speedster", value=180)
+    elif speed >= 140:
+        badge = Badge.objects.get(name="speedster", value=140)
+    elif speed >= 100:
+        badge = Badge.objects.get(name="speedster", value=100)
+        
+    if badge and not who.has_badge(badge):
+        who.badge_set.add(badge)
+        
+    return badge
+    
+    
+def checkin_badge_handler(who):
+    """
+    Return:
+        a badge if this is either the first time, or the
+        [50,100,500,1000,...]th time the user uses the application.
+        Returns None if the user hasn't acquired any checkin badges,
+        or if he already acquired it previously.
+    Arguments:
+        who: Device object
+    Author: Shanab
+    """
+    badge = None
+    if who.number_of_checkins in checkin_badge_values():
+        badge = Badge.objects.get(name="checkin",value=who.number_of_checkins)
+        who.badge_set.add(badge)
+    return badge
+
+
+def badger_badge_handler(who):
+    """
+    Return:
+        The "badger" badge if the user acquired all set of badges
+        (except for the badger badge of course), else returns None.
+    Arguments:
+        who: Device object
+    Author: Shanab
+    """
+    badge = None
+    if who.badge_set.objects.all() == Badge.objects.count() - 1:
+        badge = Badge.objects.get(name="badger")
+        who.badge_set.add(badge)
+    return badge
+    
+        
+def time_badge_handler(who):
+    """
+    Return:
+        Either one of [Adventurer, Addict, Fanboy, Super User] badges
+        if the user used the application for [10 days in a month,
+        10 consecutive days, 30 consecutive days, 60 consecutive days] respectively;
+        Or None otherwise or if the user already acquired the badge previously.
+    Arguments:
+        who: Device object
+    Author: Shanab
+    """
+    badge = None
+    adventurer_badge = Badge.objects.get(name="adventurer")
+    addict_badge = Badge.objects.get(name="addict")
+    fanboy_badge = Badge.objects.get(name="fanboy")
+    super_user_badge = Badge.objects.get(name="super-user")
+    usage_dates = Ping_Log.objects.filter(who=who).dates('time', 'day').reverse()
+    badges = who.badge_set.all()
+    # For the user to acquire any of the listed badges
+    # He has to have used the application for more than 10 days
+    if len(usage_dates) >= 10:
+        if not adventurer_badge in badges:
+            end_date = usage_dates[0] - timedelta(days=30)
+            usage_dates_in_past_30_days = filter(lambda i: i >= end_date, usage_dates)
+            if len(usage_dates_in_past_30_days) == 10:
+                who.badge_set.add(adventurer_badge)
+                return adventurer_badge
+        elif not addict_badge in badges:
+            badge = consecutive_time_badge_handler(who, addict_badge, 10, usage_dates)
+        elif not fanboy_badge in badges:
+            badge = consecutive_time_badge_handler(who, fanboy_badge, 30, usage_dates)
+        elif not super_user_badge in badges:
+            badge = consecutive_time_badge_handler(who, super_user_badge, 60, usage_dates)
+    return badge
+    
+
+def persistent_time_badge_handler(who):
+    """
+    Return:
+        Either one of [Road Warrior, Wheel Junkie] badges
+        if the user was reported using the application continuously
+        for [3, 5] hours respectively; Or None otherwise or if the
+        user acquired this badge previously.
+    Arguments:
+        who: Device object
+    Author: Shanab
+    """
+    badge = None
+    if len(Ping_Log.objects.filter(who=who)) >= 2:
+        last_ping = Ping_Log.objects.filter(who=who).reverse()[0]
+        trip = Ping_Log.objects.filter(who=who, persistence=last_ping.persistence)
+        start_time_of_trip = trip[0].time
+        end_time_of_trip = trip.reverse()[0].time
+        if end_time_of_trip - start_time_of_trip >= timedelta(hours=3):
+            badge = Badge.objects.get(name="road-warrior")
+            who.badge_set.add(badge)
+        elif end_time_of_trip - start_time_of_trip >= timedelta(hours=5):
+            badge = Badge.objects.get(name="wheel-junkie")
+            who.badge_set.add(badge)
+    return badge
+
+
+def persistent_time_and_speed_badge_handler(who, speed):
+    """
+    Return:
+        Either one of [Turtle Speed, Grandma, Snail Like]
+        badges if the user was reported driving at an average speed
+        <= [10, 5, 2] kph respectively for +30 minutes;
+        Or Lunatic badge if the user was reported driving at
+        an average speed >= 140 kph for +20 minutes;
+        Or Wacko badge if the user was reported driving at
+        an average speed >= 180 for +10 minutes;
+        Or None otherwise or if the user acquired this badge previously
+    Arguments:
+        who: Device object
+        speed: The speed of the user in mps
+    Author: Shanab
+    """
+    badge = None
+    if len(Ping_Log.objects.filter(who=who)) >= 2:
+        last_ping = Ping_Log.objects.filter(who=who).reverse()[0]
+        trip = Ping_Log.objects.filter(who=who, persistence=last_ping.persistence)
+        start_time_of_trip = trip[0].time
+        end_time_of_trip = trip.reverse()[0].time
+        average_trip_speed = to_kph(sum(trip.values_list('speed', flat=True)) / len(trip))
+        if average_trip_speed >= 180 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=10):
+            badge = Badge.objects.get(name="wacko")
+        elif average_trip_speed >= 140 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
+            badge = Badge.objects.get(name="lunatic")
+        elif average_trip_speed <= 10 and average_trip_speed >= 5 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
+            badge = Badge.objects.get(name="turtle-speed")
+        elif average_trip_speed <= 5 and average_trip_speed >= 2 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
+            badge = Badge.objects.get(name="grandma")
+        elif average_trip_speed <= 2 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
+            badge = Badge.objects.get(name="snail-like")
+
+    if badge:
+        who.badge_set.add(badge)
+    return badge
+
+################### Badge Helpers ################
+def to_kph(speed_in_mps):
+    """Convert from meters per second to kilometers per hour"""
+    return speed_in_mps * 60 * 60 / 1000.0
+    
+    
+def checkin_badge_values():
+    """
+    Return:
+        a list of integers where each number represents
+        the number of checkins that the user must get
+        in order to acquire a "checkin" badge.
+    Author: Shanab
+    """
+    return map(lambda x:int(x.value), Badge.objects.filter(name="checkin"))
+
+def consecutive_time_badge_handler(who, badge, consecutive_days, usage_dates):
+    """
+    Return: Input badge if the user used the application for {consecutive_days} consecutive days,
+            None otherwise
+    Arguments:
+        who: Device object
+        badge: Badge object
+        consecutive_days: Number of consecutive days that the user must've
+                          used the application in order to acquire the input badge
+        usage_dates: An array containing the dates of days that the user used the application in
+    Effect:
+        Creates a relation between the user "who" and the badge "badge"
+        if the user acquired this badge
+    Author: Shanab
+    """
+    end_date = usage_dates[0] - timedelta(consecutive_days)
+    filtered_usage_dates = filter(lambda i: i >= end_date, usage_dates)
+    if len(filtered_usage_dates) == consecutive_days:
+        who.badge_set.add(badge)
+        return badge
+    else:
+        return None
+################### END OF BADGE HANDLERS ###################

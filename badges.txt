@@ -1,0 +1,52 @@
+Badges:
+  Description:
+    these are the list of badges that should be implemented in the system. The badges are classified according to the required information that the system will need in order to award the user with this badge.
+    
+  - Requires knowledge of how many times the user opened the application:
+    - Badges:
+      * 1st check-in: used the application for the first time.
+      * 50th check-in.
+      * 100th check-in.
+      * 500th check-in.
+      * 1000th check-in.
+      * ETC.
+    - Implementation:
+      Check for the number of checkins through checkins column in the device table.
+    
+  - Requires time:
+    - Badges:
+      * Adventurer: Used the application for 10 days in a duration less than 30 days.
+      * Addict: Used the application for 10 consecutive days.
+      * Fanboy: Used the application for 30 consecutive days.
+      * Super User: Used the application for 60 consecutive days.
+    - Implementation:
+      Consecutive(x days): search ping_log for pings that the current device has made in the past x days. Break whenever you find a day with no pings.
+      Non-consecutive(x days, y duration_limit): find the number of days the user pinged the server in the past y days through ping_log. If this number is equal to x, then the user should be awarded this badge.
+    
+  - Requires persistent time:
+    - Badges:
+      * Road Warrior: Kept driving for +3 hours.
+      * Wheel Junkie: Kept driving for +5 hours.
+    - Implementation: (duration)
+      Check for the duration of the *first* ping that has the *last* persistence number in ping_log table.
+  
+  - Requires speed:
+    - Badges:
+      * speedster: Drove at [100, 140, 180] km/h.
+    - Implementation:
+      Check the speed of the device from ping_log.
+    
+  - Requires speed + persistent time:
+    - Badges:
+      * Turtle speed: Moved on an average speed < 10 km/hr && > 5 km/h for > 30 minutes.
+      * Grandma: Moved on an average speed < 5 km/h && > 2 km/h for > 30 minutes.
+      * Snail like: Moved on an average speed < 2 km/h for > 30 minutes.
+      * Lunatic: Moved on an average speed > 140 km/hr && < 180 km/h for > 20 minutes.
+      * Wacko: Moved on an average speed > 180 km/hr > 10 minutes.
+    - Implementation: (duration, speed)
+      Check the duration of the *first* ping that has the *last* persistence number in ping_log table. Map the speeds of all the pings, and do a simultaneous check on all of them.
+    
+  - Requires knowledge of previous badges acquired:
+    - Badges:
+      * Badger: Acquired all badges.
+    - Check if the device has all badges.
