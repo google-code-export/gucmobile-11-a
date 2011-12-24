@@ -80,18 +80,6 @@ def test_method_in_views(request, test_value):
     return HttpResponse(test_method_in_models(test_value))
 
 
-def getTwitterLoginInfo(request, user_name):
-    print user_name
-    return HttpResponse(json.dumps(getLoginInfo(user_name)))
-
-def checkUserExists(request, user_name):
-    print user_name
-    return HttpResponse(saveTwitterUserInfo(user_name,token,secret))
-
-def saveTwitterUserInfo(request, user_name,token,secret):
-    print user_name
-    return HttpResponse(saveTwitterUserInfo(user_name,token,secret))
-
 def inRadius(request,longitude,latitude,radius):
     print 'hi'
    
