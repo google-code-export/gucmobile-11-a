@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="hello">Hello World, KharamlyActivity!</string>
     <string name="app_name">Kharamly</string>
     <string name="street_block">Report Blocked Street</string>
@@ -8,5 +7,5 @@
 	<string name="cancel">Cancel</string>
 	<string name="title">Title</string>
 	<string name="enter_comment">Enter your desired destination here:</string>
-
+	<string name="toggle_comments">Toggle Comments</string>
 </resources>

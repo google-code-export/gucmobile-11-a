@@ -42,6 +42,7 @@ import com.google.android.maps.Overlay;
 import com.google.android.maps.Projection;
 
 public class KharamlyActivity extends MapActivity {
+	SlidingPanel panel;
 	MapView mapView;
 	MyCustomizedLocationOverlay myLocationOverlay;
 	List<MapRouteOverlay> routeOverlay = new ArrayList<MapRouteOverlay>();
@@ -59,6 +60,9 @@ public class KharamlyActivity extends MapActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+
+    
+	    panel = (SlidingPanel) findViewById(R.id.panel);
 		
 		manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
 
@@ -133,9 +137,14 @@ public class KharamlyActivity extends MapActivity {
     		case R.id.block :
     			Intent i = new Intent(KharamlyActivity.this, ReportBlocked.class);
     			startActivity(i);
-    		default:
-    			return super.onOptionsItemSelected(item);
+				break;
+			
+			case R.id.comments:
+				panel.toggle();
+				break;
+    			
 		}
+		return super.onOptionsItemSelected(item);
 	}
 	
 	@Override
