@@ -15,7 +15,7 @@
 			android:layout_width="200px"
 			android:layout_height="wrap_content"
 			android:textColor="#000000"
-			android:textSize="14sp" />
+			android:textSize="12sp" />
 		<TextView
 			android:id="@+id/source"
 			android:layout_width="200px"
