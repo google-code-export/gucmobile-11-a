@@ -81,7 +81,7 @@ class BadgeTest(TestCase):
         Author: Shanab
         """
         for i in xrange(0,11):
-            speed = randint(120,240)
+            speed = self.to_mps(randint(120,240))
             speed_badge_handler(self.device, speed)
             self.assertLessEqual(self.device.badge_set.count(), 3)
 
@@ -176,7 +176,8 @@ class BadgeTest(TestCase):
     def test_checkin_badge_handler_return_and_save_badges(self):
         """
         Test if checkin_badge_handler returns and saves the proper badge
-        in the join table between device and badge
+        into the join table between device and badge
+        Author: Shanab
         """
         date = datetime.now() - timedelta(days=50)
         values = [1,50,100] # Cannot test further
@@ -192,6 +193,11 @@ class BadgeTest(TestCase):
 
 
     def test_persistent_time_badge_handler_return_and_save_badges(self):
+        """
+        Test if persistent_time_badge_handler returns and saves the proper
+        badge into the join table between device and badge
+        Author: Shanab
+        """
         self.make_user_persistently_move(start_date=datetime.now() - timedelta(days=5),
                                         delta=timedelta(hours=3),
                                         using=self.device)
@@ -210,6 +216,62 @@ class BadgeTest(TestCase):
         self.assertEqual(badge, Badge.objects.get(name="wheel-junkie"))
         self.assertIn(badge, self.device.badge_set.all())
 
+    def test_persistent_time_and_speed_badge_handler_return_and_save_bages(self):
+        """
+        Test if the persistent_time_and_speed_badge_handler returns and saves the
+        proper badge into the join table between the device and badge
+        Author: Shanab
+        """
+        ###### Lunatic Badge Test
+        self.make_user_persistently_move(start_date=datetime.now() - timedelta(days=10),
+                                        delta=timedelta(minutes=20),
+                                        speed=self.to_mps(150),
+                                        using=self.device)
+
+        badge = persistent_time_and_speed_badge_handler(self.device)
+        self.assertEqual(badge, Badge.objects.get(name="lunatic"))
+        self.assertIn(badge, self.device.badge_set.all())
+
+
+        ###### Wacko Badge Test
+        self.make_user_persistently_move(start_date=datetime.now() - timedelta(days=9),
+                                        delta=timedelta(minutes=12),
+                                        speed=self.to_mps(180),
+                                        using=self.device)
+
+        badge = persistent_time_and_speed_badge_handler(self.device)
+        self.assertEqual(badge, Badge.objects.get(name="wacko"))
+        self.assertIn(badge, self.device.badge_set.all())
+
+        ###### Turtle Badge Test
+        self.make_user_persistently_move(start_date=datetime.now() - timedelta(days=8),
+                                        delta=timedelta(minutes=22),
+                                        speed=self.to_mps(6),
+                                        using=self.device)
+
+        badge = persistent_time_and_speed_badge_handler(self.device)
+        self.assertEqual(badge, Badge.objects.get(name="turtle-speed"))
+        self.assertIn(badge, self.device.badge_set.all())
+
+        ###### Grandma Badge Test
+        self.make_user_persistently_move(start_date=datetime.now() - timedelta(days=7),
+                                        delta=timedelta(minutes=22),
+                                        speed=self.to_mps(2.5),
+                                        using=self.device)
+
+        badge = persistent_time_and_speed_badge_handler(self.device)
+        self.assertEqual(badge, Badge.objects.get(name="grandma"))
+        self.assertIn(badge, self.device.badge_set.all())
+
+        ###### Snail Badge Test
+        self.make_user_persistently_move(start_date=datetime.now() - timedelta(days=6),
+                                        delta=timedelta(minutes=22),
+                                        speed=0.5,
+                                        using=self.device)
+
+        badge = persistent_time_and_speed_badge_handler(self.device)
+        self.assertEqual(badge, Badge.objects.get(name="snail-like"))
+        self.assertIn(badge, self.device.badge_set.all())
 
 
     ######################### TEST HELPERS #########################
@@ -288,6 +350,7 @@ class BadgeTest(TestCase):
         """
         Simulates the input user {using} persistently using the application for
         the specified timedelta
+        Author: Shanab
         """
         time = start_date
         end_time = time + delta
