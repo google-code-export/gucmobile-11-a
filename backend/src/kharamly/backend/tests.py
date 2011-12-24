@@ -192,11 +192,26 @@ class BadgeTest(TestCase):
 
 
     def test_persistent_time_badge_handler_return_and_save_badges(self):
-        self.make_user_persistently_move(delta=timedelta(hours=3), using=self.device)
+        self.make_user_persistently_move(start_date=datetime.now() - timedelta(days=5),
+                                        delta=timedelta(hours=3),
+                                        using=self.device)
+
         badge = persistent_time_badge_handler(self.device)
         self.assertIsNotNone(badge)
         self.assertEqual(badge, Badge.objects.get(name="road-warrior"))
-    
+        self.assertIn(badge, self.device.badge_set.all())
+
+        self.make_user_persistently_move(start_date=datetime.now() - timedelta(days=4),
+                                        delta=timedelta(hours=6),
+                                        using=self.device)
+        
+        badge = persistent_time_badge_handler(self.device)
+        self.assertIsNotNone(badge)
+        self.assertEqual(badge, Badge.objects.get(name="wheel-junkie"))
+        self.assertIn(badge, self.device.badge_set.all())
+
+
+
     ######################### TEST HELPERS #########################
 
     def to_mps(self, speed_in_kph):
@@ -269,12 +284,12 @@ class BadgeTest(TestCase):
                 time = time,
                 persistence = get_persistence(using)).save()
 
-    def make_user_persistently_move(self, delta, speed=50, using=Device.objects.get(id=1)):
+    def make_user_persistently_move(self, start_date, delta, speed=50, using=Device.objects.get(id=1)):
         """
         Simulates the input user {using} persistently using the application for
         the specified timedelta
         """
-        time = datetime.now() - timedelta(days=5)
+        time = start_date
         end_time = time + delta
         while time <= end_time:
             Ping_Log(step_id=1,

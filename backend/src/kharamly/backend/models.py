@@ -918,16 +918,18 @@ def persistent_time_badge_handler(who):
     Author: Shanab
     """
     badge = None
+    warrior_badge = Badge.objects.get(name="road-warrior")
+    junkie_badge = Badge.objects.get(name="wheel-junkie")
     if len(Ping_Log.objects.filter(who=who)) >= 2:
         last_ping = Ping_Log.objects.filter(who=who).reverse()[0]
         trip = Ping_Log.objects.filter(who=who, persistence=last_ping.persistence)
         start_time_of_trip = trip[0].time
         end_time_of_trip = trip.reverse()[0].time
-        if end_time_of_trip - start_time_of_trip >= timedelta(hours=3):
-            badge = Badge.objects.get(name="road-warrior")
+        if end_time_of_trip - start_time_of_trip >= timedelta(hours=3) and not warrior_badge in who.badge_set.all():
+            badge = warrior_badge
             who.badge_set.add(badge)
         elif end_time_of_trip - start_time_of_trip >= timedelta(hours=5):
-            badge = Badge.objects.get(name="wheel-junkie")
+            badge = junkie_badge
             who.badge_set.add(badge)
     return badge
 
