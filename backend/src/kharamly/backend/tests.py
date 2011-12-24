@@ -76,7 +76,7 @@ class BadgeTest(TestCase):
 
     def test_speed_badge_handler_saves_at_most_three_badges(self):
         """
-        Tests that the user acquires at most three non-repeated badges,
+        Tests that the user acquires at most three non-repeated speedster badges,
         regardless of how many times the user exceeds the badge speed requirement
         Author: Shanab
         """
@@ -162,7 +162,34 @@ class BadgeTest(TestCase):
         self.assertEqual(badge, Badge.objects.get(name="super-user"))
         self.assertIn(badge, self.device.badge_set.all())
 
-    
+    def test_time_badge_handler_saves_at_most_four_badges(self):
+        """
+        Tests that the user acquires at most four non-repeated time badges,
+        regardless of how many more days he uses the application
+        Author: Shanab
+        """
+        self.make_user_use_application_consecutively(for_in_days=140, using=self.device)
+        for i in xrange(1,randint(5,15)):
+            time_badge_handler(self.device)
+        self.assertEqual(self.device.badge_set.count(), 4)
+
+    def test_checkin_badge_handler_return_and_save_badges(self):
+        """
+        Test if checkin_badge_handler returns and saves the proper badge
+        in the join table between device and badge
+        """
+        date = datetime.now() - timedelta(days=50)
+        values = [1,50,100] # Cannot test further
+        for i in xrange(0,len(values)):
+            num_checkins = values[i] - values[i-1] if i != 0 else 1
+            for j in xrange(0,num_checkins):
+                self.make_user_checkin(date, self.device)
+                self.device.increment_checkins()
+                date += timedelta(minutes=61)
+            badge = checkin_badge_handler(self.device)
+            self.assertEqual(badge, Badge.objects.get(name="checkin", value=str(values[i])))
+
+
 
     
     ######################### TEST HELPERS #########################
@@ -223,5 +250,12 @@ class BadgeTest(TestCase):
                     time = usage_date,
                     persistence = randint(1,10)).save()
             usage_date += timedelta(days=1)
+
+    def make_user_checkin(self, time, using):
+        Ping_Log(step_id=1,
+                speed = randint(1,140),
+                who = using,
+                time = time,
+                persistence = get_persistence(using)).save()
 
 ###################### END OF BADGE TESTS ######################
