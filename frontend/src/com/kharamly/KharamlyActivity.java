@@ -84,12 +84,7 @@ public class KharamlyActivity extends MapActivity {
 		
 		mapView.getOverlays().add(myLocationOverlay);
 		myLocationOverlay.enableMyLocation();
-        //         new PromptDialog(KharamlyActivity.this, R.string.title, R.string.enter_comment){
-        //     public boolean onOkClicked(String input) {
-        //                 toast(input);
-        //                 return true;
-        //     }
-        // };
+		newDestination();
 		myLocationOverlay.runOnFirstFix(new Runnable() {
 			public void run() {
 				mapView.getController().animateTo(myLocationOverlay.getMyLocation());
@@ -97,6 +92,20 @@ public class KharamlyActivity extends MapActivity {
 		});
 		
 		mapView.postInvalidate();
+	}
+	
+	private void newDestination()
+	{
+		PromptDialog dest =  new PromptDialog(KharamlyActivity.this, R.string.title, R.string.enter_comment){
+            public boolean onOkClicked(String input) {
+                        if(input.length()==0)
+                        	newDestination();
+                        else
+                        	destination = input;
+                        return true;
+            }
+        };
+        dest.show();
 	}
 	
 	private void buildAlertMessageNoGps() {
@@ -142,8 +151,7 @@ public class KharamlyActivity extends MapActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
     		case R.id.block :
-    			Intent i = new Intent(KharamlyActivity.this, ReportBlocked.class);
-    			startActivity(i);
+    			newDestination();
     		default:
     			return super.onOptionsItemSelected(item);
 		}
