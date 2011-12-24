@@ -103,8 +103,9 @@ class BadgeTest(TestCase):
         """
         Tests if the adventurer badge is acquired by the user if he
         used the application for 10 days in a period of 30 days
+        Author: Shanab
         """
-        self.make_user_use_application(for_in_days=10, until=29)
+        self.make_user_use_application(for_in_days=10, until=29, using=self.device)
         badge = time_badge_handler(self.device)
         self.assertEqual(badge, Badge.objects.get(name="adventurer"))
         self.assertIn(badge, self.device.badge_set.all())
@@ -114,11 +115,55 @@ class BadgeTest(TestCase):
         Makes sure that adventurer badge handler does not return the badge
         if the user did not use the application for 10 days in a duration
         of 30 days
+        Author: Shanab
         """
-        self.make_user_use_application(for_in_days=9, until=29)
+        self.make_user_use_application(for_in_days=9, until=29, using=self.device)
         badge = time_badge_handler(self.device)
         self.assertIsNone(badge)
         self.assertNotIn(Badge.objects.get(name="adventurer"), self.device.badge_set.all())
+
+    def test_addict_badge_handler_return_and_saves_badge(self):
+        """
+        Tests if the addict badge is acquired by the user if he
+        used the application 10 consecutive days
+        Author: Shanab
+        """
+        self.make_user_use_application_consecutively(for_in_days=10, using=self.device)
+        # Forcing the user to acquire the adventurer badge,
+        # in order to be able to acquire further badge levels
+        time_badge_handler(self.device)
+        badge = time_badge_handler(self.device)
+        self.assertEqual(badge, Badge.objects.get(name="addict"))
+        self.assertIn(badge, self.device.badge_set.all())
+
+    def test_fanboy_badge_handler_return_and_save_badge(self):
+        """
+        Tests if the fanboy badge is acquired by the user if he
+        used the application 30 consecutive days
+        Author: Shanab
+        """
+        self.make_user_use_application_consecutively(for_in_days=30, using=self.device)
+        for i in xrange(1,3):
+            time_badge_handler(self.device)
+        badge = time_badge_handler(self.device)
+        self.assertEqual(badge, Badge.objects.get(name="fanboy"))
+        self.assertIn(badge, self.device.badge_set.all())
+
+    def test_super_user_badge_handler_return_and_save_badge(self):
+        """
+        Tests if the super user badge is acquired by the user if he
+        used the application 60 consecutive days
+        Author: Shanab
+        """
+        self.make_user_use_application_consecutively(for_in_days=60, using=self.device)
+        for i in xrange(1,4):
+            time_badge_handler(self.device)
+        badge = time_badge_handler(self.device)
+        self.assertEqual(badge, Badge.objects.get(name="super-user"))
+        self.assertIn(badge, self.device.badge_set.all())
+
+    
+
     
     ######################### TEST HELPERS #########################
 
@@ -146,10 +191,10 @@ class BadgeTest(TestCase):
         random_second = randrange(int_delta)
         return (start + timedelta(seconds=random_second))
 
-    def make_user_use_application(self, for_in_days, until):
+    def make_user_use_application(self, for_in_days, until, using):
         """
         Effect:
-            saves data in Ping_Log in a way that makes the user use
+            saves data in Ping_Log in a way that simulates the user using
             the application for the given number of days in the past
             given number of days (declared as "until")
         """
@@ -159,10 +204,24 @@ class BadgeTest(TestCase):
             if not day in s:
                 s.add(day)
                 Ping_Log(step_id=1,
-                         speed = randint(1,140),
-                         who = self.device,
-                         time = datetime.now() - timedelta(days=day),
-                         persistence = randint(1,10)).save()
-        pass
+                        speed = randint(1,140),
+                        who = using,
+                        time = datetime.now() - timedelta(days=day),
+                        persistence = randint(1,10)).save()
+
+    def make_user_use_application_consecutively(self, for_in_days, using):
+        """
+        Effect:
+            saves data in Ping_Log in a way that simulates the user using
+            the application for {for_in_days} consecutive days  
+        """
+        usage_date = datetime.now() - timedelta(days = for_in_days)
+        for i in xrange(0,for_in_days):
+            Ping_Log(step_id=1,
+                    speed = randint(1,140),
+                    who = using,
+                    time = usage_date,
+                    persistence = randint(1,10)).save()
+            usage_date += timedelta(days=1)
 
 ###################### END OF BADGE TESTS ######################

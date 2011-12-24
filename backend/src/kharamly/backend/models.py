@@ -1,4 +1,5 @@
 from datetime import *
+from random import *
 from django.db import models
 import urllib, json, math
 
@@ -885,7 +886,7 @@ def time_badge_handler(who):
         if not adventurer_badge in badges:
             end_date = usage_dates[0] - timedelta(days=30)
             usage_dates_in_past_30_days = filter(lambda i: i >= end_date, usage_dates)
-            if len(usage_dates_in_past_30_days) == 10:
+            if len(usage_dates_in_past_30_days) >= 10:
                 who.badge_set.add(adventurer_badge)
                 return adventurer_badge
         elif not addict_badge in badges:
@@ -994,7 +995,7 @@ def consecutive_time_badge_handler(who, badge, consecutive_days, usage_dates):
     """
     end_date = usage_dates[0] - timedelta(consecutive_days)
     filtered_usage_dates = filter(lambda i: i >= end_date, usage_dates)
-    if len(filtered_usage_dates) == consecutive_days:
+    if len(filtered_usage_dates) >= consecutive_days:
         who.badge_set.add(badge)
         return badge
     else:
