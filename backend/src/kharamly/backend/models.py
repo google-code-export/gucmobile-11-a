@@ -52,7 +52,7 @@ class Step(models.Model):
     distance_value = models.IntegerField()
     duration_text = models.CharField(max_length=200)
     duration_value = models.IntegerField()
-    polypoints = models.CharField(max_length=200)
+    polypoints = models.CharField(max_length=50000)
     start_location = models.ForeignKey(Node, related_name='start')
     end_location = models.ForeignKey(Node, related_name='end')
 
@@ -178,6 +178,7 @@ def getdirections(origin, destination):
                 duration_value = step['duration']['value']
                 start_location = step['start_location']
                 end_location = step['end_location']
+                polypoints = step['polyline']['points']
                 start_node = get_node(latitude=start_location['lat'],
                                   longitude=start_location['lng'])
                 # start_node.save()
@@ -189,6 +190,7 @@ def getdirections(origin, destination):
                                      duration_value,
                                      distance_text,
                                      distance_value,
+                                     polypoints,
                                      start_node,
                                      end_node)
                 current_leg.steps.add(current_step)
@@ -211,7 +213,7 @@ def get_node(latitude, longitude):
 
 
 def get_step(html, duration_text, duration_value,
-             distance_text,distance_value, start_node,end_node):
+             distance_text,distance_value, polypoints, start_node,end_node):
     try:
         current_step = Step.objects.get(start_location = start_node, end_location = end_node)
     except Step.DoesNotExist:
@@ -220,6 +222,7 @@ def get_step(html, duration_text, duration_value,
                             duration_value=duration_value,
                             distance_text=distance_text,
                             distance_value=distance_value,
+                            polypoints = polypoints,
                             start_location=start_node,
                             end_location=end_node)
         current_step.save()
