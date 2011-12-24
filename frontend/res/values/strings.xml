@@ -8,5 +8,6 @@
 	<string name="cancel">Cancel</string>
 	<string name="title">New Destination</string>
 	<string name="enter_comment">Enter your desired destination here :</string>
+	<string name="close">Close</string>
 
 </resources>

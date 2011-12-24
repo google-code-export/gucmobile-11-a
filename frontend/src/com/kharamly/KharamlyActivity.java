@@ -150,8 +150,10 @@ public class KharamlyActivity extends MapActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-    		case R.id.block :
+    		case R.id.dest :
     			newDestination();
+    		case R.id.close :
+    			finish();
     		default:
     			return super.onOptionsItemSelected(item);
 		}
