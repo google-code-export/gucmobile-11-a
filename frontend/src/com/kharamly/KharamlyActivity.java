@@ -332,7 +332,7 @@ public class KharamlyActivity extends MapActivity {
                 Paint pathPaint = new Paint();
                 pathPaint.setAntiAlias(true);
                 pathPaint.setStrokeWidth(4.0f);
-                pathPaint.setColor(color);
+                pathPaint.setColor(Color.RED);
                 pathPaint.setStyle(Paint.Style.STROKE);
                 canvas.drawPath(path, pathPaint);
         	}
