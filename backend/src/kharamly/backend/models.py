@@ -3,6 +3,7 @@ from random import *
 from django.db import models
 import urllib, json, math
 
+
 # A entity of users, for later usage
 class Device(models.Model):
     installation_id = models.CharField(max_length = 64)
@@ -51,6 +52,7 @@ class Step(models.Model):
     distance_value = models.IntegerField()
     duration_text = models.CharField(max_length=200)
     duration_value = models.IntegerField()
+    polypoints = models.CharField(max_length=200)
     start_location = models.ForeignKey(Node, related_name='start')
     end_location = models.ForeignKey(Node, related_name='end')
 
