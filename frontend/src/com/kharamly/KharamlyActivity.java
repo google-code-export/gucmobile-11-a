@@ -99,13 +99,46 @@ public class KharamlyActivity extends MapActivity {
 		PromptDialog dest =  new PromptDialog(KharamlyActivity.this, R.string.title, R.string.enter_comment){
             public boolean onOkClicked(String input) {
                         if(input.length()==0)
+                        {
                         	newDestination();
+                        	toast("No destination entered, Please write something !!!");
+                        }
                         else
+                        {
                         	destination = input;
+                        	geocoding();
+                        }
                         return true;
             }
         };
         dest.show();
+	}
+	
+	private void geocoding()
+	{
+		String geoUrl = "http://maps.googleapis.com/maps/api/geocode/json?address="+destination+"&sensor=true";
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpGet httpget = new HttpGet(geoUrl);
+		try
+		{
+			HttpResponse httpresponse = httpclient.execute(httpget);
+        	String responseBody = convertStreamToString(httpresponse.getEntity().getContent());
+        	JSONObject json = new JSONObject(responseBody);
+        	String status = json.get("status").toString();
+        	if(status.equalsIgnoreCase("ZERO_RESULTS"))
+        	{
+        		toast("Sorry, Destination not found !");
+        		newDestination();
+        	}
+        	else
+        	{
+        		
+        	}
+		}
+		catch(Exception e)
+		{
+			
+		}
 	}
 	
 	private void buildAlertMessageNoGps() {
@@ -153,10 +186,27 @@ public class KharamlyActivity extends MapActivity {
     		case R.id.dest :
     			newDestination();
     		case R.id.close :
-    			finish();
+    			closeKharamly();
     		default:
     			return super.onOptionsItemSelected(item);
 		}
+	}
+	
+	private void closeKharamly() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage("Are you sure you want to exit?")
+		       .setCancelable(false)
+		       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		                finish();
+		           }
+		       })
+		       .setNegativeButton("No", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		                dialog.cancel();
+		           }
+		       });
+		builder.show();
 	}
 	
 	@Override
@@ -167,7 +217,7 @@ public class KharamlyActivity extends MapActivity {
 	
 	public void toast(String message) {
 	    Log.e(TAG_NAME, message);
-	    Toast.makeText(this, message, Toast.LENGTH_LONG);
+	    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
 	}
 	
 	public static void background(final Runnable r) {
