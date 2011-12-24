@@ -188,9 +188,14 @@ class BadgeTest(TestCase):
                 date += timedelta(minutes=61)
             badge = checkin_badge_handler(self.device)
             self.assertEqual(badge, Badge.objects.get(name="checkin", value=str(values[i])))
+            self.assertIn(badge, self.device.badge_set.all())
 
 
-
+    def test_persistent_time_badge_handler_return_and_save_badges(self):
+        self.make_user_persistently_move(delta=timedelta(hours=3), using=self.device)
+        badge = persistent_time_badge_handler(self.device)
+        self.assertIsNotNone(badge)
+        self.assertEqual(badge, Badge.objects.get(name="road-warrior"))
     
     ######################### TEST HELPERS #########################
 
@@ -224,6 +229,7 @@ class BadgeTest(TestCase):
             saves data in Ping_Log in a way that simulates the user using
             the application for the given number of days in the past
             given number of days (declared as "until")
+        Author: Shanab
         """
         s = set([])
         while len(s) != for_in_days:
@@ -241,6 +247,7 @@ class BadgeTest(TestCase):
         Effect:
             saves data in Ping_Log in a way that simulates the user using
             the application for {for_in_days} consecutive days  
+        Author: Shanab
         """
         usage_date = datetime.now() - timedelta(days = for_in_days)
         for i in xrange(0,for_in_days):
@@ -252,10 +259,30 @@ class BadgeTest(TestCase):
             usage_date += timedelta(days=1)
 
     def make_user_checkin(self, time, using):
+        """
+        Simulates the input device {using} checking in at a specified time
+        Author: Shanab
+        """
         Ping_Log(step_id=1,
                 speed = randint(1,140),
                 who = using,
                 time = time,
                 persistence = get_persistence(using)).save()
+
+    def make_user_persistently_move(self, delta, speed=50, using=Device.objects.get(id=1)):
+        """
+        Simulates the input user {using} persistently using the application for
+        the specified timedelta
+        """
+        time = datetime.now() - timedelta(days=5)
+        end_time = time + delta
+        while time <= end_time:
+            Ping_Log(step_id=1,
+                speed = speed,
+                who = using,
+                time = time,
+                persistence = get_persistence(who=using, time=time)).save()
+            time += timedelta(minutes=4)
+        
 
 ###################### END OF BADGE TESTS ######################

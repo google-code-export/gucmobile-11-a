@@ -30,7 +30,7 @@ class Device(models.Model):
         last_two_pings = Ping_Log.objects.filter(who=self).reverse()[:2]
         # the if statement checks if this is the user's first ping, or if
         # the difference between the latest 2 pings is more than one hour
-        if len(last_two_pings) < 2 or last_two_pings[0].persistence != last_two_pings[1].persistence: # last_two_pings[0].time - last_two_pings[1].time >= timedelta(hours=1):
+        if len(last_two_pings) < 2 or last_two_pings[0].time - last_two_pings[1].time >= timedelta(hours=1):
             self.number_of_checkins += 1
             self.save()
         pass
@@ -1009,14 +1009,14 @@ def consecutive_time_badge_handler(who, badge, consecutive_days, usage_dates):
     else:
         return None
 
-def get_persistence(who):
+def get_persistence(who, time=datetime.now()):
     pings = Ping_Log.objects.filter(who=who).reverse()
     # persistence = pings[0].persistence + 1 if len(pings) != 0 and datetime.now() - pings[0].time >= timedelta(hours=1) else pings[0].persistence
     if len(pings) != 0:
-        if datetime.now() - pings[0].time >= timedelta(hours=1):
+        if time - pings[0].time >= timedelta(minutes=5, seconds=30):
             persistence = pings[0].persistence + 1
         else:
-            persistence = pings[0]
+            persistence = pings[0].persistence
     else:
         persistence = 1
     return persistence
