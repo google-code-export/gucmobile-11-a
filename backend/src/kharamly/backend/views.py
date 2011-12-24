@@ -66,11 +66,6 @@ def update(stepId, routeId, speed, who):
 ### FOR TESTING PURPOSES,  ADD A VIEW THAT CALLS YOUR MODEL METHOD
 ##################################################################
 
-# Testing to call model from view
-def test_method_in_views(request, test_value):
-    return HttpResponse(test_method_in_models(test_value))
-
-
 def inRadius(request,longitude,latitude,radius):
     print 'hi'
    
