@@ -1,4 +1,5 @@
 from datetime import *
+from random import *
 from django.db import models
 import urllib, json, math
 
@@ -43,12 +44,6 @@ class Node(models.Model):
 
     def __unicode__(self):
         return str(self.id) + ":" + str(self.latitude) + ", " + str(self.longitude)
-
-class User_loginInfo(models.Model):
-    twitterUsername = models.CharField(max_length=200)
-    token = models.CharField(max_length=200)
-    secret = models.CharField(max_length=200)
-
 
 class Step(models.Model):
     html_instructions = models.TextField()
@@ -316,8 +311,11 @@ def getalternatives(leg, myStep, destination, location):
     return response
 
 
-# Author : Ahmed Abouraya
-# takes longitude and latitude of a certain place, and returns all steps around this place in radius radius
+#@Author : Ahmed Abouraya
+#Takes a node and radius and returns all steps around this node in a radius radius
+#@param lng: longitude of the node
+#@param lat: latitude of the node
+#@param radius:radius of the region
 def get_steps_around(lng, lat,radius):
 	steps=Step.objects.all()
 	L = list() # empty list
@@ -342,8 +340,9 @@ def get_steps_around(lng, lat,radius):
 
 	return 	json.dumps(L)
              
-# Author : Ahmed Abouraya
+#@Author : Ahmed Abouraya
 # takes a JSONObject and updates all steps speeds with the information in the database
+#@param result JSONObject
 # Logic added to evaluate ^k
 def updateResult(result):
         routes = result['routes']
@@ -384,8 +383,10 @@ def updateResult(result):
                                         avgSpeed=avgSpeed/counter
                                         step['speed']=avgSpeed
         return result
-# Ahmed Abouraya
+#@Author : Ahmed Abouraya
 # calculates distance between two nodes
+#@param current: first node
+#@param target : second node
 def getDistance(current,target):
         lat = current['lat'] / 1E6 - target['lat']  / 1E6;
         lng = current['lng']  / 1E6 - target['lng']  / 1E6;
@@ -442,9 +443,16 @@ def evaluate_route(result, speed, my_step):
             routes.append(route)
     return routes
 
+# @Author: Ahmed Abouraya
 # checks if the current road is blocked,if so it updates the database
 # loops over all steps, when the currentStep is reached, checks whether the driver has reached the end of the step or not if yes insert information in database
 # checks for future steps if they're blocked if yes checks for alternatives
+# @param origin: start node
+# @param destination: destination node
+# @param result : JSONObject
+# @param speed : current speed
+# @param currentStep : current step
+# @param startTime : start time of the current step
 def evaluate(origin, destination, result, speed, currentStep, startTime):
 
 	routes = result['routes']
@@ -553,7 +561,8 @@ def evaluate(origin, destination, result, speed, currentStep, startTime):
 					return updateResult(getalternatives(leg, step, destination, origin))
 		return updateResult(result)
 
-
+#@author: Ahmed Abouraya
+#@param  speed: current speed
 #determines whether a road is blocked or not
 def blocked_road(speed):
 	return speed < 5
@@ -885,7 +894,7 @@ def time_badge_handler(who):
         if not adventurer_badge in badges:
             end_date = usage_dates[0] - timedelta(days=30)
             usage_dates_in_past_30_days = filter(lambda i: i >= end_date, usage_dates)
-            if len(usage_dates_in_past_30_days) == 10:
+            if len(usage_dates_in_past_30_days) >= 10:
                 who.badge_set.add(adventurer_badge)
                 return adventurer_badge
         elif not addict_badge in badges:
@@ -909,16 +918,18 @@ def persistent_time_badge_handler(who):
     Author: Shanab
     """
     badge = None
+    warrior_badge = Badge.objects.get(name="road-warrior")
+    junkie_badge = Badge.objects.get(name="wheel-junkie")
     if len(Ping_Log.objects.filter(who=who)) >= 2:
         last_ping = Ping_Log.objects.filter(who=who).reverse()[0]
         trip = Ping_Log.objects.filter(who=who, persistence=last_ping.persistence)
         start_time_of_trip = trip[0].time
         end_time_of_trip = trip.reverse()[0].time
-        if end_time_of_trip - start_time_of_trip >= timedelta(hours=3):
-            badge = Badge.objects.get(name="road-warrior")
+        if end_time_of_trip - start_time_of_trip >= timedelta(hours=3) and not warrior_badge in who.badge_set.all():
+            badge = warrior_badge
             who.badge_set.add(badge)
         elif end_time_of_trip - start_time_of_trip >= timedelta(hours=5):
-            badge = Badge.objects.get(name="wheel-junkie")
+            badge = junkie_badge
             who.badge_set.add(badge)
     return badge
 
@@ -994,9 +1005,21 @@ def consecutive_time_badge_handler(who, badge, consecutive_days, usage_dates):
     """
     end_date = usage_dates[0] - timedelta(consecutive_days)
     filtered_usage_dates = filter(lambda i: i >= end_date, usage_dates)
-    if len(filtered_usage_dates) == consecutive_days:
+    if len(filtered_usage_dates) >= consecutive_days:
         who.badge_set.add(badge)
         return badge
     else:
         return None
+
+def get_persistence(who, time=datetime.now()):
+    pings = Ping_Log.objects.filter(who=who).reverse()
+    # persistence = pings[0].persistence + 1 if len(pings) != 0 and datetime.now() - pings[0].time >= timedelta(hours=1) else pings[0].persistence
+    if len(pings) != 0:
+        if time - pings[0].time >= timedelta(minutes=5, seconds=30):
+            persistence = pings[0].persistence + 1
+        else:
+            persistence = pings[0].persistence
+    else:
+        persistence = 1
+    return persistence
 ################### END OF BADGE HANDLERS ###################

@@ -18,7 +18,8 @@ import com.google.android.maps.GeoPoint;
 
 public class RegionStatus {
 	static String respStr;
-
+	//this method takes longitude and latitude of a certain place and the radius of the targeted region
+	//and returns list of steps with their speeds in that region
 	public static ArrayList<Step> getRegionStatus(double longitude,
 			double latitude,double radius, Context c, TextView txtMsg) {
 
