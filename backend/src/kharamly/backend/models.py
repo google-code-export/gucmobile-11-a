@@ -832,9 +832,9 @@ the differences between routes
 @author Monayri
 """
 def getDifferences(routes):
-    step1 = None
-    step2 = None
-    step3 = None
+    step1 = []
+    step2 = []
+    step3 = []
     steps = []
     if len(routes) == 2 :
         steps1 = []
@@ -845,15 +845,25 @@ def getDifferences(routes):
         for leg in routes[1].legs.all():
             for step in leg.steps.all():
                 steps2.append(step)
-        x = 0
-        while x < len(steps1):
-            if steps1[x].id != steps2[x].id:
-                step1 = steps1[x]
-                step2 = steps2[x]
-                steps.append(step1)
-                steps.append(step2)
-                break
-            x += 1
+        flag = False;
+        for step in steps1 :
+            if steps2.count(step) == 0:
+                step1.append(step)
+                flag = True
+            else:
+                if flag :
+                    break
+        print len(step1)
+        steps.append(step1[len(step1)/2])
+        flag = False;
+        for step in steps2 :
+            if steps1.count(step) == 0:
+                step2.append(step)
+                flag = True
+            else:
+                if flag :
+                    break
+        steps.append(step2[len(step2)/2])
     
     if len(routes) == 3 :
         steps1 = []
@@ -869,19 +879,35 @@ def getDifferences(routes):
         for leg in routes[2].legs.all():
             for step in leg.steps.all():
                 steps3.append(step)
-        x = 0
+        
+        flag = False
         for step in steps1 :
             if steps2.count(step) == 0 and steps3.count(step) == 0:
-                steps.append(step)
-                break
+                step1.append(step)
+                flag = True
+            else:
+                if flag :
+                    break
+        steps.append(step1[len(step1)/2])
+        flag = False;
         for step in steps2 :
             if steps1.count(step) == 0 and steps3.count(step) == 0:
-                steps.append(step)
-                break
+                step2.append(step)
+                flag = True
+            else:
+                if flag :
+                    break
+        steps.append(step2[len(step2)/2])
+        flag = False;
         for step in steps3 :
             if steps1.count(step) == 0 and steps2.count(step) == 0:
-                steps.append(step)
-                break
+                step3.append(step)
+                flag = True
+            else:
+                if flag :
+                    break
+        steps.append(step3[len(step3)/2])
+
     return steps
   
 ################## START OF BADGE HANDLERS ##################

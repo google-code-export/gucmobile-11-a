@@ -19,6 +19,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import twitter4j.GeoLocation;
+
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -266,16 +268,18 @@ public class KharamlyActivity extends MapActivity {
 		MapView mapView;
 		MapController mapController;
 		MapRouteOverlay markerOverlay;
-		Point markerPos;
-		ArrayList<MapRouteOverlay> route1Overlays = new ArrayList<KharamlyActivity.MapRouteOverlay>();
-		ArrayList<MapRouteOverlay> route2Overlays = new ArrayList<KharamlyActivity.MapRouteOverlay>();
-		ArrayList<MapRouteOverlay> route3Overlays = new ArrayList<KharamlyActivity.MapRouteOverlay>();
+		ArrayList<StepInfo> route1Overlays = new ArrayList<StepInfo>();
+		ArrayList<StepInfo> route2Overlays = new ArrayList<StepInfo>();
+		ArrayList<StepInfo> route3Overlays = new ArrayList<StepInfo>();
 		MapRouteOverlay route1markerOverlay;
-		Point route1marker;
+		GeoPoint route1marker;
 		MapRouteOverlay route2markerOverlay;
-		Point route2marker;
+		GeoPoint route2marker;
 		MapRouteOverlay route3markerOverlay;
-		Point route3marker;
+		GeoPoint route3marker;
+		int routes = 0;
+		int routeChosen = 1;
+		StepInfo chosenStep = null;
 		public MyCustomizedLocationOverlay(Context context, MapView mapView) {
 			super(context, mapView);
 			this.mapView = mapView;
@@ -285,22 +289,8 @@ public class KharamlyActivity extends MapActivity {
 		@Override
 		public void onLocationChanged(Location location) {
 
-			float speed = location.getSpeed();
-			mapController.setZoom(speed <= 5 ? 21 : speed >= 28 ? 15
-					: (int) ((speed * -6 + 513) / 23));
-//			/**
-//			 * Remove any old route info
-//			 */
-//			for (MapRouteOverlay o : KharamlyActivity.this.routeOverlay) {
-//				mapView.getOverlays().remove(o);
-//			}
-//			routeOverlay.clear();
-
-			// Let's pretend for now we'll update the routes everytime the
-			// location is changed
-			// this might drain the battery, but we'll see!
-
-			// Source: http://www.codeproject.com/KB/android/jsonandroidphp.aspx
+			
+			mapController.setZoom(15);
 			if(flag){
 				HttpClient httpclient = new DefaultHttpClient();
 				HttpGet httpget = new HttpGet(Cons.API_URL + location.getLatitude()
@@ -313,7 +303,6 @@ public class KharamlyActivity extends MapActivity {
 				+ Installation.id(KharamlyActivity.this);
 				Log.e("test", x);
 				try {
-					ArrayList<HashMap<String, Integer>> mylist = new ArrayList<HashMap<String, Integer>>();
 					HttpResponse httpresponse = httpclient.execute(httpget);
 					String responseBody = convertStreamToString(httpresponse
 							.getEntity().getContent());
@@ -321,7 +310,7 @@ public class KharamlyActivity extends MapActivity {
 					JSONObject json = new JSONObject(responseBody);
 					JSONArray jArray = json.getJSONArray("routes");
 					List<Overlay> overlays = mapView.getOverlays();
-					Log.e("R number", jArray.length()+"");
+					routes = jArray.length();
 					for (int i = 0; i < jArray.length(); i++) {
 						JSONObject route = jArray.getJSONObject(i);
 						JSONArray steps = route.getJSONArray("steps");
@@ -365,20 +354,45 @@ public class KharamlyActivity extends MapActivity {
 							}
 							int color = step.getInt("col");
 							int marker = step.getInt("marker");
+							int id = step.getInt("loc");
 							if (i ==0 ){
-								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color, marker==1, 255, i );
-								route1Overlays.add(mro);
+								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color,255, i );
+								StepInfo info = new StepInfo(geopoints, color, id, step.getDouble("s_lng"),step.getDouble("s_lat"));
+								route1Overlays.add(info);
 								overlays.add(mro);
+								if (marker ==1 ){
+									route1marker = new GeoPoint(
+											(int) (((double) step.getDouble("s_lat")) * 1E6),
+											(int) (((double) step.getDouble("s_lng")) * 1E6));
+									route1markerOverlay = new MapRouteOverlay(route1marker, 3);
+									overlays.add(route1markerOverlay);
+								}
 							}
 							else if (i ==1 ){
-								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color, marker==1, 50, i );
-								route2Overlays.add(mro);
+								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color,50, i );
+								StepInfo info = new StepInfo(geopoints, color, id, step.getDouble("s_lng"),step.getDouble("s_lat"));
+								route2Overlays.add(info);
 								overlays.add(mro);
+								if (marker ==1 ){
+									route2marker = new GeoPoint(
+											(int) (((double) step.getDouble("s_lat")) * 1E6),
+											(int) (((double) step.getDouble("s_lng")) * 1E6));
+									route2markerOverlay = new MapRouteOverlay(route2marker, 2);
+									overlays.add(route2markerOverlay);
+								}
 							}
 							else if (i ==2 ){
-								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color, marker==1, 50, i );
-								route3Overlays.add(mro);
+								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color, 50, i );
+								StepInfo info = new StepInfo(geopoints, color, id, step.getDouble("s_lng"),step.getDouble("s_lat"));
+								route3Overlays.add(info);
 								overlays.add(mro);
+								if (marker ==1 ){
+									route3marker = new GeoPoint(
+											(int) (((double) step.getDouble("s_lat")) * 1E6),
+											(int) (((double) step.getDouble("s_lng")) * 1E6));
+									route3markerOverlay = new MapRouteOverlay(route3marker, 2);
+									overlays.add(route3markerOverlay);
+								}
 							}
 
 						}
@@ -391,24 +405,138 @@ public class KharamlyActivity extends MapActivity {
 				GeoPoint loc = new GeoPoint(
 						(int) (location.getLatitude() * 1000000),
 						(int) (location.getLongitude() * 1000000));
-				MapRouteOverlay marker = new MapRouteOverlay(loc);
+				MapRouteOverlay marker = new MapRouteOverlay(loc, 1);
 				markerOverlay = marker;
 				overlays.add(marker);
 				mapView.invalidate();
 				mapController.animateTo(loc);
-
+				chosenStep = route1Overlays.get(0);
+				flag = false;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			}else{
+				float speed = location.getSpeed();
+				double lng = location.getLongitude();
+				double lat = location.getLatitude();
+				if(chosenStep != null){
+					if(Math.abs(lng-chosenStep.lng) < 0.00009 && Math.abs(lat-chosenStep.lat)<0.00009){
+						
+					}
+				}
 			}
 		}
-
+		public void getNextStep(){
+			if(routeChosen == 1){
+				int index = route1Overlays.indexOf(chosenStep) + 1;
+				if(index == route1Overlays.size())
+					chosenStep = null;
+				else
+					chosenStep = route1Overlays.get(index);
+			}
+			else if(routeChosen == 2){
+				int index = route2Overlays.indexOf(chosenStep) + 1;
+				if(index == route2Overlays.size())
+					chosenStep = null;
+				else
+					chosenStep = route2Overlays.get(index);
+			}
+			else if(routeChosen == 3){
+				int index = route3Overlays.indexOf(chosenStep) + 1;
+				if(index == route3Overlays.size())
+					chosenStep = null;
+				else
+					chosenStep = route3Overlays.get(index);
+			}
+				
+		}
+		public  void drawMap(MapView mapview){
+			List<Overlay> overlays = mapView.getOverlays();
+			MapRouteOverlay mro;
+			for (StepInfo info : route1Overlays){
+				if (routeChosen == 1 ){
+					mro = new MapRouteOverlay(info.points, info.color, 255, 1 );
+					route1markerOverlay = new MapRouteOverlay(route1marker, 3);
+					overlays.add(route1markerOverlay);
+				}else{
+					mro = new MapRouteOverlay(info.points, info.color, 50, 1 );
+					route1markerOverlay = new MapRouteOverlay(route1marker, 2);
+					overlays.add(route1markerOverlay);
+				}
+				overlays.add(mro);
+				}
+			for (StepInfo info : route2Overlays){
+				if (routeChosen == 2 ){
+					mro = new MapRouteOverlay(info.points, info.color, 255, 2);
+					route2markerOverlay = new MapRouteOverlay(route2marker, 3);
+					overlays.add(route2markerOverlay);
+				}else{
+					route2markerOverlay = new MapRouteOverlay(route2marker, 2);
+					overlays.add(route2markerOverlay);
+					mro = new MapRouteOverlay(info.points, info.color, 50, 2);
+				}
+				overlays.add(mro);
+				}
+			for (StepInfo info : route3Overlays){
+				if (routeChosen == 3 ){
+					mro = new MapRouteOverlay(info.points, info.color, 255, 1 );
+					route3markerOverlay = new MapRouteOverlay(route3marker, 3);
+					overlays.add(route3markerOverlay);
+				}else{
+					mro = new MapRouteOverlay(info.points, info.color, 50, 1 );
+					route3markerOverlay = new MapRouteOverlay(route3marker, 2);
+					overlays.add(route3markerOverlay);
+				}
+				overlays.add(mro);
+				}
+		}
 		@Override
 		public boolean onTouchEvent(MotionEvent event, MapView mapview) {
 
 			if (event.getAction() == 1) {
-				List<Overlay> overlays = mapView.getOverlays();
-				overlays.remove(markerOverlay);
+				Log.e("a7a1", "a7a1");
+				 int action = event.getAction();
+				    int x = (int) event.getX();  // or getRawX();
+				    int y = (int) event.getY();
+				    Point point = new Point();
+					mapview.getProjection().toPixels(route1marker, point);
+					if (Math.abs(x-point.x) < 40 && Math.abs(y-point.y)<40) {
+						Log.e("a7a", "a7a");
+				        if ( routeChosen != 1){
+				        	mapview.getOverlays().clear();
+				    		mapview.invalidate();
+				    		mapview.getOverlays().add(this);
+				        	routeChosen = 1;
+				        	drawMap(mapview);
+				        }
+				    }
+					if (route2marker !=null){
+						mapview.getProjection().toPixels(route2marker, point);
+						if (Math.abs(x-point.x) < 40 && Math.abs(y-point.y)<40) {
+							Log.e("a7a", "a7a");
+					        if ( routeChosen != 2){
+					        	mapview.getOverlays().clear();
+					    		mapview.invalidate();
+					    		mapview.getOverlays().add(this);
+					        	routeChosen = 2;
+					        	drawMap(mapview);
+					        }
+					    }
+					}
+					if(route3marker != null){
+						mapView.getProjection().toPixels(route3marker, point);
+						if (Math.abs(x-point.x) < 40 && Math.abs(y-point.y)<40) {
+							Log.e("a7a", "a7a");
+					        if ( routeChosen != 3){
+					        	mapview.getOverlays().clear();
+					    		mapview.invalidate();
+					    		mapview.getOverlays().add(this);
+					        	routeChosen = 3;
+					        	drawMap(mapview);
+					        }
+					    }
+					}
+				    
 			}
 			return false;
 		}
@@ -419,22 +547,25 @@ public class KharamlyActivity extends MapActivity {
 		private GeoPoint gp1;
 		private int color;
 		private boolean marker;
-		private boolean route;
 		private Bitmap bmp;
 		private int alpha = 180;
 		private int routeNo;
 		private ArrayList<GeoPoint> pointList;
 
-		public MapRouteOverlay(GeoPoint gp1) {
+		public MapRouteOverlay(GeoPoint gp1, int index) {
 			this.marker = true;
 			this.gp1 = gp1;
-			bmp = BitmapFactory.decodeResource(getResources(), R.drawable.car);
+			if(index ==1 )
+				bmp = BitmapFactory.decodeResource(getResources(), R.drawable.car);
+			else if (index ==2)
+				bmp = BitmapFactory.decodeResource(getResources(), R.drawable.pin1);
+			else if (index ==3)
+				bmp = BitmapFactory.decodeResource(getResources(), R.drawable.pin2);
 		}
 
-		public MapRouteOverlay(ArrayList<GeoPoint> pointList, int color, boolean marker, int alpha, int routeNo) {
+		public MapRouteOverlay(ArrayList<GeoPoint> pointList, int color, int alpha, int routeNo) {
 			this.pointList = pointList;
 			this.color = color;
-			this.route = marker;
 			this.alpha = alpha;
 			this.routeNo = routeNo;
 		}
@@ -469,11 +600,27 @@ public class KharamlyActivity extends MapActivity {
 				pathPaint.setAntiAlias(true);
 				pathPaint.setStrokeWidth(8.0f);
 				pathPaint.setStyle(Paint.Style.STROKE);
-				pathPaint.setColor(Color.GREEN);
+				pathPaint.setColor(color);
 				pathPaint.setAlpha(alpha);
 				canvas.drawPath(path, pathPaint);
+				
 			}
 
+		}
+	}
+	
+	public class StepInfo {
+		ArrayList<GeoPoint> points ;
+		int color ;
+		int id ;
+		double lng;
+		double lat;
+		public StepInfo ( ArrayList <GeoPoint> points, int color, int id, double lng, double lat){
+			this.points = points;
+			this.color = color;
+			this.id = id;
+			this.lng = lng;
+			this.lat = lat;
 		}
 	}
 
