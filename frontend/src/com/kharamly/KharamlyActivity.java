@@ -21,6 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -31,7 +32,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
-import android.graphics.RectF;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -132,7 +132,17 @@ public class KharamlyActivity extends MapActivity {
         	}
         	else
         	{
-        		
+        		ProgressDialog dialog = ProgressDialog.show(KharamlyActivity.this, "", 
+                        "Loading. Please wait...", true);
+        		JSONArray results = (JSONArray) json.get("results");
+        		JSONObject result = results.getJSONObject(0);
+        		JSONObject geo = (JSONObject)result.get("geometry");
+        		JSONObject location = (JSONObject)geo.get("location");
+        		String lat = location.get("lat").toString();
+        		String lng = location.get("lng").toString();
+        		Log.i(TAG_NAME, lat+" , "+lng);        		
+        		dialog.cancel();
+        		toast(lat+" , "+lng);
         	}
 		}
 		catch(Exception e)
@@ -184,9 +194,15 @@ public class KharamlyActivity extends MapActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
     		case R.id.dest :
-    			newDestination();
+    			{
+    				newDestination();
+    				return true;
+    			}
     		case R.id.close :
-    			closeKharamly();
+    			{
+    				closeKharamly();
+    				return true;
+    			}
     		default:
     			return super.onOptionsItemSelected(item);
 		}
