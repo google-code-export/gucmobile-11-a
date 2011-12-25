@@ -25,7 +25,6 @@ public class PathOverlay extends Overlay {
 	@Override
 	public boolean draw(Canvas canvas, MapView mapView, boolean shadow,
 			long when) {
-		// TODO Auto-generated method stub
 		Projection projection = mapView.getProjection();
 		if (shadow == false) {
 
@@ -45,8 +44,6 @@ public class PathOverlay extends Overlay {
 
 	@Override
 	public void draw(Canvas canvas, MapView mapView, boolean shadow) {
-		// TODO Auto-generated method stub
-
 		super.draw(canvas, mapView, shadow);
 	}
 

@@ -46,22 +46,35 @@ public class SlidingPanel extends ScrollView {
   }
   
   public void toggle() {
-    TranslateAnimation anim=null;
-    
-    isOpen=!isOpen;
-    
-    if (isOpen) {
+	  if (isOpen()) {
+		  close();
+	  } else {
+		  open();
+	  }
+  }
+  
+  public boolean isOpen() {
+	  return isOpen;
+  }
+  
+  public void open() {
+	  isOpen = true;
+
       setVisibility(View.VISIBLE);
-      anim=new TranslateAnimation(getWidth(), 0.0f,
+      TranslateAnimation anim=new TranslateAnimation(getWidth(), 0.0f,
                                   0,
                                   0.0f);
-    }
-    else {
-      anim=new TranslateAnimation(0.0f, getWidth(), 0.0f,
+    
+      anim.setDuration(speed);
+      anim.setInterpolator(new AccelerateInterpolator(1.0f));
+      startAnimation(anim);
+  }
+  
+  public void close() {
+	  isOpen = false;
+      TranslateAnimation anim=new TranslateAnimation(0.0f, getWidth(), 0.0f,
                                   0);
       anim.setAnimationListener(collapseListener);
-    }
-    
     anim.setDuration(speed);
     anim.setInterpolator(new AccelerateInterpolator(1.0f));
     startAnimation(anim);

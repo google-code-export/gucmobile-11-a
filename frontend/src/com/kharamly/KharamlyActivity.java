@@ -40,17 +40,8 @@ import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.*;
+import android.widget.*;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -63,12 +54,18 @@ import com.google.android.maps.Projection;
 public class KharamlyActivity extends MapActivity {
 	SlidingPanel panel;
 	MapView mapView;
+	LinearLayout content;
 	MyCustomizedLocationOverlay myLocationOverlay;
 
+	TwitterConnection connect=null;
+	
 	private final static int TIMEOUT_MILLISEC = 0;
 	private final static String TAG_NAME = "Kharamly";
 	private String destination = "29.985067,31.43873";
 	private LocationManager manager;
+	
+	private Location lastLocation = new Location(""); // defaults to lat,lng=0,0
+	private String refresh_query = "";
 	private boolean flag = true;
 
 	public static final String BADGE_PREFS_NAME = "Badges";
@@ -90,8 +87,9 @@ public class KharamlyActivity extends MapActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		panel = (SlidingPanel) findViewById(R.id.panel);
 
+		panel = (SlidingPanel) findViewById(R.id.panel);
+		content = (LinearLayout) findViewById(R.id.content);
 		manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
 		if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -99,6 +97,7 @@ public class KharamlyActivity extends MapActivity {
 		} else {
 			newDestination();
 		}
+
 		mapView = (MapView) findViewById(R.id.mapView);
 		mapView.setBuiltInZoomControls(true);
 		myLocationOverlay = new MyCustomizedLocationOverlay(this, mapView);
@@ -114,6 +113,12 @@ public class KharamlyActivity extends MapActivity {
 		mapView.postInvalidate();
 	}
 
+	
+	public void onNewIntent(Intent intent) {
+		if(connect!=null&&!connect.flag)
+		connect.retrieveData(intent);
+		connect.flag=false;
+	}	
 	/**
 	 * @author Moataz Mekki
 	 * 
@@ -325,17 +330,38 @@ public class KharamlyActivity extends MapActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.comments:
-			panel.toggle();
-			break;
+			/*
+			Handle the comments button being clicked.
+			If the sliding door is closed, open it and load the data from the server
+			otherwise simply slide in
+			*/
+			case R.id.comments:
+				if (panel.isOpen()) {
+					panel.close();
+					// clear the content and add the loading item
+				} else {
+					content.removeAllViews();
+				
+					// create the loading view again
+					CommentItem c = new CommentItem(this);
+					c.init("", "", false, true);
+					content.addView(c);
 
-		case R.id.dest:
-			newDestination();
-			break;
-
-		case R.id.close:
-			closeKharamly();
-			break;
+					// 
+					panel.open();
+					
+					// Ping the server for comments and show them 
+					loadComments(null);
+				}
+				break;
+    			
+			case R.id.dest:
+				newDestination();
+				break;
+				
+			case R.id.close:
+				closeKharamly();
+				break;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -364,7 +390,40 @@ public class KharamlyActivity extends MapActivity {
 						});
 		builder.show();
 	}
-
+	
+	/**
+	Loads comments from around the specified center. The center is usually the last pinged location but this is 
+	left free so we can use it in the future in case we want to show comments around a certain node.
+	*/
+	public void loadComments(Location center) {
+		if (center == null) {
+			center = lastLocation;
+		}
+		// Send the request in the background.. if you may :)
+		new RequestTask(Cons.SERVER_URL + "/get_comments/" + center.getLatitude() + "/" + center.getLongitude() + "/" + refresh_query) {
+			protected void onPostExecute(String result) {
+				// once we have a response, remove all the contents from our current layout 
+				// and add the comments dynamically ;)
+				LinearLayout content = KharamlyActivity.this.content;
+				content.removeAllViews();
+	            try {
+	            	JSONObject json = new JSONObject(result);
+	            	JSONArray jArray = json.getJSONArray("comments");
+	                for (int i = 0; i < jArray.length(); i++) {
+	                    JSONObject e = jArray.getJSONObject(i);
+						// we have a commentId, halaluijah
+						CommentItem c = new CommentItem(KharamlyActivity.this, e.getInt("id"));
+						c.init(e.getString("text"), e.getString("time") + " via " + e.getString("source"), true, false);
+						content.addView(c);
+            		}
+					
+					refresh_query = json.getString("query");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		};
+	}
 	@Override
 	protected boolean isRouteDisplayed() {
 		return true;
@@ -483,6 +542,10 @@ public class KharamlyActivity extends MapActivity {
 		 */
 		@Override
 		public void onLocationChanged(Location location) {
+			// ^k Set the last location update so the comments are retrieved from around this center
+    		KharamlyActivity.this.lastLocation = location;
+			refresh_query = "";
+			
 			// Setting the Zoom level
 			mapController.setZoom(15);
 			// if we dont have the routes yet
