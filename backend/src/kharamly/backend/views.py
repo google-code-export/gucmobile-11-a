@@ -41,7 +41,8 @@ def api(request, orig, dest, speed, who):
                     "e_lng": step['end_location']['lng'],
                     "col": get_color_from_speed(step['speed']),
                     "loc" : step['loc'],
-                    "marker" : step['marker']
+                    "marker" : step['marker'],
+					"polyline" : step['polyline']
                 })                
         response['routes'].append(r)    
     

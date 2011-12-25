@@ -58,8 +58,9 @@ public class KharamlyActivity extends MapActivity {
 
 	private final static int TIMEOUT_MILLISEC = 0;
 	private final static String TAG_NAME = "Kharamly";
-	private String destination = "29.985067,31.43873"; // GUC ;)
+	private String destination = "29.985067,31.43873"; 
 	private LocationManager manager;
+	private boolean flag = true;
 
 	/**
 	 * Called when the activity is first created.
@@ -77,14 +78,10 @@ public class KharamlyActivity extends MapActivity {
 		if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 			buildAlertMessageNoGps();
 		}
-		HttpClient httpclient = new DefaultHttpClient();
-		HttpGet httpget = new HttpGet(
-				"http://maps.googleapis.com/maps/api/directions/json?origin=30.060421,31.498468&destination=29.985104,31.43888&sensor=true&alternatives=true");
+
 		mapView = (MapView) findViewById(R.id.mapView);
 		mapView.setBuiltInZoomControls(true);
-
 		myLocationOverlay = new MyCustomizedLocationOverlay(this, mapView);
-
 		mapView.getOverlays().add(myLocationOverlay);
 		myLocationOverlay.enableMyLocation();
 		newDestination();
@@ -145,7 +142,8 @@ public class KharamlyActivity extends MapActivity {
 				String lng = location.get("lng").toString();
 				Log.i(TAG_NAME, lat + " , " + lng);
 				dialog.cancel();
-				toast(lat + " , " + lng);
+				destination = lat + "," + lng;
+				flag = true;
 			}
 		} catch (Exception e) {
 
@@ -271,7 +269,15 @@ public class KharamlyActivity extends MapActivity {
 		MapController mapController;
 		MapRouteOverlay markerOverlay;
 		Point markerPos;
-
+		ArrayList<MapRouteOverlay> route1Overlays = new ArrayList<KharamlyActivity.MapRouteOverlay>();
+		ArrayList<MapRouteOverlay> route2Overlays = new ArrayList<KharamlyActivity.MapRouteOverlay>();
+		ArrayList<MapRouteOverlay> route3Overlays = new ArrayList<KharamlyActivity.MapRouteOverlay>();
+		MapRouteOverlay route1markerOverlay;
+		Point route1marker;
+		MapRouteOverlay route2markerOverlay;
+		Point route2marker;
+		MapRouteOverlay route3markerOverlay;
+		Point route3marker;
 		public MyCustomizedLocationOverlay(Context context, MapView mapView) {
 			super(context, mapView);
 			this.mapView = mapView;
@@ -284,90 +290,104 @@ public class KharamlyActivity extends MapActivity {
 			float speed = location.getSpeed();
 			mapController.setZoom(speed <= 5 ? 21 : speed >= 28 ? 15
 					: (int) ((speed * -6 + 513) / 23));
-			/**
-			 * Remove any old route info
-			 */
-			for (MapRouteOverlay o : KharamlyActivity.this.routeOverlay) {
-				mapView.getOverlays().remove(o);
-			}
-			routeOverlay.clear();
+//			/**
+//			 * Remove any old route info
+//			 */
+//			for (MapRouteOverlay o : KharamlyActivity.this.routeOverlay) {
+//				mapView.getOverlays().remove(o);
+//			}
+//			routeOverlay.clear();
 
 			// Let's pretend for now we'll update the routes everytime the
 			// location is changed
 			// this might drain the battery, but we'll see!
 
 			// Source: http://www.codeproject.com/KB/android/jsonandroidphp.aspx
-			HttpClient httpclient = new DefaultHttpClient();
-			HttpGet httpget = new HttpGet(Cons.API_URL + location.getLatitude()
-					+ "," + location.getLongitude() + "/" + destination + "/"
-					+ location.getSpeed() + "/"
-					+ Installation.id(KharamlyActivity.this));
+			if(flag){
+				HttpClient httpclient = new DefaultHttpClient();
+				HttpGet httpget = new HttpGet(Cons.API_URL + location.getLatitude()
+						+ "," + location.getLongitude() + "/" + destination + "/"
+						+ location.getSpeed() + "/"
+						+ Installation.id(KharamlyActivity.this));
+				String x = Cons.API_URL + location.getLatitude()
+				+ "," + location.getLongitude() + "/" + destination + "/"
+				+ location.getSpeed() + "/"
+				+ Installation.id(KharamlyActivity.this);
+				Log.e("test", x);
+				try {
+					ArrayList<HashMap<String, Integer>> mylist = new ArrayList<HashMap<String, Integer>>();
+					HttpResponse httpresponse = httpclient.execute(httpget);
+					String responseBody = convertStreamToString(httpresponse
+							.getEntity().getContent());
+					Log.e("test", responseBody);
+					JSONObject json = new JSONObject(responseBody);
+					JSONArray jArray = json.getJSONArray("routes");
+					List<Overlay> overlays = mapView.getOverlays();
+					Log.e("R number", jArray.length()+"");
+					for (int i = 0; i < jArray.length(); i++) {
+						JSONObject route = jArray.getJSONObject(i);
+						JSONArray steps = route.getJSONArray("steps");
+						Log.e("S number", ""+steps.length());
+						for(int j =0 ; j <steps.length();j++){
+							JSONObject step = steps.getJSONObject(j);
+							String polyline = step.getString("polyline");
+							
+							polyline = polyline.replace("\"", "");
+							polyline = polyline.replace("\\\\", "\\");
+							ArrayList<GeoPoint> geopoints = new ArrayList<GeoPoint>();
+							int index = 0, len = polyline.length();
+							int lat = 0, lng = 0;
+							while (index < len) {
+								int b, shift = 0, result = 0;
+								do {
+									b = polyline.charAt(index++) - 63;
+									result |= (b & 0x1f) << shift;
+									shift += 5;
+								} while (b >= 0x20);
+								int dlat = ((result & 1) != 0 ? ~(result >> 1)
+										: (result >> 1));
+								lat += dlat;
+								shift = 0;
+								result = 0;
+								do {
+									b = polyline.charAt(index++) - 63;
+									result |= (b & 0x1f) << shift;
+									shift += 5;
+								} while (b >= 0x20);
+								int dlng = ((result & 1) != 0 ? ~(result >> 1)
+										: (result >> 1));
+								lng += dlng;
+								GeoPoint p = new GeoPoint(
+										(int) (((double) lat / 1E5) * 1E6),
+										(int) (((double) lng / 1E5) * 1E6));
+								geopoints.add(p);
+								
 
-			try {
-				ArrayList<HashMap<String, Integer>> mylist = new ArrayList<HashMap<String, Integer>>();
-				HttpResponse httpresponse = httpclient.execute(httpget);
-				String responseBody = convertStreamToString(httpresponse
-						.getEntity().getContent());
-				JSONObject json = new JSONObject(responseBody);
-				JSONArray jArray = json.getJSONArray("steps");
-				List<Overlay> overlays = mapView.getOverlays();
-				for (int i = 0; i < jArray.length(); i++) {
-					JSONObject e = jArray.getJSONObject(i);
-					StringBuffer urlString = new StringBuffer();
-					urlString.append("http://maps.google.com/maps?f=d&hl=en");
-					urlString.append("&saddr=");// from
-					urlString.append(e.getDouble("s_lat") + ","
-							+ e.getDouble("s_lng"));
-					urlString.append("&daddr=");// to
-					urlString.append(e.getDouble("e_lat") + ","
-							+ e.getDouble("e_lng"));
-					urlString.append("&ie=UTF8&0&om=0&output=dragdir"); // DRAGDIR
-																		// RETURNS
-																		// JSON
-					String url = urlString.toString();
-					URL inUrl = new URL(url);
-					URLConnection yc = inUrl.openConnection();
-					BufferedReader in = new BufferedReader(
-							new InputStreamReader(yc.getInputStream()));
-					String inputLine;
-					String encoded = "";
-					while ((inputLine = in.readLine()) != null)
-						encoded = encoded.concat(inputLine);
-					in.close();
-					String polyline = encoded.split("points:")[1].split(",")[0];
-					polyline = polyline.replace("\"", "");
-					polyline = polyline.replace("\\\\", "\\");
+								
+							}
+							int color = step.getInt("col");
+							int marker = step.getInt("marker");
+							if (i ==0 ){
+								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color, marker==1, 255, i );
+								route1Overlays.add(mro);
+								overlays.add(mro);
+							}
+							else if (i ==1 ){
+								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color, marker==1, 50, i );
+								route2Overlays.add(mro);
+								overlays.add(mro);
+							}
+							else if (i ==2 ){
+								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color, marker==1, 50, i );
+								route3Overlays.add(mro);
+								overlays.add(mro);
+							}
 
-					ArrayList<GeoPoint> geopoints = new ArrayList<GeoPoint>();
-					int index = 0, len = polyline.length();
-					int lat = 0, lng = 0;
-					while (index < len) {
-						int b, shift = 0, result = 0;
-						do {
-							b = polyline.charAt(index++) - 63;
-							result |= (b & 0x1f) << shift;
-							shift += 5;
-						} while (b >= 0x20);
-						int dlat = ((result & 1) != 0 ? ~(result >> 1)
-								: (result >> 1));
-						lat += dlat;
-						shift = 0;
-						result = 0;
-						do {
-							b = polyline.charAt(index++) - 63;
-							result |= (b & 0x1f) << shift;
-							shift += 5;
-						} while (b >= 0x20);
-						int dlng = ((result & 1) != 0 ? ~(result >> 1)
-								: (result >> 1));
-						lng += dlng;
-						GeoPoint p = new GeoPoint(
-								(int) (((double) lat / 1E5) * 1E6),
-								(int) (((double) lng / 1E5) * 1E6));
-						geopoints.add(p);
-					}
-					int color = e.getInt("col");
-					overlays.add(new MapRouteOverlay(geopoints, color));
+						}
+					
+					
+
+					
 				}
 
 				GeoPoint loc = new GeoPoint(
@@ -381,6 +401,7 @@ public class KharamlyActivity extends MapActivity {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+			}
 			}
 		}
 
@@ -400,7 +421,10 @@ public class KharamlyActivity extends MapActivity {
 		private GeoPoint gp1;
 		private int color;
 		private boolean marker;
+		private boolean route;
 		private Bitmap bmp;
+		private int alpha = 180;
+		private int routeNo;
 		private ArrayList<GeoPoint> pointList;
 
 		public MapRouteOverlay(GeoPoint gp1) {
@@ -409,9 +433,12 @@ public class KharamlyActivity extends MapActivity {
 			bmp = BitmapFactory.decodeResource(getResources(), R.drawable.car);
 		}
 
-		public MapRouteOverlay(ArrayList<GeoPoint> pointList, int color) {
+		public MapRouteOverlay(ArrayList<GeoPoint> pointList, int color, boolean marker, int alpha, int routeNo) {
 			this.pointList = pointList;
 			this.color = color;
+			this.route = marker;
+			this.alpha = alpha;
+			this.routeNo = routeNo;
 		}
 
 		@Override
@@ -442,9 +469,10 @@ public class KharamlyActivity extends MapActivity {
 
 				Paint pathPaint = new Paint();
 				pathPaint.setAntiAlias(true);
-				pathPaint.setStrokeWidth(4.0f);
-				pathPaint.setColor(Color.RED);
+				pathPaint.setStrokeWidth(8.0f);
 				pathPaint.setStyle(Paint.Style.STROKE);
+				pathPaint.setColor(Color.GREEN);
+				pathPaint.setAlpha(alpha);
 				canvas.drawPath(path, pathPaint);
 			}
 
