@@ -306,8 +306,6 @@ def getalternatives(leg, myStep, destination, location):
             for step in leg.steps.all():
                 start_node2 = Node.objects.get(id=step.start_location.id)
                 end_node2 = Node.objects.get(id=step.end_location.id)
-                print "###############################################################################################################################################################################################"
-                print len(steps)
                 if(steps):
                     for step2 in steps:
                         if (step2.id == step.id):
