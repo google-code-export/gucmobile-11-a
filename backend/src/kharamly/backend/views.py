@@ -40,7 +40,7 @@ def api(request, orig, dest, speed, who):
                     "col": get_color_from_speed(step['speed']),
                 })
                 
-    badges = badge_handler(who, speed)
+    badges = badge_handler(who, float(speed))
     
     return HttpResponse(json.dumps(response), mimetype="application/json")
 
