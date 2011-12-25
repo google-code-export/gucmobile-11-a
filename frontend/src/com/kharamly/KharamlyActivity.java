@@ -13,6 +13,7 @@ import java.util.List;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -62,7 +63,6 @@ public class KharamlyActivity extends MapActivity {
 	SlidingPanel panel;
 	MapView mapView;
 	MyCustomizedLocationOverlay myLocationOverlay;
-	List<MapRouteOverlay> routeOverlay = new ArrayList<MapRouteOverlay>();
 
 	private final static int TIMEOUT_MILLISEC = 0;
 	private final static String TAG_NAME = "Kharamly";
@@ -389,48 +389,73 @@ public class KharamlyActivity extends MapActivity {
 	}
 
 	public class MyCustomizedLocationOverlay extends MyLocationOverlay {
+		
+		// Variables Added by Monayri
 		MapView mapView;
 		MapController mapController;
+		
+		// This variable contains the overlay of the user position marker
 		MapRouteOverlay markerOverlay;
+		
+		// This variable contains the steps of the first route
 		ArrayList<StepInfo> route1Overlays = new ArrayList<StepInfo>();
+		// This variable contains the steps of the second route
 		ArrayList<StepInfo> route2Overlays = new ArrayList<StepInfo>();
+		// This variable contains the steps of the third route
 		ArrayList<StepInfo> route3Overlays = new ArrayList<StepInfo>();
+		
+		// This variable containts the overlay of the marker of the first route
 		MapRouteOverlay route1markerOverlay;
+		//This variable contains the position of the marker of the first route
 		GeoPoint route1marker;
+		// This variable containts the overlay of the marker of the second route
 		MapRouteOverlay route2markerOverlay;
+		//This variable contains the position of the marker of the second route
 		GeoPoint route2marker;
+		// This variable containts the overlay of the marker of the third route
 		MapRouteOverlay route3markerOverlay;
+		//This variable contains the position of the marker of the first route
 		GeoPoint route3marker;
+		// The number of routes returned by the server
 		int routes = 0;
+		// Chosen Route
 		int routeChosen = 1;
+		// The step user currently moving at 
 		StepInfo chosenStep = null;
+		// The location of the user
+		GeoPoint loc;
 		public MyCustomizedLocationOverlay(Context context, MapView mapView) {
 			super(context, mapView);
 			this.mapView = mapView;
 			this.mapController = mapView.getController();
 		}
-
+		
+		
+		/**
+		 * The onlocation Changed Method first checks if the routes are not queries from the server yet. 
+		 * if its not, it calls the server using httpGet request and gets the routes, the routes is after that
+		 * saved locally and drawn on the map.
+		 * 
+		 * @author Monayri
+		 */
 		@Override
 		public void onLocationChanged(Location location) {
 
-			
+			// Setting the Zoom level
 			mapController.setZoom(15);
+			// if we dont have the routes yet
 			if(flag){
 				HttpClient httpclient = new DefaultHttpClient();
 				HttpGet httpget = new HttpGet(Cons.API_URL + location.getLatitude()
 						+ "," + location.getLongitude() + "/" + destination + "/"
 						+ location.getSpeed() + "/"
 						+ Installation.id(KharamlyActivity.this));
-				String x = Cons.API_URL + location.getLatitude()
-				+ "," + location.getLongitude() + "/" + destination + "/"
-				+ location.getSpeed() + "/"
-				+ Installation.id(KharamlyActivity.this);
-				Log.e("test", x);
+				
 				try {
+					// Getting the response from the server
 					HttpResponse httpresponse = httpclient.execute(httpget);
 					String responseBody = convertStreamToString(httpresponse
 							.getEntity().getContent());
-					Log.e("test", responseBody);
 					JSONObject json = new JSONObject(responseBody);
 					/* START OF BADGES */
 					JSONArray badgeArray = json.getJSONArray("badges");
@@ -442,6 +467,7 @@ public class KharamlyActivity extends MapActivity {
 						badgeNotification(BADGES[id-1], name, value);
 					}
 					/* END OF BADGES */
+					// No we'll iterate over the routes to draw and save the stepInfos
 					JSONArray jArray = json.getJSONArray("routes");
 					List<Overlay> overlays = mapView.getOverlays();
 					routes = jArray.length();
@@ -452,7 +478,8 @@ public class KharamlyActivity extends MapActivity {
 						for(int j = 0 ; j <steps.length();j++){
 							JSONObject step = steps.getJSONObject(j);
 							String polyline = step.getString("polyline");
-							
+							// polylines are encoded to get the points to be drawn
+							//########## Start of Encoder #############
 							polyline = polyline.replace("\"", "");
 							polyline = polyline.replace("\\\\", "\\");
 							ArrayList<GeoPoint> geopoints = new ArrayList<GeoPoint>();
@@ -482,18 +509,23 @@ public class KharamlyActivity extends MapActivity {
 										(int) (((double) lat / 1E5) * 1E6),
 										(int) (((double) lng / 1E5) * 1E6));
 								geopoints.add(p);
-								
-
-								
-							}
+								}
+							//############### End of Encoder ###################
+							
+							// getting the color of the step from the json
 							int color = step.getInt("col");
+							// getting whether this step includes the marker of the route
 							int marker = step.getInt("marker");
+							// getting the id of the step
 							int id = step.getInt("loc");
+							// if its the first route dont make the route transparent and make it opaque
 							if (i ==0 ){
+								// Drawing the step using the points created and the color extracted, and 255 is the value of the alpha that will make the step opaque
 								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color,255, i );
 								StepInfo info = new StepInfo(geopoints, color, id, step.getDouble("s_lng"),step.getDouble("s_lat"));
 								route1Overlays.add(info);
 								overlays.add(mro);
+								// if the step includes the marker Draw the marker on the step
 								if (marker ==1 ){
 									route1marker = new GeoPoint(
 											(int) (((double) step.getDouble("s_lat")) * 1E6),
@@ -535,8 +567,9 @@ public class KharamlyActivity extends MapActivity {
 
 					
 				}
-
-				GeoPoint loc = new GeoPoint(
+				
+				// Drawing the marker representing the user position
+				loc = new GeoPoint(
 						(int) (location.getLatitude() * 1000000),
 						(int) (location.getLongitude() * 1000000));
 				MapRouteOverlay marker = new MapRouteOverlay(loc, 1);
@@ -545,47 +578,85 @@ public class KharamlyActivity extends MapActivity {
 				mapView.invalidate();
 				mapController.animateTo(loc);
 				chosenStep = route1Overlays.get(0);
+				// setting flag to false indicating that the routes are gotten
 				flag = false;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			}else{
+				// In the else part meaning that we already have the routes, 
+				// we handle the pings that send the updates to the server 
+				// about the congestion of the current step represented by the speed of the user
 				float speed = location.getSpeed();
 				double lng = location.getLongitude();
 				double lat = location.getLatitude();
+				// We remove the old overlay of the user position and update the user's position on the map
+				mapView.getOverlays().remove(markerOverlay);
+				GeoPoint loc = new GeoPoint(
+						(int) (lat * 1000000),
+						(int) (lng * 1000000));
+				MapRouteOverlay marker = new MapRouteOverlay(loc, 1);
+				markerOverlay = marker;
+				mapView.getOverlays().add(marker);
+				mapView.invalidate();
+				mapController.animateTo(loc);
 				if(chosenStep != null){
+					// checking ig the end of the current step is reached or not, <0.00009 in lat and long is approximately 10 meters in reality
 					if(Math.abs(lng-chosenStep.lng) < 0.00009 && Math.abs(lat-chosenStep.lat)<0.00009){
+						// Sending the ping to the server
+						HttpClient httpclient = new DefaultHttpClient();
+						HttpGet httpget = new HttpGet(Cons.SERVER_URL + "update/" + chosenStep.id
+								+ speed + "/"
+								+ Installation.id(KharamlyActivity.this));
+						try{
+							HttpResponse response = httpclient.execute(httpget);
+						}catch(Exception e){
+							
+						}
+						// Getting the next step in the current route taken
+						getNextStep();
 						
 					}
 				}
 			}
 		}
+		
+		/**
+		 * This method gets the next step in the current route taken
+		 * @author Monayri
+		 */
 		public void getNextStep(){
 			if(routeChosen == 1){
 				int index = route1Overlays.indexOf(chosenStep) + 1;
-				if(index == route1Overlays.size())
+				if(index == route1Overlays.size() || index == -1)
 					chosenStep = null;
 				else
 					chosenStep = route1Overlays.get(index);
 			}
 			else if(routeChosen == 2){
 				int index = route2Overlays.indexOf(chosenStep) + 1;
-				if(index == route2Overlays.size())
+				if(index == route2Overlays.size()|| index == -1)
 					chosenStep = null;
 				else
 					chosenStep = route2Overlays.get(index);
 			}
 			else if(routeChosen == 3){
 				int index = route3Overlays.indexOf(chosenStep) + 1;
-				if(index == route3Overlays.size())
+				if(index == route3Overlays.size()|| index == -1)
 					chosenStep = null;
 				else
 					chosenStep = route3Overlays.get(index);
 			}
 				
 		}
+		/**
+		 * This method is used to draw the map again using the info saved when the routes were
+		 * retrieved from the server
+		 * @param mapview
+		 */
 		public  void drawMap(MapView mapview){
 			List<Overlay> overlays = mapView.getOverlays();
+			mapView.getOverlays().remove(markerOverlay);
 			MapRouteOverlay mro;
 			for (StepInfo info : route1Overlays){
 				if (routeChosen == 1 ){
@@ -623,19 +694,20 @@ public class KharamlyActivity extends MapActivity {
 				}
 				overlays.add(mro);
 				}
+			MapRouteOverlay marker = new MapRouteOverlay(loc, 1);
+			markerOverlay = marker;
+			mapView.getOverlays().add(marker);
 		}
 		@Override
 		public boolean onTouchEvent(MotionEvent event, MapView mapview) {
 
 			if (event.getAction() == 1) {
-				Log.e("a7a1", "a7a1");
 				 int action = event.getAction();
 				    int x = (int) event.getX();  // or getRawX();
 				    int y = (int) event.getY();
 				    Point point = new Point();
 					mapview.getProjection().toPixels(route1marker, point);
 					if (Math.abs(x-point.x) < 40 && Math.abs(y-point.y)<40) {
-						Log.e("a7a", "a7a");
 				        if ( routeChosen != 1){
 				        	mapview.getOverlays().clear();
 				    		mapview.invalidate();
@@ -647,7 +719,6 @@ public class KharamlyActivity extends MapActivity {
 					if (route2marker !=null){
 						mapview.getProjection().toPixels(route2marker, point);
 						if (Math.abs(x-point.x) < 40 && Math.abs(y-point.y)<40) {
-							Log.e("a7a", "a7a");
 					        if ( routeChosen != 2){
 					        	mapview.getOverlays().clear();
 					    		mapview.invalidate();
@@ -660,7 +731,6 @@ public class KharamlyActivity extends MapActivity {
 					if(route3marker != null){
 						mapView.getProjection().toPixels(route3marker, point);
 						if (Math.abs(x-point.x) < 40 && Math.abs(y-point.y)<40) {
-							Log.e("a7a", "a7a");
 					        if ( routeChosen != 3){
 					        	mapview.getOverlays().clear();
 					    		mapview.invalidate();
