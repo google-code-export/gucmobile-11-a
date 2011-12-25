@@ -69,8 +69,7 @@ public class LocalReceiver extends BroadcastReceiver {
 			updateRoute(p);
 			// texting(msg, p);
 		} catch (Exception e) {
-			Toast.makeText(context, e.toString(), Toast.LENGTH_LONG);		
-			// TODO: handle exception
+			Toast.makeText(context, e.toString(), Toast.LENGTH_LONG);
 		}
 	}
 
@@ -176,7 +175,7 @@ public class LocalReceiver extends BroadcastReceiver {
 							+ add, null, null);
 
 				} catch (Exception e) {
-					// TODO: handle exception
+					e.printStackTrace();
 				}
 
 				flag = false;

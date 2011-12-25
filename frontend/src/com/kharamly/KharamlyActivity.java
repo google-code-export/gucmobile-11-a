@@ -40,7 +40,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
+import android.widget.*;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -53,6 +53,7 @@ import com.google.android.maps.Projection;
 public class KharamlyActivity extends MapActivity {
 	SlidingPanel panel;
 	MapView mapView;
+	LinearLayout content;
 	MyCustomizedLocationOverlay myLocationOverlay;
 	List<MapRouteOverlay> routeOverlay = new ArrayList<MapRouteOverlay>();
 	
@@ -60,6 +61,9 @@ public class KharamlyActivity extends MapActivity {
 	private final static String TAG_NAME = "Kharamly";
 	private String destination = "29.985067,31.43873"; // GUC ;)
 	private LocationManager manager;
+	
+	private Location lastLocation = new Location(""); // defaults to lat,lng=0,0
+	private String refresh_query = "";
 	
 	/** 
 	 * Called when the activity is first created. 
@@ -71,7 +75,7 @@ public class KharamlyActivity extends MapActivity {
 
     
 	    panel = (SlidingPanel) findViewById(R.id.panel);
-		
+		content = (LinearLayout) findViewById(R.id.content);
 		manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
 
 	    if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
@@ -196,8 +200,29 @@ public class KharamlyActivity extends MapActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+			/*
+			Handle the comments button being clicked.
+			If the sliding door is closed, open it and load the data from the server
+			otherwise simply slide in
+			*/
 			case R.id.comments:
-				panel.toggle();
+				if (panel.isOpen()) {
+					panel.close();
+					// clear the content and add the loading item
+				} else {
+					content.removeAllViews();
+				
+					// create the loading view again
+					CommentItem c = new CommentItem(this);
+					c.init("", "", false, true);
+					content.addView(c);
+
+					// 
+					panel.open();
+					
+					// Ping the server for comments and show them 
+					loadComments(null);
+				}
 				break;
     			
 			case R.id.dest:
@@ -226,6 +251,40 @@ public class KharamlyActivity extends MapActivity {
 		           }
 		       });
 		builder.show();
+	}
+	
+	/**
+	Loads comments from around the specified center. The center is usually the last pinged location but this is 
+	left free so we can use it in the future in case we want to show comments around a certain node.
+	*/
+	public void loadComments(Location center) {
+		if (center == null) {
+			center = lastLocation;
+		}
+		// Send the request in the background.. if you may :)
+		new RequestTask(Cons.SERVER_URL + "/get_comments/" + center.getLatitude() + "/" + center.getLongitude() + "/" + refresh_query) {
+			protected void onPostExecute(String result) {
+				// once we have a response, remove all the contents from our current layout 
+				// and add the comments dynamically ;)
+				LinearLayout content = KharamlyActivity.this.content;
+				content.removeAllViews();
+	            try {
+	            	JSONObject json = new JSONObject(result);
+	            	JSONArray jArray = json.getJSONArray("comments");
+	                for (int i = 0; i < jArray.length(); i++) {
+	                    JSONObject e = jArray.getJSONObject(i);
+						// we have a commentId, halaluijah
+						CommentItem c = new CommentItem(KharamlyActivity.this, e.getInt("id"));
+						c.init(e.getString("text"), e.getString("time") + " via " + e.getString("source"), true, false);
+						content.addView(c);
+            		}
+					
+					refresh_query = json.getString("query");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		};
 	}
 	
 	@Override
@@ -273,7 +332,11 @@ public class KharamlyActivity extends MapActivity {
 		
 		@Override
 		public void onLocationChanged(Location location) {
-    		
+			// ^k Set the last location update so the comments are retrieved from around this center
+    		KharamlyActivity.this.lastLocation = location;
+			refresh_query = "";
+			
+			
 		    float speed = location.getSpeed();
             mapController.setZoom(speed <= 5 ? 21 : 
                                                 speed >= 28 ? 15 : 

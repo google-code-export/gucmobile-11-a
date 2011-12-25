@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.core import serializers
 from kharamly.backend.models import *
 from datetime import datetime
 import urllib, json
@@ -23,7 +24,16 @@ def api(request, orig, dest, speed, who):
     # my_step = None
     my_step = get_step_from_node(from_node)
     if my_step:
-        Ping_Log(step=my_step, speed=speed, who=who, time=datetime.now(), persistence=get_persistence(who)).save()
+        pings = Ping_Log.objects.filter(who=who).reverse()
+        # persistence = pings[0].persistence + 1 if len(pings) != 0 and datetime.now() - pings[0].time >= timedelta(hours=1) else pings[0].persistence
+        if len(pings) != 0:
+            if datetime.now() - pings[0] >= timedelta(hours=1):
+                persistence = pings[0].persistence + 1
+            else:
+                persistence = pings[0]
+        else:
+            persistence = 1
+        Ping_Log(step=my_step, speed=speed, who=who, time=datetime.now(), persistence=persistence).save()
         who.increment_checkins()
         
     result = getalternatives(None, my_step, to_node, from_node)
@@ -66,12 +76,22 @@ def update(stepId, routeId, speed, who):
 ### FOR TESTING PURPOSES,  ADD A VIEW THAT CALLS YOUR MODEL METHOD
 ##################################################################
 
-def inRadius(request,longitude,latitude,radius):
-    print 'hi'
-   
-    return HttpResponse(get_steps_around(float(longitude), float(latitude),float(radius)))
+# Testing to call model from view
+def test_method_in_views(request, test_value):
+    return HttpResponse(test_method_in_models(test_value))
 
 
+def getTwitterLoginInfo(request, user_name):
+    print user_name
+    return HttpResponse(json.dumps(getLoginInfo(user_name)))
+
+def checkUserExists(request, user_name):
+    print user_name
+    return HttpResponse(saveTwitterUserInfo(user_name,token,secret))
+
+def saveTwitterUserInfo(request, user_name,token,secret):
+    print user_name
+    return HttpResponse(saveTwitterUserInfo(user_name,token,secret))
 
 def route_blockage(request, origin, destination):
 	#url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=true&alternatives=true'
@@ -107,10 +127,33 @@ def alternatives(request, location, destination):
 # DO NOT COME ANYWHERE NEAR.
 ####################################################################
 
-def rate_comment(request, comment_id, rate):
-    return HttpResponse("Hello world")
+def rate_comment(request, who, comment_id, rate):
+    """
+    TODO Rates this comment
+    """
+    c = Comment.objects.get(pk = comment_id)
+    voter = Device.objects.get(installation_id = who)
+    print "voting, let's see", rate
+    rate = int(rate)
+    if rate == 1: # up
+        print "comment upped", c, voter
+        c.do_up(voter)
+    elif rate == 2: # down
+        print "comment downed", c, voter
+        c.do_down(voter)
+    elif rate == 3: #flag
+        print "comment flagged", c, voter
+        c.do_flag(voter)
+    
+    return HttpResponse(json.dumps({"success" : 1}))
 
-
+def get_comments(request, lat, lng, refresh_query):
+    """
+    Gets comments near this location
+    """
+    refresh_query = refresh_query if refresh_query else None
+    comments, query = get_comments_near(lat, lng, refresh_query)
+    return HttpResponse(json.dumps({"comments" : comments, "query": query}))
 
 ####################################################################
 # END kama's sandbox
