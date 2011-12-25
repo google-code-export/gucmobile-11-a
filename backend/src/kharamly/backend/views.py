@@ -135,7 +135,7 @@ def alternatives(request, location, destination):
 
 def rate_comment(request, who, comment_id, rate):
     """
-    TODO Rates this comment
+    Rates this comment
     """
     c = Comment.objects.get(pk = comment_id)
     voter = Device.objects.get(installation_id = who)
