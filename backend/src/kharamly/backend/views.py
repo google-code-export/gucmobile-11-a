@@ -28,7 +28,6 @@ def api(request, orig, dest, speed, who):
         
     result = getalternatives(None, my_step, to_node, from_node)
     response  = {"routes": []}
-    print result
     for route in result['routes']:
         r= {"steps":[]}
         for leg in route['legs']:
