@@ -116,3 +116,22 @@ def directions(request, origin, destination):
     
 def alternatives(request, location, destination):
     return HttpResponse(getalternatives(location, destination))
+
+
+
+
+
+####################################################################
+# BEGIN kama's sandbox
+# DO NOT COME ANYWHERE NEAR.
+####################################################################
+
+def rate_comment(request, comment_id, rate):
+    return HttpResponse("Hello world")
+
+
+
+####################################################################
+# END kama's sandbox
+# NOW you can play around.
+####################################################################

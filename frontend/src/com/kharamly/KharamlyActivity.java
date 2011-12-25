@@ -47,7 +47,6 @@ public class KharamlyActivity extends MapActivity {
 	MyCustomizedLocationOverlay myLocationOverlay;
 	List<MapRouteOverlay> routeOverlay = new ArrayList<MapRouteOverlay>();
 	
-	private final static String API_URL = "http://kharamly.alwaysdata.net/api/";
 	private final static int TIMEOUT_MILLISEC = 0;
 	private final static String TAG_NAME = "Kharamly";
 	private String destination = "29.985067,31.43873"; // GUC ;)
@@ -210,14 +209,14 @@ public class KharamlyActivity extends MapActivity {
 		    
             // Source: http://www.codeproject.com/KB/android/jsonandroidphp.aspx
             HttpClient httpclient = new DefaultHttpClient();
-            HttpGet httpget = new HttpGet(API_URL + 
+            HttpGet httpget = new HttpGet(Cons.API_URL + 
                                         location.getLatitude() + "," + location.getLongitude() + "/" + 
                                         destination + "/" +
                                         location.getSpeed() + "/" +
                                         Installation.id(KharamlyActivity.this));
             
             
-            String x = API_URL + 
+            String x = Cons.API_URL + 
             location.getLatitude() + "," + location.getLongitude() + "/" + 
             destination + "/" +
             location.getSpeed() + "/" +

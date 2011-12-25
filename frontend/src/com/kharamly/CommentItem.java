@@ -39,10 +39,11 @@ import android.view.View;
 import android.widget.*;		
 	
 public class CommentItem extends LinearLayout {
-	
 	private ImageView icon, up, down, flag;
 	
 	private TextView comment, source;
+	
+	private int commentId;
 	
 	public CommentItem(Context context, AttributeSet attr) {
         super(context, attr);
@@ -66,5 +67,34 @@ public class CommentItem extends LinearLayout {
 		this.up = (ImageView) findViewById(R.id.up);
 		this.down = (ImageView) findViewById(R.id.down);
 		this.flag = (ImageView) findViewById(R.id.flag);
+	}
+	
+	public void upClicked(View v) { this.setLoading(this.up); onClick(1); }
+	public void downClicked(View v) { this.setLoading(this.down); onClick(2); }
+	public void flagClicked(View v) { this.setLoading(this.flag); onClick(3); }
+	
+	public void setLoading(ImageView image) {
+		image.setImageResource(R.drawable.loading);
+	}
+	
+	public void onClick(byte rate) {
+		new RequestTask(Cons.SERVER_URL + "/rate_comment/" + commentId + "/" + rate) {
+			protected void onPostExecute(String result) {
+				super.onPostExecute(result);
+				switch (rate) {
+					case 1:
+						this.up.setImageResource(R.drawable.up);
+						break;
+						
+					case 2:
+						this.down.setImageResource(R.drawable.down);
+						break;
+						
+					case 3:
+						this.flag.setImageResource(R.drawable.flag);
+						break;
+				}
+			}
+		};
 	}
 }
