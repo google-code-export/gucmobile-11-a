@@ -237,6 +237,7 @@ public class KharamlyActivity extends MapActivity {
 								finish();
 							}
 						});
+		builder.setTitle(getResources().getString(R.string.note));
 		builder.setIcon(R.drawable.nogps);
 		final AlertDialog alert = builder.create();
 		alert.show();
@@ -271,6 +272,7 @@ public class KharamlyActivity extends MapActivity {
 								// finish();
 							}
 						});
+		builder.setTitle(getResources().getString(R.string.note));
 		builder.setIcon(R.drawable.nowireless);
 		final AlertDialog alert2 = builder.create();
 		alert2.show();
