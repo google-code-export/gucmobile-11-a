@@ -908,11 +908,11 @@ def badge_handler(who, speed):
     if badger_badge:
         badges.append(badger_badge)
     persistent_time_badge = persistent_time_badge_handler(who)
-    if persistent_time_badge_handler:
+    if persistent_time_badge:
         badges.append(persistent_time_badge)
     persistent_time_and_speed_badge = persistent_time_and_speed_badge_handler(who)
-    if persistent_time_and_speed_badge_handler:
-        badges.append(persistent_time_and_speed_badge_handler)
+    if persistent_time_and_speed_badge:
+        badges.append(persistent_time_and_speed_badge)
     return badges
     
     

@@ -273,6 +273,15 @@ class BadgeTest(TestCase):
         self.assertEqual(badge, Badge.objects.get(name="snail-like"))
         self.assertIn(badge, self.device.badge_set.all())
 
+    def test_empty_badge_list_returned_if_no_badges(self):
+        """
+        Tests if badge_handler returns empty badge list if the user
+        didn't make anything that allows him to win a badge
+        Author: Shanab
+        """
+        badges = badge_handler(self.device, 0.0)
+        self.assertListEqual(badges, [])
+
 
     ######################### TEST HELPERS #########################
 
