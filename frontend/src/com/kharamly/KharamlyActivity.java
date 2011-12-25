@@ -6,19 +6,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import twitter4j.GeoLocation;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -29,7 +26,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
@@ -43,6 +39,7 @@ import android.util.Log;
 import android.view.*;
 import android.widget.*;
 
+
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
@@ -53,6 +50,7 @@ import com.google.android.maps.Projection;
 
 public class KharamlyActivity extends MapActivity {
 	SlidingPanel panel;
+	SlidingPanel badgePanel;
 	MapView mapView;
 	LinearLayout content;
 	MyCustomizedLocationOverlay myLocationOverlay;
@@ -87,8 +85,9 @@ public class KharamlyActivity extends MapActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-
 		panel = (SlidingPanel) findViewById(R.id.panel);
+		badgePanel = (SlidingPanel) findViewById(R.id.badgepanel);
+
 		content = (LinearLayout) findViewById(R.id.content);
 		manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -109,8 +108,20 @@ public class KharamlyActivity extends MapActivity {
 						myLocationOverlay.getMyLocation());
 			}
 		});
-
+		
+		
+		loadBadgesFromPreferences();
 		mapView.postInvalidate();
+	}
+
+	private void loadBadgesFromPreferences() {
+
+		SharedPreferences prefs = getSharedPreferences(BADGE_PREFS_NAME, 0);
+		Map<String, Integer> badgeList = (Map<String, Integer>) prefs.getAll();
+
+		for (Map.Entry<String, Integer> entry : badgeList.entrySet()) {
+			addBadgeToBadgesPanel(BADGES[entry.getValue() - 1], entry.getKey());
+		}
 	}
 
 	
@@ -119,6 +130,7 @@ public class KharamlyActivity extends MapActivity {
 		connect.retrieveData(intent);
 		connect.flag=false;
 	}	
+
 	/**
 	 * @author Moataz Mekki
 	 * 
@@ -242,6 +254,7 @@ public class KharamlyActivity extends MapActivity {
 								finish();
 							}
 						});
+		builder.setTitle(getResources().getString(R.string.note));
 		builder.setIcon(R.drawable.nogps);
 		final AlertDialog alert = builder.create();
 		alert.show();
@@ -276,6 +289,7 @@ public class KharamlyActivity extends MapActivity {
 								// finish();
 							}
 						});
+		builder.setTitle(getResources().getString(R.string.note));
 		builder.setIcon(R.drawable.nowireless);
 		final AlertDialog alert2 = builder.create();
 		alert2.show();
@@ -328,12 +342,16 @@ public class KharamlyActivity extends MapActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+
 			/*
 			Handle the comments button being clicked.
 			If the sliding door is closed, open it and load the data from the server
 			otherwise simply slide in
 			*/
 			case R.id.comments:
+				if (badgePanel.isOpen())
+					badgePanel.close();
+				
 				if (panel.isOpen()) {
 					panel.close();
 					// clear the content and add the loading item
@@ -360,6 +378,15 @@ public class KharamlyActivity extends MapActivity {
 			case R.id.close:
 				closeKharamly();
 				break;
+				
+			case R.id.badges:
+				if (panel.isOpen())
+					panel.close();
+
+				badgePanel.toggle();
+				break;
+
+
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -442,7 +469,7 @@ public class KharamlyActivity extends MapActivity {
 	 *            name of the badge
 	 * @author Shanab
 	 */
-	public void badgeNotification(int drawableId, String name, String value) {
+	public void badgeNotification(int drawableId, String name) {
 		LayoutInflater inflater = getLayoutInflater();
 		View layout = inflater.inflate(R.layout.custom_toast,
 				(ViewGroup) findViewById(R.id.toast_layout_root));
@@ -451,9 +478,6 @@ public class KharamlyActivity extends MapActivity {
 		image.setImageResource(drawableId);
 		TextView text = (TextView) layout.findViewById(R.id.text);
 
-		if (value.trim().length() > 0) {
-			name += ":" + value;
-		}
 		text.setText("Congratulations! You just won the " + name + " badge");
 
 		Toast toast = new Toast(getApplicationContext());
@@ -462,6 +486,13 @@ public class KharamlyActivity extends MapActivity {
 		toast.setView(layout);
 		toast.setGravity(Gravity.TOP | Gravity.LEFT, 0, 0);
 		toast.show();
+	}
+
+	private void addBadgeToBadgesPanel(int drawableId, String name) {
+		LinearLayout l = (LinearLayout) findViewById(R.id.badgecontent);
+		BadgeItem badgeItem = new BadgeItem(getApplicationContext());
+		badgeItem.setAttributes(name, drawableId);
+		l.addView(badgeItem);
 	}
 
 	public static void background(final Runnable r) {
@@ -573,8 +604,16 @@ public class KharamlyActivity extends MapActivity {
 							int id = badge.getInt("id");
 							String name = badge.getString("name");
 							String value = badge.getString("value");
-							badgeNotification(BADGES[id - 1], name, value);
-							editor.putString(name, value);
+
+							editor.putInt(name, id);
+
+							if (value.trim().length() > 0) {
+								name += ":" + value;
+							}
+
+							badgeNotification(BADGES[id - 1], name);
+							addBadgeToBadgesPanel(BADGES[id - 1], name);
+
 						}
 						// Committing changes to BADGE_PREFS
 						editor.commit();

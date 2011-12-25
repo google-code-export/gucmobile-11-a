@@ -2,9 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
     <item android:id="@+id/dest" android:title="@string/destination"
     android:icon="@drawable/add" />
+    <item android:id="@+id/badges" android:title="@string/show_badges"
+    android:icon="@drawable/star" />
     <item android:id="@+id/comments" android:title="@string/toggle_comments"
 	android:icon="@drawable/comment2" ></item>
     <item android:id="@+id/close" android:title="@string/close" 
     android:icon="@drawable/close" />
-	
 </menu>
