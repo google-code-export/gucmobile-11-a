@@ -128,6 +128,11 @@ public class KharamlyActivity extends MapActivity {
 		mapView.postInvalidate();
 	}
 	
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * creates a popup where the user is asked to enter his desired destination
+	 */
 	private void newDestination()
 	{
 		PromptDialog dest =  new PromptDialog(KharamlyActivity.this, R.string.title, R.string.enter_comment){
@@ -154,6 +159,12 @@ public class KharamlyActivity extends MapActivity {
         dest.show();
 	}
 	
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * takes the destination the user already entered & contacts google Geocoding API
+	 * and saves the equivalent lat,lng of this destination
+	 */
 	private void geocoding()
 	{	
 		
@@ -189,6 +200,12 @@ public class KharamlyActivity extends MapActivity {
 		}
 	}
 	
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * checks if there's a wifi connection or mobile internet connection
+	 * @return true if internet connectivity available, false otherwise
+	 */
 	private boolean haveNetworkConnection() {
 	    boolean haveConnectedWifi = false;
 	    boolean haveConnectedMobile = false;
@@ -206,6 +223,12 @@ public class KharamlyActivity extends MapActivity {
 	    return haveConnectedWifi || haveConnectedMobile;
 	}
 
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * creates a popup that asks the user to turn on the GPS and redirects him/her
+	 * to the settings of location manager
+	 */
 	private void buildAlertMessageNoGps() {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(
@@ -234,6 +257,12 @@ public class KharamlyActivity extends MapActivity {
 		alert.show();
 	}
 	
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * creates a popup that asks the user to turn on mobile internet
+	 * or wifi and redirects him/her to the settings of wireless networks
+	 */
 	private void buildAlertMessageNoInternet() {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(
@@ -262,6 +291,11 @@ public class KharamlyActivity extends MapActivity {
 		alert2.show();
 	}
 
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * is called when the activity is resulted from another activity
+	 */
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == 5 && resultCode == 0) {
@@ -283,6 +317,12 @@ public class KharamlyActivity extends MapActivity {
 		}
 	}
 
+	
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * is called when the options menu first created to instantiate it
+	 */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -290,6 +330,14 @@ public class KharamlyActivity extends MapActivity {
 		return true;
 	}
 
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * is called when an item in the options menu is clicked
+	 * @param item : is the item clicked
+	 * 
+	 * @return true in case option found, false otherwise
+	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -308,6 +356,12 @@ public class KharamlyActivity extends MapActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * creates a popup that appears when the user clicks on exit button
+	 * it confirms with the user if he really wants to exit
+	 */
 	private void closeKharamly() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(getResources().getString(R.string.exit))
