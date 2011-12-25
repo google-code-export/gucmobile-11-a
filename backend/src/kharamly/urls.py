@@ -5,7 +5,6 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('backend.views',
-    url(r'rate_comment/(?P<comment_id>\d)/(?P<rate>\d)$')
     url(r'^api/(?P<orig>(.)+)/(?P<dest>(.)+)/(?P<speed>(.)+)/(?P<who>[\w\-_]+)$', 'api'),
     url(r'^test/(?P<test_value>(.)+)', 'test_method_in_views'),
     url(r'^getTwitterLoginInfo/(?P<user_name>(.)+)', 'getTwitterLoginInfo'),
@@ -14,5 +13,6 @@ urlpatterns = patterns('backend.views',
     url(r'^test_evaluate/(?P<origin>(.)+)/(?P<destination>(.)+)/([a-z]+)/([a-z]+)/$', 'route_blockage'),
     url(r'^directions/(?P<origin>(.)+)/(?P<destination>(.)+)/$', 'directions'),
     url(r'^update/(?P<stepId>\d+)/(?P<routeId>\d+)/(?P<speed>\d+)$', 'alternatives'),
+    url(r'rate_comment/(?P<comment_id>\d)/(?P<rate>\d)$'),
     url(r'^admin/', include(admin.site.urls)),
 )
