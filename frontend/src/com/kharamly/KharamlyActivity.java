@@ -68,7 +68,8 @@ public class KharamlyActivity extends MapActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-
+		
+		
 		panel = (SlidingPanel) findViewById(R.id.panel);
 
 		manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -76,7 +77,6 @@ public class KharamlyActivity extends MapActivity {
 		if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 			buildAlertMessageNoGps();
 		}
-
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpGet httpget = new HttpGet(
 				"http://maps.googleapis.com/maps/api/directions/json?origin=30.060421,31.498468&destination=29.985104,31.43888&sensor=true&alternatives=true");
