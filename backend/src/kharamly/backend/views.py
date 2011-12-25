@@ -23,16 +23,7 @@ def api(request, orig, dest, speed, who):
     # my_step = None
     my_step = get_step_from_node(from_node)
     if my_step:
-        pings = Ping_Log.objects.filter(who=who).reverse()
-        # persistence = pings[0].persistence + 1 if len(pings) != 0 and datetime.now() - pings[0].time >= timedelta(hours=1) else pings[0].persistence
-        if len(pings) != 0:
-            if datetime.now() - pings[0] >= timedelta(hours=1):
-                persistence = pings[0].persistence + 1
-            else:
-                persistence = pings[0]
-        else:
-            persistence = 1
-        Ping_Log(step=my_step, speed=speed, who=who, time=datetime.now(), persistence=persistence).save()
+        Ping_Log(step=my_step, speed=speed, who=who, time=datetime.now(), persistence=get_persistence(who)).save()
         who.increment_checkins()
         
     result = getalternatives(None, my_step, to_node, from_node)
@@ -75,22 +66,12 @@ def update(stepId, routeId, speed, who):
 ### FOR TESTING PURPOSES,  ADD A VIEW THAT CALLS YOUR MODEL METHOD
 ##################################################################
 
-# Testing to call model from view
-def test_method_in_views(request, test_value):
-    return HttpResponse(test_method_in_models(test_value))
+def inRadius(request,longitude,latitude,radius):
+    print 'hi'
+   
+    return HttpResponse(get_steps_around(float(longitude), float(latitude),float(radius)))
 
 
-def getTwitterLoginInfo(request, user_name):
-    print user_name
-    return HttpResponse(json.dumps(getLoginInfo(user_name)))
-
-def checkUserExists(request, user_name):
-    print user_name
-    return HttpResponse(saveTwitterUserInfo(user_name,token,secret))
-
-def saveTwitterUserInfo(request, user_name,token,secret):
-    print user_name
-    return HttpResponse(saveTwitterUserInfo(user_name,token,secret))
 
 def route_blockage(request, origin, destination):
 	#url = 'http://maps.googleapis.com/maps/api/directions/json?origin=' + origin + '&destination=' + destination + '&sensor=true&alternatives=true'
