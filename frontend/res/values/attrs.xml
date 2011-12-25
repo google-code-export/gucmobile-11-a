@@ -6,5 +6,9 @@
   <declare-styleable name="CommentItem">
 	  <attr name="text" format="string" />
 	  <attr name="source" format="string" />
+	  <!-- is this a loading item? -->
+	  <attr name="loading" format="boolean" />
+	  <!-- this could be used to push intermediate ads maybe? or mass messages from the system -->
+	  <attr name="show_icons" format="boolean" />
   </declare-styleable>
 </resources>

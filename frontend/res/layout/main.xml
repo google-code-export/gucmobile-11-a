@@ -32,36 +32,6 @@
                 android:layout_height="wrap_content"
                 app:source="Twitter @ 20:30"
                 app:text="Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." />
-
-            <com.kharamly.CommentItem
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                app:source="Twitter @ 20:30"
-                app:text="Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." />
-
-            <com.kharamly.CommentItem
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                app:source="Twitter @ 20:30"
-                app:text="Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." />
-
-            <com.kharamly.CommentItem
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                app:source="Bey2ollak @ yesterday"
-                app:text="Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." />
-
-            <com.kharamly.CommentItem
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                app:source="Bey2ollak @ yesterday"
-                app:text="Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." />
-
-            <com.kharamly.CommentItem
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                app:source="Bey2ollak @ yesterday"
-                app:text="Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." />
         </LinearLayout>
     </com.kharamly.SlidingPanel>
 
@@ -79,8 +49,28 @@
             android:layout_height="fill_parent"
             android:layout_weight="1"
             android:orientation="vertical" >
-			
-            
+        </LinearLayout>
+    </com.kharamly.SlidingPanel>
+
+    <com.kharamly.SlidingPanel
+        android:id="@+id/panel"
+        android:layout_width="250px"
+        android:layout_height="fill_parent"
+        android:layout_alignParentRight="true"
+        android:background="#22000000"
+        android:visibility="gone" >
+
+        <LinearLayout
+            android:id="@+id/content"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:orientation="vertical" >
+
+            <com.kharamly.CommentItem
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                app:loading="true" />
         </LinearLayout>
     </com.kharamly.SlidingPanel>
 

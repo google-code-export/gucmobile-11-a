@@ -23,7 +23,6 @@ public class MyGpsService extends Service {
 
 	@Override
 	public void onStart(Intent intent, int startId) {
-		// TODO Auto-generated method stub
 		super.onStart(intent, startId);
 
 		Log.e("<<MyGpsService-onStart>>", "I am alive-GPS!");
@@ -58,7 +57,6 @@ public class MyGpsService extends Service {
 
 	@Override
 	public IBinder onBind(Intent arg0) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -81,19 +79,16 @@ public class MyGpsService extends Service {
 
 	
 		public void onProviderDisabled(String arg0) {
-			// TODO Auto-generated method stub
 
 		}
 
 		
 		public void onProviderEnabled(String arg0) {
-			// TODO Auto-generated method stub
 
 		}
 
 		
 		public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-			// TODO Auto-generated method stub
 
 		}
 

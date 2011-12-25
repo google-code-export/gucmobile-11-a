@@ -124,11 +124,172 @@ class Badge(models.Model):
     class Meta:
         ordering = ["id"]
     
+##########################################################################################
+################## AGAIN, LEAVE ANYTHING BELOW
+##################
+##########################################################################################
+class Comment(models.Model):
+    """
+    Comment model, stores comment info, most importantly:
+    - who made the comment
+    - location of the comment
+    """
+    owner = models.ForeignKey(Device, null=True, blank=True)
+    location = models.ForeignKey(Node, null=True, blank=True)
+    time = models.DateTimeField()
+    text = models.CharField(max_length=255)
+    source = models.CharField(max_length = 50)
+    flags = models.IntegerField(default=0)
+    twitter_id = models.IntegerField(default=0)
     
-"""
-    BUSINESS LOGIC
-    IN DJANGO, IT IS ADVISED TO KEEP LOGIC IN THE MODELS
-"""
+    def get_rate(self):
+        """
+        Returns accumlative rate of this comment
+        Eq: SELECT AVG(r.rate) as avg_rate FROM Comment_Rate r JOIN Comment c ON r.comment = c WHERE c = :this
+        @deprecated use annotate
+        @author kamasheto
+        """
+        res = Comment_Rate.objects.filter(comment=self).aggregate(avg_rate = models.Avg('rate'))
+        return res.avg_rate
+
+    def do_rate(self, rate, voter):
+        """
+        Makes this rating 
+        Eq: INSERT INTO comment_rate (comment, rate, voter, time) VALEUS (self, rate, voter, datetime.now())
+        TODO check if this user has not rated before
+        """
+        Comment_Rate.objects.filter(comment=self, voter=voter).delete()
+        Comment_Rate(rate = rate, voter = voter, comment = self, time = datetime.now()).save()
+        
+    def do_up(self, voter):
+        self.do_rate(1, voter)
+        
+    def do_down(self, voter):
+        self.do_rate(-1, voter)
+        
+    def do_flag(self):
+        """
+        Flags this comment (for moderation later)
+        Eq: UPDATE comment c SET flags = flags + 1 WHERE c = :this
+        """
+        self.flags += 1
+        self.save()
+        
+    def __unicode__(self):
+        return self.text
+        
+class Comment_Rate(models.Model):
+    comment = models.ForeignKey(Comment)
+    rate = models.IntegerField(default=0)
+    voter = models.ForeignKey(Device)
+    time = models.DateTimeField()
+
+        
+def do_comment(node, d, text, source):
+    """
+    Makes a comment
+    This inserts a new comment, so inserted outside the scope of the comment class 
+    works as follows: do_comment(device, "text", "source")
+    """
+    c = Comment(location=node, owner = d, time = datetime.now(), text = text, source = source)
+    c.save()
+    return c
+
+def add_test_data():
+    """
+    Creates some dummy date (mainly for shell testing)
+    """
+    
+    """Creating a node"""
+    n = Node(latitude = 1, longitude = 2)
+    n.save()
+    
+    """Creating a device"""
+    
+    d = Device(installation_id="abc")
+    d.save()
+    c = None
+    for i in xrange(20):
+        c = do_comment(n, d, "Hello World", "Twitter")
+        
+    for i in xrange(20):
+        c.do_flag()
+
+def within_range(node, lat, lng):
+    """
+    Returns true if this node is within 5  of this lat,lng
+    """
+    d = distance_on_unit_sphere(node.latitude, node.longitude, float(lat), float(lng))
+    return d <= 5
+
+def distance_on_unit_sphere(lat1, long1, lat2, long2):
+    # Source: http://www.johndcook.com/python_longitude_latitude.html
+    # Convert latitude and longitude to 
+    # spherical coordinates in radians.
+    degrees_to_radians = math.pi/180.0
+        
+    # phi = 90 - latitude
+    phi1 = (90.0 - lat1)*degrees_to_radians
+    phi2 = (90.0 - lat2)*degrees_to_radians
+        
+    # theta = longitude
+    theta1 = long1*degrees_to_radians
+    theta2 = long2*degrees_to_radians
+        
+    # Compute spherical distance from spherical coordinates.
+        
+    # For two locations in spherical coordinates 
+    # (1, theta, phi) and (1, theta, phi)
+    # cosine( arc length ) = 
+    #    sin phi sin phi' cos(theta-theta') + cos phi cos phi'
+    # distance = rho * arc length
+    
+    cos = (math.sin(phi1)*math.sin(phi2)*math.cos(theta1 - theta2) + 
+           math.cos(phi1)*math.cos(phi2))
+    arc = math.acos( cos )
+
+    # Remember to multiply arc by the radius of the earth 
+    # in your favorite set of units to get length.
+    return arc * 3960.0
+
+# get_comments_near(30.091538,31.31633)
+def get_comments_near(lat, lng, refresh_url = None):
+    """
+    Returns comments near this location
+    For now the comments are from tweets nearby with the hashtag #kraffic (_K_haramly t_RAFFIC_)
+    Comments through the app are not (yet, but might never) be integrated for obvious safety reasons
+    """
+    query_string = refresh_url if refresh_url != None else '?q=%23kraffic&geocode=' + str(lat) + ',' + str(lng) + ',5mi'
+    url = 'http://search.twitter.com/search.json' + query_string
+    result = json.load(urllib.urlopen(url))
+    query = result['refresh_url']
+    results = result['results']
+    comments = []
+    
+    for res in results:
+        _tweet = Comment.objects.filter(twitter_id=res['id'])
+        if not _tweet:
+            """Only add a tweet if it is not already saved"""
+            _tweet = do_comment(get_node(latitude=lat, longitude=lng), None, "@" + res['from_user'] + ": " + res['text'], "Twitter")        
+            _tweet.twitter_id = res['id']
+            _tweet.save()
+    
+    """Filter comments near hear (call within_range on comment locations and current location)"""
+    comments_near = [comment for comment in Comment.objects.annotate(rate=models.Avg('comment_rate__rate')).order_by('-rate', '-time') if within_range(comment.location, lat, lng)]
+    
+    """Extracts the required comment info from the comments"""
+    comments = map(lambda comment: {
+        "id": comment.id,
+        "text": comment.text,
+        "source": comment.source,
+        "time": comment.time.isoformat()
+    }, comments_near)
+    return comments, query
+    
+##########################################################################################
+################## NOW YOU CAN PLAY AROUND
+##########################################################################################
+        
 
 # @author: Moataz Mekki
 # takes "from" & "to" locations/addresses, calls Google maps
