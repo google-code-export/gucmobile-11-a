@@ -46,9 +46,9 @@ def api(request, orig, dest, speed, who):
         response['routes'].append(r)    
     
     badges = badge_handler(who, float(speed))
+    response['badges'] = badges
     
     return HttpResponse(json.dumps(response), mimetype="application/json")
-
 
 
 """
