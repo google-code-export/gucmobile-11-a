@@ -196,11 +196,6 @@ public class KharamlyActivity extends MapActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-    		case R.id.block :
-    			Intent i = new Intent(KharamlyActivity.this, ReportBlocked.class);
-    			startActivity(i);
-				break;
-			
 			case R.id.comments:
 				panel.toggle();
 				break;

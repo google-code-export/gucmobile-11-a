@@ -77,21 +77,21 @@ public class CommentItem extends LinearLayout {
 		image.setImageResource(R.drawable.loading);
 	}
 	
-	public void onClick(byte rate) {
+	public void onClick(final int rate) {
 		new RequestTask(Cons.SERVER_URL + "/rate_comment/" + commentId + "/" + rate) {
 			protected void onPostExecute(String result) {
 				super.onPostExecute(result);
 				switch (rate) {
 					case 1:
-						this.up.setImageResource(R.drawable.up);
+						CommentItem.this.up.setImageResource(R.drawable.up);
 						break;
 						
 					case 2:
-						this.down.setImageResource(R.drawable.down);
+						CommentItem.this.down.setImageResource(R.drawable.down);
 						break;
 						
 					case 3:
-						this.flag.setImageResource(R.drawable.flag);
+						CommentItem.this.flag.setImageResource(R.drawable.flag);
 						break;
 				}
 			}
