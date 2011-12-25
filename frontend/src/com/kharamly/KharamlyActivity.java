@@ -135,7 +135,7 @@ public class KharamlyActivity extends MapActivity {
                         if(input.length()==0)
                         {
                         	newDestination();
-                        	toast("No destination entered, Please write something !!!");
+                        	toast(getResources().getString(R.string.empty_dest));
                         }
                         else
                         {
@@ -167,11 +167,11 @@ public class KharamlyActivity extends MapActivity {
 			JSONObject json = new JSONObject(responseBody);
 			String status = json.get("status").toString();
 			if (status.equalsIgnoreCase("ZERO_RESULTS")) {
-				toast("Sorry, Destination not found !");
+				toast(getResources().getString(R.string.dest_not_found));
 				newDestination();
 			} else {
 				ProgressDialog dialog = ProgressDialog.show(
-						KharamlyActivity.this, "", "Loading. Please wait...",
+						KharamlyActivity.this, "", getResources().getString(R.string.loading),
 						true);
 				JSONArray results = (JSONArray) json.get("results");
 				JSONObject result = results.getJSONObject(0);
@@ -209,9 +209,9 @@ public class KharamlyActivity extends MapActivity {
 	private void buildAlertMessageNoGps() {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(
-				"Your GPS seems to be disabled, do you want to enable it?")
+				getResources().getString(R.string.nogps))
 				.setCancelable(false)
-				.setPositiveButton("Yes",
+				.setPositiveButton(getResources().getString(R.string.yes),
 						new DialogInterface.OnClickListener() {
 							public void onClick(
 									@SuppressWarnings("unused") final DialogInterface dialog,
@@ -222,7 +222,7 @@ public class KharamlyActivity extends MapActivity {
 							}
 
 						})
-				.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				.setNegativeButton(getResources().getString(R.string.no), new DialogInterface.OnClickListener() {
 					public void onClick(final DialogInterface dialog,
 							@SuppressWarnings("unused") final int id) {
 						dialog.cancel();
@@ -237,9 +237,9 @@ public class KharamlyActivity extends MapActivity {
 	private void buildAlertMessageNoInternet() {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(
-				"No Network Available, do you want to enable the WiFi or your Mobile Network?")
+				getResources().getString(R.string.no_net))
 				.setCancelable(false)
-				.setPositiveButton("Yes",
+				.setPositiveButton(getResources().getString(R.string.yes),
 						new DialogInterface.OnClickListener() {
 							public void onClick(
 									@SuppressWarnings("unused") final DialogInterface dialog,
@@ -250,7 +250,7 @@ public class KharamlyActivity extends MapActivity {
 							}
 
 						})
-				.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				.setNegativeButton(getResources().getString(R.string.no), new DialogInterface.OnClickListener() {
 					public void onClick(final DialogInterface dialog,
 							@SuppressWarnings("unused") final int id) {
 						dialog.cancel();
@@ -310,15 +310,15 @@ public class KharamlyActivity extends MapActivity {
 
 	private void closeKharamly() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("Are you sure you want to exit?")
+		builder.setMessage(getResources().getString(R.string.exit))
 				.setCancelable(false)
-				.setPositiveButton("Yes",
+				.setPositiveButton(getResources().getString(R.string.yes),
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
 								finish();
 							}
 						})
-				.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				.setNegativeButton(getResources().getString(R.string.no), new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int id) {
 						dialog.cancel();
 					}
