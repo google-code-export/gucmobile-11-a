@@ -42,14 +42,10 @@ def api(request, orig, dest, speed, who):
                     "col": get_color_from_speed(step['speed']),
                     "loc" : step['loc'],
                     "marker" : step['marker']
-                })
-<<<<<<< HEAD
-                
-    badges = badge_handler(who, float(speed))
-=======
+                })                
         response['routes'].append(r)    
-#    badges = badge_handler(who, speed)
->>>>>>> 3ea75ed5dc93b289f087c9a4a6245f833cc7c0bc
+    
+    badges = badge_handler(who, float(speed))
     
     return HttpResponse(json.dumps(response), mimetype="application/json")
 
