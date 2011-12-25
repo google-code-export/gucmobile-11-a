@@ -13,9 +13,12 @@ import java.util.List;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import twitter4j.GeoLocation;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -61,7 +64,6 @@ public class KharamlyActivity extends MapActivity {
 	SlidingPanel panel;
 	MapView mapView;
 	MyCustomizedLocationOverlay myLocationOverlay;
-	List<MapRouteOverlay> routeOverlay = new ArrayList<MapRouteOverlay>();
 
 	private final static int TIMEOUT_MILLISEC = 0;
 	private final static String TAG_NAME = "Kharamly";
@@ -112,32 +114,49 @@ public class KharamlyActivity extends MapActivity {
 		mapView.postInvalidate();
 	}
 
-	private void newDestination() {
-		PromptDialog dest = new PromptDialog(KharamlyActivity.this,
-				R.string.title, R.string.enter_comment) {
-			public boolean onOkClicked(String input, DialogInterface dialog) {
-				if (input.length() == 0) {
-					newDestination();
-					toast("No destination entered, Please write something !!!");
-				} else {
-					destination = URLEncoder.encode(input);
-					if (haveNetworkConnection())
-						geocoding();
-					else {
-						dialog.dismiss();
-						buildAlertMessageNoInternet();
-					}
-				}
-				return true;
-			}
-		};
-		dest.show();
+	
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * creates a popup where the user is asked to enter his desired destination
+	 */
+	private void newDestination()
+	{
+		PromptDialog dest =  new PromptDialog(KharamlyActivity.this, R.string.title, R.string.enter_comment){
+            public boolean onOkClicked(String input, DialogInterface dialog) {
+                        if(input.length()==0)
+                        {
+                        	newDestination();
+                        	toast(getResources().getString(R.string.empty_dest));
+                        }
+                        else
+                        {
+                        	destination = URLEncoder.encode(input);
+                        	if(haveNetworkConnection())
+                        		geocoding();
+                        	else
+                        	{
+                        		dialog.dismiss();
+                        		buildAlertMessageNoInternet();
+                        	}
+                        }
+                        return true;
+            }
+        };
+        dest.show();
 	}
+	
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * takes the destination the user already entered & contacts google Geocoding API
+	 * and saves the equivalent lat,lng of this destination
+	 */
+	private void geocoding()
+	{	
+		
+		String geoUrl = "http://maps.googleapis.com/maps/api/geocode/json?address="+destination+"&sensor=true";
 
-	private void geocoding() {
-
-		String geoUrl = "http://maps.googleapis.com/maps/api/geocode/json?address="
-				+ destination + "&sensor=true";
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpGet httpget = new HttpGet(geoUrl);
 		try {
@@ -147,11 +166,11 @@ public class KharamlyActivity extends MapActivity {
 			JSONObject json = new JSONObject(responseBody);
 			String status = json.get("status").toString();
 			if (status.equalsIgnoreCase("ZERO_RESULTS")) {
-				toast("Sorry, Destination not found !");
+				toast(getResources().getString(R.string.dest_not_found));
 				newDestination();
 			} else {
 				ProgressDialog dialog = ProgressDialog.show(
-						KharamlyActivity.this, "", "Loading. Please wait...",
+						KharamlyActivity.this, "", getResources().getString(R.string.loading),
 						true);
 				JSONArray results = (JSONArray) json.get("results");
 				JSONObject result = results.getJSONObject(0);
@@ -169,6 +188,13 @@ public class KharamlyActivity extends MapActivity {
 		}
 	}
 
+	
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * checks if there's a wifi connection or mobile internet connection
+	 * @return true if internet connectivity available, false otherwise
+	 */
 	private boolean haveNetworkConnection() {
 		boolean haveConnectedWifi = false;
 		boolean haveConnectedMobile = false;
@@ -186,12 +212,18 @@ public class KharamlyActivity extends MapActivity {
 		return haveConnectedWifi || haveConnectedMobile;
 	}
 
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * creates a popup that asks the user to turn on the GPS and redirects him/her
+	 * to the settings of location manager
+	 */
 	private void buildAlertMessageNoGps() {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(
-				"Your GPS seems to be disabled, do you want to enable it?")
+				getResources().getString(R.string.nogps))
 				.setCancelable(false)
-				.setPositiveButton("Yes",
+				.setPositiveButton(getResources().getString(R.string.yes),
 						new DialogInterface.OnClickListener() {
 							public void onClick(
 									@SuppressWarnings("unused") final DialogInterface dialog,
@@ -202,7 +234,7 @@ public class KharamlyActivity extends MapActivity {
 							}
 
 						})
-				.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				.setNegativeButton(getResources().getString(R.string.no), new DialogInterface.OnClickListener() {
 					public void onClick(final DialogInterface dialog,
 							@SuppressWarnings("unused") final int id) {
 						dialog.cancel();
@@ -214,12 +246,18 @@ public class KharamlyActivity extends MapActivity {
 		alert.show();
 	}
 
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * creates a popup that asks the user to turn on mobile internet
+	 * or wifi and redirects him/her to the settings of wireless networks
+	 */
 	private void buildAlertMessageNoInternet() {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(
-				"No Network Available, do you want to enable the WiFi or your Mobile Network?")
+				getResources().getString(R.string.no_net))
 				.setCancelable(false)
-				.setPositiveButton("Yes",
+				.setPositiveButton(getResources().getString(R.string.yes),
 						new DialogInterface.OnClickListener() {
 							public void onClick(
 									@SuppressWarnings("unused") final DialogInterface dialog,
@@ -230,7 +268,7 @@ public class KharamlyActivity extends MapActivity {
 							}
 
 						})
-				.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				.setNegativeButton(getResources().getString(R.string.no), new DialogInterface.OnClickListener() {
 					public void onClick(final DialogInterface dialog,
 							@SuppressWarnings("unused") final int id) {
 						dialog.cancel();
@@ -242,6 +280,11 @@ public class KharamlyActivity extends MapActivity {
 		alert2.show();
 	}
 
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * is called when the activity is resulted from another activity
+	 */
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == 5 && resultCode == 0) {
@@ -260,6 +303,12 @@ public class KharamlyActivity extends MapActivity {
 		}
 	}
 
+	
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * is called when the options menu first created to instantiate it
+	 */
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -267,6 +316,14 @@ public class KharamlyActivity extends MapActivity {
 		return true;
 	}
 
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * is called when an item in the options menu is clicked
+	 * @param item : is the item clicked
+	 * 
+	 * @return true in case option found, false otherwise
+	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -285,17 +342,23 @@ public class KharamlyActivity extends MapActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
+	/**
+	 * @author Moataz Mekki
+	 * 
+	 * creates a popup that appears when the user clicks on exit button
+	 * it confirms with the user if he really wants to exit
+	 */
 	private void closeKharamly() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("Are you sure you want to exit?")
+		builder.setMessage(getResources().getString(R.string.exit))
 				.setCancelable(false)
-				.setPositiveButton("Yes",
+				.setPositiveButton(getResources().getString(R.string.yes),
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
 								finish();
 							}
 						})
-				.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				.setNegativeButton(getResources().getString(R.string.no), new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int id) {
 						dialog.cancel();
 					}
@@ -369,63 +432,72 @@ public class KharamlyActivity extends MapActivity {
 	}
 
 	public class MyCustomizedLocationOverlay extends MyLocationOverlay {
+		
+		// Variables Added by Monayri
 		MapView mapView;
 		MapController mapController;
+		
+		// This variable contains the overlay of the user position marker
 		MapRouteOverlay markerOverlay;
-		Point markerPos;
-		ArrayList<MapRouteOverlay> route1Overlays = new ArrayList<KharamlyActivity.MapRouteOverlay>();
-		ArrayList<MapRouteOverlay> route2Overlays = new ArrayList<KharamlyActivity.MapRouteOverlay>();
-		ArrayList<MapRouteOverlay> route3Overlays = new ArrayList<KharamlyActivity.MapRouteOverlay>();
+		
+		// This variable contains the steps of the first route
+		ArrayList<StepInfo> route1Overlays = new ArrayList<StepInfo>();
+		// This variable contains the steps of the second route
+		ArrayList<StepInfo> route2Overlays = new ArrayList<StepInfo>();
+		// This variable contains the steps of the third route
+		ArrayList<StepInfo> route3Overlays = new ArrayList<StepInfo>();
+		
+		// This variable containts the overlay of the marker of the first route
 		MapRouteOverlay route1markerOverlay;
-		Point route1marker;
+		//This variable contains the position of the marker of the first route
+		GeoPoint route1marker;
+		// This variable containts the overlay of the marker of the second route
 		MapRouteOverlay route2markerOverlay;
-		Point route2marker;
+		//This variable contains the position of the marker of the second route
+		GeoPoint route2marker;
+		// This variable containts the overlay of the marker of the third route
 		MapRouteOverlay route3markerOverlay;
-		Point route3marker;
-
+		//This variable contains the position of the marker of the first route
+		GeoPoint route3marker;
+		// The number of routes returned by the server
+		int routes = 0;
+		// Chosen Route
+		int routeChosen = 1;
+		// The step user currently moving at 
+		StepInfo chosenStep = null;
+		// The location of the user
+		GeoPoint loc;
 		public MyCustomizedLocationOverlay(Context context, MapView mapView) {
 			super(context, mapView);
 			this.mapView = mapView;
 			this.mapController = mapView.getController();
 		}
-
+		
+		
+		/**
+		 * The onlocation Changed Method first checks if the routes are not queries from the server yet. 
+		 * if its not, it calls the server using httpGet request and gets the routes, the routes is after that
+		 * saved locally and drawn on the map.
+		 * 
+		 * @author Monayri
+		 */
 		@Override
 		public void onLocationChanged(Location location) {
-
-			float speed = location.getSpeed();
-			mapController.setZoom(speed <= 5 ? 21 : speed >= 28 ? 15
-					: (int) ((speed * -6 + 513) / 23));
-			// /**
-			// * Remove any old route info
-			// */
-			// for (MapRouteOverlay o : KharamlyActivity.this.routeOverlay) {
-			// mapView.getOverlays().remove(o);
-			// }
-			// routeOverlay.clear();
-
-			// Let's pretend for now we'll update the routes everytime the
-			// location is changed
-			// this might drain the battery, but we'll see!
-
-			// Source: http://www.codeproject.com/KB/android/jsonandroidphp.aspx
-			if (flag) {
+			// Setting the Zoom level
+			mapController.setZoom(15);
+			// if we dont have the routes yet
+			if(flag){
 				HttpClient httpclient = new DefaultHttpClient();
 				HttpGet httpget = new HttpGet(Cons.API_URL
 						+ location.getLatitude() + ","
 						+ location.getLongitude() + "/" + destination + "/"
 						+ location.getSpeed() + "/"
 						+ Installation.id(KharamlyActivity.this));
-				String x = Cons.API_URL + location.getLatitude() + ","
-						+ location.getLongitude() + "/" + destination + "/"
-						+ location.getSpeed() + "/"
-						+ Installation.id(KharamlyActivity.this);
-				Log.e("test", x);
 				try {
-					ArrayList<HashMap<String, Integer>> mylist = new ArrayList<HashMap<String, Integer>>();
+					// Getting the response from the server
 					HttpResponse httpresponse = httpclient.execute(httpget);
 					String responseBody = convertStreamToString(httpresponse
 							.getEntity().getContent());
-					Log.e("test", responseBody);
 					JSONObject json = new JSONObject(responseBody);
 
 					/* START OF BADGES */
@@ -448,9 +520,10 @@ public class KharamlyActivity extends MapActivity {
 					}
 					/* END OF BADGES */
 
+					// No we'll iterate over the routes to draw and save the stepInfos
 					JSONArray jArray = json.getJSONArray("routes");
 					List<Overlay> overlays = mapView.getOverlays();
-					Log.e("R number", jArray.length() + "");
+					routes = jArray.length();
 					for (int i = 0; i < jArray.length(); i++) {
 						JSONObject route = jArray.getJSONObject(i);
 						JSONArray steps = route.getJSONArray("steps");
@@ -458,7 +531,9 @@ public class KharamlyActivity extends MapActivity {
 						for (int j = 0; j < steps.length(); j++) {
 							JSONObject step = steps.getJSONObject(j);
 							String polyline = step.getString("polyline");
-
+							// polylines are decoded to get the points to be drawn
+							//########## Start of Decoder #############
+							
 							polyline = polyline.replace("\"", "");
 							polyline = polyline.replace("\\\\", "\\");
 							ArrayList<GeoPoint> geopoints = new ArrayList<GeoPoint>();
@@ -489,78 +564,300 @@ public class KharamlyActivity extends MapActivity {
 										(int) (((double) lng / 1E5) * 1E6));
 								geopoints.add(p);
 
-							}
+								}
+							//############### End of Decoder ###################
+							
+							// getting the color of the step from the json
+
 							int color = step.getInt("col");
+							// getting whether this step includes the marker of the route
 							int marker = step.getInt("marker");
-							if (i == 0) {
-								MapRouteOverlay mro = new MapRouteOverlay(
-										geopoints, color, marker == 1, 255, i);
-								route1Overlays.add(mro);
+							// getting the id of the step
+							int id = step.getInt("loc");
+							// if its the first route dont make the route transparent and make it opaque
+							if (i ==0 ){
+								// Drawing the step using the points created and the color extracted, and 255 is the value of the alpha that will make the step opaque
+								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color,255, i );
+								StepInfo info = new StepInfo(geopoints, color, id, step.getDouble("s_lng"),step.getDouble("s_lat"));
+								route1Overlays.add(info);
 								overlays.add(mro);
-							} else if (i == 1) {
-								MapRouteOverlay mro = new MapRouteOverlay(
-										geopoints, color, marker == 1, 50, i);
-								route2Overlays.add(mro);
+								// if the step includes the marker Draw the marker on the step
+								if (marker ==1 ){
+									route1marker = new GeoPoint(
+											(int) (((double) step.getDouble("s_lat")) * 1E6),
+											(int) (((double) step.getDouble("s_lng")) * 1E6));
+									route1markerOverlay = new MapRouteOverlay(route1marker, 3);
+									overlays.add(route1markerOverlay);
+								}
+							}
+							else if (i ==1 ){
+								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color,50, i );
+								StepInfo info = new StepInfo(geopoints, color, id, step.getDouble("s_lng"),step.getDouble("s_lat"));
+								route2Overlays.add(info);
 								overlays.add(mro);
-							} else if (i == 2) {
-								MapRouteOverlay mro = new MapRouteOverlay(
-										geopoints, color, marker == 1, 50, i);
-								route3Overlays.add(mro);
+								if (marker ==1 ){
+									route2marker = new GeoPoint(
+											(int) (((double) step.getDouble("s_lat")) * 1E6),
+											(int) (((double) step.getDouble("s_lng")) * 1E6));
+									route2markerOverlay = new MapRouteOverlay(route2marker, 2);
+									overlays.add(route2markerOverlay);
+								}
+							}
+							else if (i ==2 ){
+								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color, 50, i );
+								StepInfo info = new StepInfo(geopoints, color, id, step.getDouble("s_lng"),step.getDouble("s_lat"));
+								route3Overlays.add(info);
+
 								overlays.add(mro);
+								if (marker ==1 ){
+									route3marker = new GeoPoint(
+											(int) (((double) step.getDouble("s_lat")) * 1E6),
+											(int) (((double) step.getDouble("s_lng")) * 1E6));
+									route3markerOverlay = new MapRouteOverlay(route3marker, 2);
+									overlays.add(route3markerOverlay);
+								}
 							}
 
 						}
 
+				}
+				
+				// Drawing the marker representing the user position
+				loc = new GeoPoint(
+						(int) (location.getLatitude() * 1000000),
+						(int) (location.getLongitude() * 1000000));
+				MapRouteOverlay marker = new MapRouteOverlay(loc, 1);
+				markerOverlay = marker;
+				overlays.add(marker);
+				mapView.invalidate();
+				mapController.animateTo(loc);
+				chosenStep = route1Overlays.get(0);
+				// setting flag to false indicating that the routes are gotten
+				flag = false;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			}else{
+				// In the else part meaning that we already have the routes, 
+				// we handle the pings that send the updates to the server 
+				// about the congestion of the current step represented by the speed of the user
+				float speed = location.getSpeed();
+				double lng = location.getLongitude();
+				double lat = location.getLatitude();
+				// We remove the old overlay of the user position and update the user's position on the map
+				mapView.getOverlays().remove(markerOverlay);
+				GeoPoint loc = new GeoPoint(
+						(int) (lat * 1000000),
+						(int) (lng * 1000000));
+				MapRouteOverlay marker = new MapRouteOverlay(loc, 1);
+				markerOverlay = marker;
+				mapView.getOverlays().add(marker);
+				mapView.invalidate();
+				mapController.animateTo(loc);
+				if(chosenStep != null){
+					// checking ig the end of the current step is reached or not, <0.00009 in lat and long is approximately 10 meters in reality
+					if(Math.abs(lng-chosenStep.lng) < 0.00009 && Math.abs(lat-chosenStep.lat)<0.00009){
+						// Sending the ping to the server
+						HttpClient httpclient = new DefaultHttpClient();
+						HttpGet httpget = new HttpGet(Cons.SERVER_URL + "update/" + chosenStep.id
+								+ speed + "/"
+								+ Installation.id(KharamlyActivity.this));
+						try{
+							HttpResponse response = httpclient.execute(httpget);
+						}catch(Exception e){
+							
+						}
+						// Getting the next step in the current route taken
+						getNextStep();
+						
 					}
-
-					GeoPoint loc = new GeoPoint(
-							(int) (location.getLatitude() * 1000000),
-							(int) (location.getLongitude() * 1000000));
-					MapRouteOverlay marker = new MapRouteOverlay(loc);
-					markerOverlay = marker;
-					overlays.add(marker);
-					mapView.invalidate();
-					mapController.animateTo(loc);
-
-				} catch (Exception e) {
-					e.printStackTrace();
 				}
 			}
 		}
+		
+		/**
+		 * This method gets the next step in the current route taken
+		 * @author Monayri
+		 */
+		public void getNextStep(){
+			if(routeChosen == 1){
+				int index = route1Overlays.indexOf(chosenStep) + 1;
+				if(index == route1Overlays.size() || index == -1)
+					chosenStep = null;
+				else
+					chosenStep = route1Overlays.get(index);
+			}
+			else if(routeChosen == 2){
+				int index = route2Overlays.indexOf(chosenStep) + 1;
+				if(index == route2Overlays.size()|| index == -1)
+					chosenStep = null;
+				else
+					chosenStep = route2Overlays.get(index);
+			}
+			else if(routeChosen == 3){
+				int index = route3Overlays.indexOf(chosenStep) + 1;
+				if(index == route3Overlays.size()|| index == -1)
+					chosenStep = null;
+				else
+					chosenStep = route3Overlays.get(index);
 
+			}
+				
+		}
+		/**
+		 * This method is used to draw the map again using the info saved when the routes were
+		 * retrieved from the server
+		 * @param mapview
+		 * @author Monayri
+		 */
+		public  void drawMap(MapView mapview){
+			List<Overlay> overlays = mapView.getOverlays();
+			MapRouteOverlay mro;
+			
+			// First Drawing each Route
+			for (StepInfo info : route1Overlays){
+				if (routeChosen == 1 ){
+					mro = new MapRouteOverlay(info.points, info.color, 255, 1 );
+					route1markerOverlay = new MapRouteOverlay(route1marker, 3);
+					overlays.add(route1markerOverlay);
+				}else{
+					mro = new MapRouteOverlay(info.points, info.color, 50, 1 );
+					route1markerOverlay = new MapRouteOverlay(route1marker, 2);
+					overlays.add(route1markerOverlay);
+				}
+				overlays.add(mro);
+				}
+			for (StepInfo info : route2Overlays){
+				if (routeChosen == 2 ){
+					mro = new MapRouteOverlay(info.points, info.color, 255, 2);
+					route2markerOverlay = new MapRouteOverlay(route2marker, 3);
+					overlays.add(route2markerOverlay);
+				}else{
+					route2markerOverlay = new MapRouteOverlay(route2marker, 2);
+					overlays.add(route2markerOverlay);
+					mro = new MapRouteOverlay(info.points, info.color, 50, 2);
+				}
+				overlays.add(mro);
+				}
+			for (StepInfo info : route3Overlays){
+				if (routeChosen == 3 ){
+					mro = new MapRouteOverlay(info.points, info.color, 255, 1 );
+					route3markerOverlay = new MapRouteOverlay(route3marker, 3);
+					overlays.add(route3markerOverlay);
+				}else{
+					mro = new MapRouteOverlay(info.points, info.color, 50, 1 );
+					route3markerOverlay = new MapRouteOverlay(route3marker, 2);
+					overlays.add(route3markerOverlay);
+				}
+				overlays.add(mro);
+				}
+			// Then Drawing the user's position
+			MapRouteOverlay marker = new MapRouteOverlay(loc, 1);
+			markerOverlay = marker;
+			mapView.getOverlays().add(marker);
+		}
+		
+		/**
+		 * This method handles the touchevents in case the user wants to switch between routes on the map
+		 * the user clicks on the route's marker to choose that route
+		 * @author Monayri
+		 */
 		@Override
 		public boolean onTouchEvent(MotionEvent event, MapView mapview) {
 
 			if (event.getAction() == 1) {
-				List<Overlay> overlays = mapView.getOverlays();
-				overlays.remove(markerOverlay);
+				 	// Getting the position of the touch
+				    int x = (int) event.getX();  
+				    int y = (int) event.getY();
+				    // Getting the position of the first marker
+				    Point point = new Point();
+					mapview.getProjection().toPixels(route1marker, point);
+					
+					// if the marker is touched and its not the chosenRoute then the map wll be drawn again
+					if (Math.abs(x-point.x) < 40 && Math.abs(y-point.y)<40) {
+				        if ( routeChosen != 1){
+				        	mapview.getOverlays().clear();
+				    		mapview.invalidate();
+				    		mapview.getOverlays().add(this);
+				        	routeChosen = 1;
+				        	drawMap(mapview);
+				        }
+				    }
+					
+					// Same steps as route1
+					if (route2marker !=null){
+						mapview.getProjection().toPixels(route2marker, point);
+						if (Math.abs(x-point.x) < 40 && Math.abs(y-point.y)<40) {
+					        if ( routeChosen != 2){
+					        	mapview.getOverlays().clear();
+					    		mapview.invalidate();
+					    		mapview.getOverlays().add(this);
+					        	routeChosen = 2;
+					        	drawMap(mapview);
+					        }
+					    }
+					}
+					
+					// Same steps as routes 1 & 2
+					if(route3marker != null){
+						mapView.getProjection().toPixels(route3marker, point);
+						if (Math.abs(x-point.x) < 40 && Math.abs(y-point.y)<40) {
+					        if ( routeChosen != 3){
+					        	mapview.getOverlays().clear();
+					    		mapview.invalidate();
+					    		mapview.getOverlays().add(this);
+					        	routeChosen = 3;
+					        	drawMap(mapview);
+					        }
+					    }
+					}
+				    
 			}
 			return false;
 		}
 
 	}
-
+	/**
+	 * This class draws anything needs to be drawn on the mapview (Routes and markers)
+	 * @author Monayri
+	 *
+	 */
 	public class MapRouteOverlay extends Overlay {
-		private GeoPoint gp1;
-		private int color;
-		private boolean marker;
-		private boolean route;
-		private Bitmap bmp;
-		private int alpha = 180;
+		private GeoPoint gp1; // The point of the marker to be drawn in case of markers
+		private int color; // The color of the step to be drawn
+		private boolean marker; // a boolean indicating if we're drawing markers or steps
+		private Bitmap bmp; // The bitmap of the marker image
+		private int alpha = 180; // Transparency level
 		private int routeNo;
-		private ArrayList<GeoPoint> pointList;
+		private ArrayList<GeoPoint> pointList; // The pointList of the step to be drawn
 
-		public MapRouteOverlay(GeoPoint gp1) {
+		/**
+		 * This constructor is for drawing the markers
+		 * @param gp1
+		 * @param index
+		 * @author Monayri
+		 */
+		public MapRouteOverlay(GeoPoint gp1, int index) {
 			this.marker = true;
 			this.gp1 = gp1;
-			bmp = BitmapFactory.decodeResource(getResources(), R.drawable.car);
+			if(index ==1 )
+				bmp = BitmapFactory.decodeResource(getResources(), R.drawable.car);
+			else if (index ==2)
+				bmp = BitmapFactory.decodeResource(getResources(), R.drawable.pin1);
+			else if (index ==3)
+				bmp = BitmapFactory.decodeResource(getResources(), R.drawable.pin2);
 		}
-
-		public MapRouteOverlay(ArrayList<GeoPoint> pointList, int color,
-				boolean marker, int alpha, int routeNo) {
+		/**
+		 * This constructor is for drawing a step
+		 * @param pointList
+		 * @param color
+		 * @param alpha
+		 * @param routeNo
+		 * @author Monayri
+		 */
+		public MapRouteOverlay(ArrayList<GeoPoint> pointList, int color, int alpha, int routeNo) {
 			this.pointList = pointList;
 			this.color = color;
-			this.route = marker;
 			this.alpha = alpha;
 			this.routeNo = routeNo;
 		}
@@ -595,11 +892,27 @@ public class KharamlyActivity extends MapActivity {
 				pathPaint.setAntiAlias(true);
 				pathPaint.setStrokeWidth(8.0f);
 				pathPaint.setStyle(Paint.Style.STROKE);
-				pathPaint.setColor(Color.GREEN);
+				pathPaint.setColor(color);
 				pathPaint.setAlpha(alpha);
 				canvas.drawPath(path, pathPaint);
+				
 			}
 
+		}
+	}
+	
+	public class StepInfo {
+		ArrayList<GeoPoint> points ;
+		int color ;
+		int id ;
+		double lng;
+		double lat;
+		public StepInfo ( ArrayList <GeoPoint> points, int color, int id, double lng, double lat){
+			this.points = points;
+			this.color = color;
+			this.id = id;
+			this.lng = lng;
+			this.lat = lat;
 		}
 	}
 

@@ -9,4 +9,13 @@
 	<string name="enter_comment">Enter your desired destination here:</string>
 	<string name="close">Exit</string>
 	<string name="toggle_comments">Toggle Comments</string>
+	<string name="empty_dest">No destination entered, Please write something !!!</string>
+	<string name="dest_not_found">Sorry, Destination not found !</string>
+	<string name="loading">Loading. Please wait...</string>
+	<string name="nogps">Your GPS seems to be disabled, do you want to enable it?</string>
+	<string name="yes">Yes</string>
+	<string name="no">No</string>
+	<string name="no_net">No Network Available, do you want to enable the WiFi or your Mobile Network?</string>
+	<string name="type">Type here...</string>
+	<string name="exit">Are you sure you want to exit?</string>
 </resources>
