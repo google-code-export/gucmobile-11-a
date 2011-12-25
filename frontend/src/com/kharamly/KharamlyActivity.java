@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +31,8 @@ import android.graphics.Path;
 import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -107,13 +107,15 @@ public class KharamlyActivity extends MapActivity {
 		if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 			buildAlertMessageNoGps();
 		}
-
+		else
+		{
+			newDestination();
+		}
 		mapView = (MapView) findViewById(R.id.mapView);
 		mapView.setBuiltInZoomControls(true);
 		myLocationOverlay = new MyCustomizedLocationOverlay(this, mapView);
 		mapView.getOverlays().add(myLocationOverlay);
 		myLocationOverlay.enableMyLocation();
-		newDestination();
 		myLocationOverlay.runOnFirstFix(new Runnable() {
 			public void run() {
 				mapView.getController().animateTo(
@@ -127,7 +129,7 @@ public class KharamlyActivity extends MapActivity {
 	private void newDestination()
 	{
 		PromptDialog dest =  new PromptDialog(KharamlyActivity.this, R.string.title, R.string.enter_comment){
-            public boolean onOkClicked(String input) {
+            public boolean onOkClicked(String input, DialogInterface dialog) {
                         if(input.length()==0)
                         {
                         	newDestination();
@@ -136,7 +138,13 @@ public class KharamlyActivity extends MapActivity {
                         else
                         {
                         	destination = URLEncoder.encode(input);
-                        	geocoding();
+                        	if(haveNetworkConnection())
+                        		geocoding();
+                        	else
+                        	{
+                        		dialog.dismiss();
+                        		buildAlertMessageNoInternet();
+                        	}
                         }
                         return true;
             }
@@ -178,6 +186,23 @@ public class KharamlyActivity extends MapActivity {
 
 		}
 	}
+	
+	private boolean haveNetworkConnection() {
+	    boolean haveConnectedWifi = false;
+	    boolean haveConnectedMobile = false;
+
+	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo[] netInfo = cm.getAllNetworkInfo();
+	    for (NetworkInfo ni : netInfo) {
+	        if (ni.getTypeName().equalsIgnoreCase("WIFI"))
+	            if (ni.isConnected())
+	                haveConnectedWifi = true;
+	        if (ni.getTypeName().equalsIgnoreCase("MOBILE"))
+	            if (ni.isConnected())
+	                haveConnectedMobile = true;
+	    }
+	    return haveConnectedWifi || haveConnectedMobile;
+	}
 
 	private void buildAlertMessageNoGps() {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -202,8 +227,37 @@ public class KharamlyActivity extends MapActivity {
 						finish();
 					}
 				});
+		builder.setIcon(R.drawable.nogps);
 		final AlertDialog alert = builder.create();
 		alert.show();
+	}
+	
+	private void buildAlertMessageNoInternet() {
+		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage(
+				"No Network Available, do you want to enable the WiFi or your Mobile Network?")
+				.setCancelable(false)
+				.setPositiveButton("Yes",
+						new DialogInterface.OnClickListener() {
+							public void onClick(
+									@SuppressWarnings("unused") final DialogInterface dialog,
+									@SuppressWarnings("unused") final int id) {
+								Intent intent = new Intent(
+										Settings.ACTION_WIRELESS_SETTINGS);
+								startActivityForResult(intent, 4);
+							}
+
+						})
+				.setNegativeButton("No", new DialogInterface.OnClickListener() {
+					public void onClick(final DialogInterface dialog,
+							@SuppressWarnings("unused") final int id) {
+						dialog.cancel();
+//						finish();
+					}
+				});
+		builder.setIcon(R.drawable.nowireless);
+		final AlertDialog alert2 = builder.create();
+		alert2.show();
 	}
 
 	@Override
@@ -214,6 +268,16 @@ public class KharamlyActivity extends MapActivity {
 			if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 				buildAlertMessageNoGps();
 			}
+			else
+				newDestination();
+		}
+		if (requestCode == 4 && resultCode == 0) {
+			if(!haveNetworkConnection())
+			{
+				buildAlertMessageNoInternet();
+			}
+			else
+				geocoding();
 		}
 	}
 
