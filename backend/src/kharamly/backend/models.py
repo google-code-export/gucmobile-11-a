@@ -124,15 +124,13 @@ class Badge(models.Model):
     class Meta:
         ordering = ["id"]
     
-##########################################################################################
-################## AGAIN, LEAVE ANYTHING BELOW
-##################
-##########################################################################################
 class Comment(models.Model):
     """
     Comment model, stores comment info, most importantly:
     - who made the comment
     - location of the comment
+    
+    @author kamasheto
     """
     owner = models.ForeignKey(Device, null=True, blank=True)
     location = models.ForeignKey(Node, null=True, blank=True)
@@ -142,9 +140,10 @@ class Comment(models.Model):
     flags = models.IntegerField(default=0)
     twitter_id = models.IntegerField(default=0)
 
-    def do_rate(self, rate, voter):
+    def _do_rate(self, rate, voter):
         """
         Makes this rating 
+        Not called directly
         Eq: INSERT INTO comment_rate (comment, rate, voter, time) VALEUS (self, rate, voter, datetime.now())
         """
         Comment_Rate.objects.filter(comment=self, voter=voter).delete()
@@ -152,11 +151,11 @@ class Comment(models.Model):
         
     def do_up(self, voter):
         """Upvotes this comment"""
-        self.do_rate(1, voter)
+        self._do_rate(1, voter)
         
     def do_down(self, voter):
         """downvotes this comment"""
-        self.do_rate(-1, voter)
+        self._do_rate(-1, voter)
         
     def do_flag(self):
         """
@@ -184,6 +183,8 @@ def do_comment(node, d, text, source):
     Makes a comment
     This inserts a new comment, so inserted outside the scope of the comment class 
     works as follows: do_comment(location_node, device, "text", "source")
+    
+    @author kamasheto
     """
     c = Comment(location=node, owner = d, time = datetime.now(), text = text, source = source)
     c.save()
@@ -192,12 +193,15 @@ def do_comment(node, d, text, source):
 def within_range(node, lat, lng):
     """
     Returns true if this node is within 5  of this lat,lng
+    
+    @author kamasheto
     """
     d = distance_on_unit_sphere(node.latitude, node.longitude, float(lat), float(lng))
     return d <= 5
 
 def distance_on_unit_sphere(lat1, long1, lat2, long2):
     # Source: http://www.johndcook.com/python_longitude_latitude.html
+    # Modified slightly by kamasheto
     # Convert latitude and longitude to 
     # spherical coordinates in radians.
     degrees_to_radians = math.pi/180.0
@@ -232,6 +236,8 @@ def get_comments_near(lat, lng, refresh_url = None):
     Returns comments near this location
     For now the comments are from tweets nearby with the hashtag #kraffic (_K_haramly t_RAFFIC_)
     Comments through the app are not (yet, but might never) be integrated for obvious safety reasons
+    
+    @author kamasheto
     """
     query_string = refresh_url if refresh_url != None else '?q=%23kraffic&geocode=' + str(lat) + ',' + str(lng) + ',5mi'
     url = 'http://search.twitter.com/search.json' + query_string
@@ -260,10 +266,6 @@ def get_comments_near(lat, lng, refresh_url = None):
     }, comments_near)
     return comments, query
     
-##########################################################################################
-################## NOW YOU CAN PLAY AROUND
-##########################################################################################
-        
 
 # @author: Moataz Mekki
 # takes "from" & "to" locations/addresses, calls Google maps
