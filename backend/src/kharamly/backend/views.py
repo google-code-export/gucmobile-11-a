@@ -58,11 +58,11 @@ A Method that handle the pings coming from the device updating the info of the r
 @author Monayri
 """
 
-def update(stepId, routeId, speed, who):
+def update(request, stepId, speed, who):
     myStep = Step.objects.get(pk=stepId)
-    myRoute = Route.objects.get(pk=routeId)
     if myStep:
         Ping_Log(step = myStep, speed = speed, who = get_device(who), time = datetime.now()).save()
+    return HttpResponse(json.dumps("Posted"), mimetype="application/json") 
     
     #Here i will check if the route is going to be blocked 
     
