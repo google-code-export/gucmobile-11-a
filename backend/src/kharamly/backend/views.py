@@ -11,7 +11,7 @@ The API call. This is optimized for frequent calls in the form:
     10 - speed
     android_id - Installation device ID
     
-@author kamasheto
+@author kamasheto && Monayri
 """
 def api(request, orig, dest, speed, who):
     orig = orig.split(",")
@@ -27,20 +27,29 @@ def api(request, orig, dest, speed, who):
         who.increment_checkins()
         
     result = getalternatives(None, my_step, to_node, from_node)
-    routes = evaluate_route(result, speed, my_step)
-    response  = {"steps": []}
-    for route in routes:
+    response  = {"routes": []}
+    for route in result['routes']:
+        r= {"steps":[]}
         for leg in route['legs']:
             for step in leg['steps']:
-                response['steps'].append({
+                print leg['steps']
+                print step['loc']
+                r['steps'].append({
                     "s_lat": step['start_location']['lat'],
                     "s_lng": step['start_location']['lng'],
                     "e_lat": step['end_location']['lat'],
                     "e_lng": step['end_location']['lng'],
                     "col": get_color_from_speed(step['speed']),
+                    "loc" : step['loc'],
+                    "marker" : step['marker']
                 })
+<<<<<<< HEAD
                 
     badges = badge_handler(who, float(speed))
+=======
+        response['routes'].append(r)    
+#    badges = badge_handler(who, speed)
+>>>>>>> 3ea75ed5dc93b289f087c9a4a6245f833cc7c0bc
     
     return HttpResponse(json.dumps(response), mimetype="application/json")
 

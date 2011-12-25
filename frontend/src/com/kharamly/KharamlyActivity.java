@@ -38,6 +38,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -263,6 +264,8 @@ public class KharamlyActivity extends MapActivity {
 	public class MyCustomizedLocationOverlay extends MyLocationOverlay {
 		MapView mapView;
 		MapController mapController;
+		MapRouteOverlay markerOverlay;
+		Point markerPos;
 
 		public MyCustomizedLocationOverlay(Context context, MapView mapView) {
 			super(context, mapView);
@@ -365,7 +368,9 @@ public class KharamlyActivity extends MapActivity {
 				GeoPoint loc = new GeoPoint(
 						(int) (location.getLatitude() * 1000000),
 						(int) (location.getLongitude() * 1000000));
-				overlays.add(new MapRouteOverlay(loc));
+				MapRouteOverlay marker = new MapRouteOverlay(loc);
+				markerOverlay = marker;
+				overlays.add(marker);
 				mapView.invalidate();
 				mapController.animateTo(loc);
 
@@ -373,6 +378,17 @@ public class KharamlyActivity extends MapActivity {
 				e.printStackTrace();
 			}
 		}
+
+		@Override
+		public boolean onTouchEvent(MotionEvent event, MapView mapview) {
+
+			if (event.getAction() == 1) {
+				List<Overlay> overlays = mapView.getOverlays();
+				overlays.remove(markerOverlay);
+			}
+			return false;
+		}
+
 	}
 
 	public class MapRouteOverlay extends Overlay {
