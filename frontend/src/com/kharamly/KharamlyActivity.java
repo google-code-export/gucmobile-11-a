@@ -478,8 +478,8 @@ public class KharamlyActivity extends MapActivity {
 						for(int j = 0 ; j <steps.length();j++){
 							JSONObject step = steps.getJSONObject(j);
 							String polyline = step.getString("polyline");
-							// polylines are encoded to get the points to be drawn
-							//########## Start of Encoder #############
+							// polylines are decoded to get the points to be drawn
+							//########## Start of Decoder #############
 							polyline = polyline.replace("\"", "");
 							polyline = polyline.replace("\\\\", "\\");
 							ArrayList<GeoPoint> geopoints = new ArrayList<GeoPoint>();
@@ -510,7 +510,7 @@ public class KharamlyActivity extends MapActivity {
 										(int) (((double) lng / 1E5) * 1E6));
 								geopoints.add(p);
 								}
-							//############### End of Encoder ###################
+							//############### End of Decoder ###################
 							
 							// getting the color of the step from the json
 							int color = step.getInt("col");
@@ -653,11 +653,13 @@ public class KharamlyActivity extends MapActivity {
 		 * This method is used to draw the map again using the info saved when the routes were
 		 * retrieved from the server
 		 * @param mapview
+		 * @author Monayri
 		 */
 		public  void drawMap(MapView mapview){
 			List<Overlay> overlays = mapView.getOverlays();
-			mapView.getOverlays().remove(markerOverlay);
 			MapRouteOverlay mro;
+			
+			// First Drawing each Route
 			for (StepInfo info : route1Overlays){
 				if (routeChosen == 1 ){
 					mro = new MapRouteOverlay(info.points, info.color, 255, 1 );
@@ -694,19 +696,29 @@ public class KharamlyActivity extends MapActivity {
 				}
 				overlays.add(mro);
 				}
+			// Then Drawing the user's position
 			MapRouteOverlay marker = new MapRouteOverlay(loc, 1);
 			markerOverlay = marker;
 			mapView.getOverlays().add(marker);
 		}
+		
+		/**
+		 * This method handles the touchevents in case the user wants to switch between routes on the map
+		 * the user clicks on the route's marker to choose that route
+		 * @author Monayri
+		 */
 		@Override
 		public boolean onTouchEvent(MotionEvent event, MapView mapview) {
 
 			if (event.getAction() == 1) {
-				 int action = event.getAction();
-				    int x = (int) event.getX();  // or getRawX();
+				 	// Getting the position of the touch
+				    int x = (int) event.getX();  
 				    int y = (int) event.getY();
+				    // Getting the position of the first marker
 				    Point point = new Point();
 					mapview.getProjection().toPixels(route1marker, point);
+					
+					// if the marker is touched and its not the chosenRoute then the map wll be drawn again
 					if (Math.abs(x-point.x) < 40 && Math.abs(y-point.y)<40) {
 				        if ( routeChosen != 1){
 				        	mapview.getOverlays().clear();
@@ -716,6 +728,8 @@ public class KharamlyActivity extends MapActivity {
 				        	drawMap(mapview);
 				        }
 				    }
+					
+					// Same steps as route1
 					if (route2marker !=null){
 						mapview.getProjection().toPixels(route2marker, point);
 						if (Math.abs(x-point.x) < 40 && Math.abs(y-point.y)<40) {
@@ -728,6 +742,8 @@ public class KharamlyActivity extends MapActivity {
 					        }
 					    }
 					}
+					
+					// Same steps as routes 1 & 2
 					if(route3marker != null){
 						mapView.getProjection().toPixels(route3marker, point);
 						if (Math.abs(x-point.x) < 40 && Math.abs(y-point.y)<40) {
@@ -746,16 +762,26 @@ public class KharamlyActivity extends MapActivity {
 		}
 
 	}
-
+	/**
+	 * This class draws anything needs to be drawn on the mapview (Routes and markers)
+	 * @author Monayri
+	 *
+	 */
 	public class MapRouteOverlay extends Overlay {
-		private GeoPoint gp1;
-		private int color;
-		private boolean marker;
-		private Bitmap bmp;
-		private int alpha = 180;
+		private GeoPoint gp1; // The point of the marker to be drawn in case of markers
+		private int color; // The color of the step to be drawn
+		private boolean marker; // a boolean indicating if we're drawing markers or steps
+		private Bitmap bmp; // The bitmap of the marker image
+		private int alpha = 180; // Transparency level
 		private int routeNo;
-		private ArrayList<GeoPoint> pointList;
+		private ArrayList<GeoPoint> pointList; // The pointList of the step to be drawn
 
+		/**
+		 * This constructor is for drawing the markers
+		 * @param gp1
+		 * @param index
+		 * @author Monayri
+		 */
 		public MapRouteOverlay(GeoPoint gp1, int index) {
 			this.marker = true;
 			this.gp1 = gp1;
@@ -766,7 +792,14 @@ public class KharamlyActivity extends MapActivity {
 			else if (index ==3)
 				bmp = BitmapFactory.decodeResource(getResources(), R.drawable.pin2);
 		}
-
+		/**
+		 * This constructor is for drawing a step
+		 * @param pointList
+		 * @param color
+		 * @param alpha
+		 * @param routeNo
+		 * @author Monayri
+		 */
 		public MapRouteOverlay(ArrayList<GeoPoint> pointList, int color, int alpha, int routeNo) {
 			this.pointList = pointList;
 			this.color = color;
