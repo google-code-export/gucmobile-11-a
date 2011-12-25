@@ -50,7 +50,7 @@ class BadgeTest(TestCase):
     fixtures = ['devices']
 
     def setUp(self):
-        self.device = Device.objects.get(id=1)
+        self.device = Device.objects.create(installation_id="1")
 
 
     def test_speed_badge_handler_returns_badge(self):
@@ -355,7 +355,7 @@ class BadgeTest(TestCase):
                 time = time,
                 persistence = get_persistence(using)).save()
 
-    def make_user_persistently_move(self, start_date, delta, speed=50, using=Device.objects.get(id=1)):
+    def make_user_persistently_move(self, start_date, delta, speed=50, using=None):
         """
         Simulates the input user {using} persistently using the application for
         the specified timedelta
