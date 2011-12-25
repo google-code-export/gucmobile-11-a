@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -109,7 +110,7 @@ public class KharamlyActivity extends MapActivity {
                         }
                         else
                         {
-                        	destination = input;
+                        	destination = URLEncoder.encode(input);
                         	geocoding();
                         }
                         return true;
@@ -119,7 +120,8 @@ public class KharamlyActivity extends MapActivity {
 	}
 	
 	private void geocoding()
-	{
+	{	
+		
 		String geoUrl = "http://maps.googleapis.com/maps/api/geocode/json?address="+destination+"&sensor=true";
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpGet httpget = new HttpGet(geoUrl);
