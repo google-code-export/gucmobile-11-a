@@ -306,6 +306,8 @@ def getalternatives(leg, myStep, destination, location):
             for step in leg.steps.all():
                 start_node2 = Node.objects.get(id=step.start_location.id)
                 end_node2 = Node.objects.get(id=step.end_location.id)
+                print "###############################################################################################################################################################################################"
+                print len(steps)
                 if(steps):
                     for step2 in steps:
                         if (step2.id == step.id):
@@ -633,7 +635,7 @@ def compute_subroutes(leg, step, destination):
         legs.remove(leg)
     except:
         pass
-    print "Found " + str(len(legs)) + " leg(s)!"
+#    print "Found " + str(len(legs)) + " leg(s)!"
     if len(legs) != 0:
         return find_and_create_subroute(legs, start_node, end_node)
     else:
@@ -651,7 +653,7 @@ def find_and_create_subroute(legs, start_node, end_node):
     result_routes = []
     for leg in legs:
         steps = ordered_steps(leg)
-        print "Steps: " + str(steps)
+#        print "Steps: " + str(steps)
         i = 0
         for step in steps:
             if step.start_location == start_node:
@@ -664,10 +666,10 @@ def find_and_create_subroute(legs, start_node, end_node):
                 break
             i += 1
         end_index += 1
-        print "Start index:\t" + str(start_index)
-        print "End index:\t" + str(end_index)
+#        print "Start index:\t" + str(start_index)
+#        print "End index:\t" + str(end_index)
         subroute_steps = steps[start_index:end_index]
-        print "Subroute Steps: " + str(subroute_steps)
+#        print "Subroute Steps: " + str(subroute_steps)
         if len(subroute_steps) != len(steps):       # if the subroute length was equal to the route length
                                                     # this means the route doesn't need to be saved
             new_leg =   Leg(duration_value  = sum_duration_values(subroute_steps),
@@ -870,22 +872,18 @@ def getDifferences(routes):
             for step in leg.steps.all():
                 steps3.append(step)
         x = 0
-        while x < len(steps1):
-            if steps1[x].id != steps2[x].id and steps1[x].id != steps3[x].id:
-                if step1 == None:
-                    step1 = steps1[x]
-                    steps.append(step1)
-            if steps2[x].id != steps1[x].id and steps2[x].id != steps3[x].id:
-                if step2 == None:
-                    step2 = steps2[x]
-                    steps.append(step2)
-            if steps3[x].id != steps1[x].id and steps3[x].id != steps2[x].id:
-                if step3 == None:
-                    step3 = steps3[x]
-                    steps.append(step3)
-            if len(steps) == 3:
+        for step in steps1 :
+            if steps2.count(step) == 0 and steps3.count(step) == 0:
+                steps.append(step)
                 break
-            x += 1
+        for step in steps2 :
+            if steps1.count(step) == 0 and steps3.count(step) == 0:
+                steps.append(step)
+                break
+        for step in steps3 :
+            if steps1.count(step) == 0 and steps2.count(step) == 0:
+                steps.append(step)
+                break
     return steps
   
 ################## START OF BADGE HANDLERS ##################
