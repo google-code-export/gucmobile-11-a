@@ -57,6 +57,8 @@ public class KharamlyActivity extends MapActivity {
 	LinearLayout content;
 	MyCustomizedLocationOverlay myLocationOverlay;
 
+	TwitterConnection connect=null;
+	
 	private final static int TIMEOUT_MILLISEC = 0;
 	private final static String TAG_NAME = "Kharamly";
 	private String destination = "29.985067,31.43873";
@@ -111,6 +113,12 @@ public class KharamlyActivity extends MapActivity {
 		mapView.postInvalidate();
 	}
 
+	
+	public void onNewIntent(Intent intent) {
+		if(connect!=null&&!connect.flag)
+		connect.retrieveData(intent);
+		connect.flag=false;
+	}	
 	/**
 	 * @author Moataz Mekki
 	 * 
