@@ -36,11 +36,18 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -61,6 +68,29 @@ public class KharamlyActivity extends MapActivity {
 	private String destination = "29.985067,31.43873"; 
 	private LocationManager manager;
 	private boolean flag = true;
+	
+	final int[] BADGES = new int[]{
+			R.drawable.checkin_1,
+			R.drawable.checkin_50,
+			R.drawable.checkin_100,
+			R.drawable.checkin_500,
+			R.drawable.checkin_1000,
+			R.drawable.adventurer,
+			R.drawable.addict,
+			R.drawable.fanboy,
+			R.drawable.super_user,
+			R.drawable.warrior,
+			R.drawable.junkie,
+			R.drawable.speedster_100,
+			R.drawable.speedster_140,
+			R.drawable.speedster_180,
+			R.drawable.turtle,
+			R.drawable.granny,
+			R.drawable.snail,
+			R.drawable.lunatic,
+			R.drawable.wacko,
+			R.drawable.badger
+		};
 
 	/**
 	 * Called when the activity is first created.
@@ -239,6 +269,26 @@ public class KharamlyActivity extends MapActivity {
 	public void toast(String message) {
 		Log.e(TAG_NAME, message);
 		Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+	}
+	
+	public void badgeNotification(int drawableId, String name) {
+		LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.custom_toast,
+                                       (ViewGroup) findViewById(R.id.toast_layout_root));
+
+        ImageView image = (ImageView) layout.findViewById(R.id.image);
+        image.setImageResource(drawableId);
+        System.out.println("Drawable ID:\t" + drawableId);
+        System.out.println("Resource iD:\t" + R.drawable.checkin_1);
+        TextView text = (TextView) layout.findViewById(R.id.text);
+        text.setText("Congratulations! You just won the " + name + " badge");
+
+        Toast toast = new Toast(getApplicationContext());
+        toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.setGravity(Gravity.TOP|Gravity.LEFT, 0, 0);
+        toast.show();
 	}
 
 	public static void background(final Runnable r) {
