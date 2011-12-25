@@ -67,11 +67,28 @@ public class CommentItem extends LinearLayout {
 		this.up = (ImageView) findViewById(R.id.up);
 		this.down = (ImageView) findViewById(R.id.down);
 		this.flag = (ImageView) findViewById(R.id.flag);
+		
+		this.up.setOnClickListener(new OnClickListener() {
+			public void onClick(View view) {
+				CommentItem.this.setLoading(CommentItem.this.up);
+				CommentItem.this.onClick(1);
+			}
+		});
+		
+		this.down.setOnClickListener(new OnClickListener() {
+			public void onClick(View view) {
+				CommentItem.this.setLoading(CommentItem.this.down);
+				CommentItem.this.onClick(2);
+			}
+		});
+		
+		this.flag.setOnClickListener(new OnClickListener() {
+			public void onClick(View view) {
+				CommentItem.this.setLoading(CommentItem.this.flag);
+				CommentItem.this.onClick(3);
+			}
+		});
 	}
-	
-	public void upClicked(View v) { this.setLoading(this.up); onClick(1); }
-	public void downClicked(View v) { this.setLoading(this.down); onClick(2); }
-	public void flagClicked(View v) { this.setLoading(this.flag); onClick(3); }
 	
 	public void setLoading(ImageView image) {
 		image.setImageResource(R.drawable.loading);

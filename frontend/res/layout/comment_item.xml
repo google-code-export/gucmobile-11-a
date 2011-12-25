@@ -32,21 +32,18 @@
 			android:src="@drawable/up"
 			android:layout_width="16px"
 			android:layout_height="16px"
-			android:clickable="true"
-			android:onClick="upClicked" />
+			android:clickable="true" />
 		<ImageView
 			android:id="@+id/down"
 			android:src="@drawable/down"
 			android:layout_width="16px"
 			android:layout_height="16px"
-			android:clickable="true"
-			android:onClick="downClicked" />
+			android:clickable="true"/>
 		<ImageView
 			android:id="@+id/flag"
 			android:src="@drawable/flag"
 			android:layout_width="16px"
 			android:layout_height="16px"
-			android:clickable="true"
-			android:onClick="flagClicked" />
+			android:clickable="true" />
 	</LinearLayout>
 </merge>
