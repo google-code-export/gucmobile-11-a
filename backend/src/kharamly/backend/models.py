@@ -139,6 +139,7 @@ def getdirections(origin, destination):
     result = json.load(urllib.urlopen(url))
     routes = result['routes']
     # all_routes = []
+    return_routes =[]
     for route in routes :
         summ = route['summary']
         legs = route['legs']
@@ -197,7 +198,8 @@ def getdirections(origin, destination):
             current_leg.save()
             current_route.legs.add(current_leg)
         current_route.save()
-    return result
+        return_routes.append(current_route)
+    return return_routes
 
 """
 Returns a node from the latitude and longitude given
@@ -234,12 +236,15 @@ def get_step(html, duration_text, duration_value,
 #@param destination: The destination Node
 #@return: list of routes
 def getalternatives(leg, myStep, destination, location):
-    #First i will call the subRoutes Method 
+    #First i will call the subRoutes Method
+    routes = [] 
     if myStep == None:
-        return getdirections(str(location.latitude)+","+str(location.longitude), str(destination.latitude)+","+str(destination.longitude))
-    routes = compute_subroutes(leg, myStep, destination)
+        routes = getdirections(str(location.latitude)+","+str(location.longitude), str(destination.latitude)+","+str(destination.longitude))
+    else:
+        routes = compute_subroutes(leg, myStep, destination)
+    
     if not routes:
-        return getdirections(str(myStep.start_location.latitude)+","+str(myStep.start_location.longitude), 
+        routes = getdirections(str(myStep.start_location.latitude)+","+str(myStep.start_location.longitude), 
                             str(destination.latitude)+","+str(destination.longitude))
     if leg != None :
         steps =[] 
@@ -281,14 +286,14 @@ def getalternatives(leg, myStep, destination, location):
                 current_route.save()
 #        response +=  '"routes" :[]'
 
-    
+    steps = getDifferences(routes)
     response = {"routes":[]}
     for route in routes :
-        r = [{"summary" : route.summary, "legs":[]}]
-        for leg in route.legs:
+        r = {"summary" : route.summary, "legs":[]}
+        for leg in route.legs.all():
             start_node = Node.objects.get(id=leg.start_location.id)
             end_node = Node.objects.get(id=leg.end_location.id)
-            l = [{"distance" : {"text":leg.distance_text, 
+            l = {"distance" : {"text":leg.distance_text, 
                                "value": leg.distance_value}, 
                  "end_address": leg.end_address,
                  "end_location": {"lat" : end_node.latitude ,
@@ -297,22 +302,58 @@ def getalternatives(leg, myStep, destination, location):
                  "start_location" : {"lat" : start_node.latitude,
                                      "lng" : start_node.longitude},
                  "steps" : []
-                 }]
-            for step in leg.steps:
+                 }
+            for step in leg.steps.all():
                 start_node2 = Node.objects.get(id=step.start_location.id)
                 end_node2 = Node.objects.get(id=step.end_location.id)
-                s = [{"distance" : {"text": step.distance_text,
-                                   "value": step.distance_value},
-                     "duration" : {"text": step.duration_text,
-                                   "value": step.duration_value},
-                     "end_location": {"lat": end_node2.latitude,
-                                      "lng": end_node2.longitude},
-                     "start_location": {"lat": end_node2.latitude,
-                                      "lng": end_node2.longitude}
-                     }]
-                l["steps"] += s
-            r["legs"] +=l
-        response["routes"]+=r             
+                if(steps):
+                    for step2 in steps:
+                        if (step2.id == step.id):
+                            s = {"distance" : {"text": step.distance_text,
+                                               "value": step.distance_value},
+                                 "duration" : {"text": step.duration_text,
+                                               "value": step.duration_value},
+                                 "end_location": {"lat": end_node2.latitude,
+                                                  "lng": end_node2.longitude},
+                                 "start_location": {"lat": end_node2.latitude,
+                                                  "lng": end_node2.longitude},
+                                  "loc":step.id,
+                                  "marker" : 1,
+                                  "speed" : get_step_speed(step),
+                                  "polyline" : step.polypoints
+                                 }
+                            break
+                        else:
+                            s = {"distance" : {"text": step.distance_text,
+                                               "value": step.distance_value},
+                                 "duration" : {"text": step.duration_text,
+                                               "value": step.duration_value},
+                                 "end_location": {"lat": end_node2.latitude,
+                                                  "lng": end_node2.longitude},
+                                 "start_location": {"lat": end_node2.latitude,
+                                                  "lng": end_node2.longitude},
+                                  "loc":step.id,
+                                  "marker" : 0,
+                                  "speed" : get_step_speed(step),
+                                  "polyline" : step.polypoints
+                                 }
+                else:
+                    s = {"distance" : {"text": step.distance_text,
+                                               "value": step.distance_value},
+                                 "duration" : {"text": step.duration_text,
+                                               "value": step.duration_value},
+                                 "end_location": {"lat": end_node2.latitude,
+                                                  "lng": end_node2.longitude},
+                                 "start_location": {"lat": end_node2.latitude,
+                                                  "lng": end_node2.longitude},
+                                  "loc":step.id,
+                                  "marker" : 0,
+                                  "speed" : get_step_speed(step),
+                                  "polyline" : step.polypoints
+                                 }
+                l['steps'].append(s)
+            r['legs'].append(l)
+        response['routes'].append(r)
     return response
 
 
@@ -756,7 +797,7 @@ def ifStepBlocked(step):
         if speed <= 5:
             return True
         else:
-            return True
+            return False
 
 """"
 This Method gets the steps of a route
@@ -781,7 +822,72 @@ def ifRouteBlocked(route):
     for step in steps:
         if ifStepBlocked(step):
             return True
+
+
+""""
+This Method gets the differences between routes and returns the steps that represents 
+the differences between routes
+@param rotues : the routes suggested to the user
+@return: list of difference steps (max.3)
+@author Monayri
+"""
+def getDifferences(routes):
+    step1 = None
+    step2 = None
+    step3 = None
+    steps = []
+    if len(routes) == 2 :
+        steps1 = []
+        steps2 = []
+        for leg in routes[0].legs.all():
+            for step in leg.steps.all():
+                steps1.append(step)
+        for leg in routes[1].legs.all():
+            for step in leg.steps.all():
+                steps2.append(step)
+        x = 0
+        while x < len(steps1):
+            if steps1[x].id != steps2[x].id:
+                step1 = steps1[x]
+                step2 = steps2[x]
+                steps.append(step1)
+                steps.append(step2)
+                break
+            x += 1
     
+    if len(routes) == 3 :
+        steps1 = []
+        steps2 = []
+        steps3 = []
+
+        for leg in routes[0].legs.all():
+            for step in leg.steps.all():
+                steps1.append(step)
+        for leg in routes[1].legs.all():
+            for step in leg.steps.all():
+                steps2.append(step)
+        for leg in routes[2].legs.all():
+            for step in leg.steps.all():
+                steps3.append(step)
+        x = 0
+        while x < len(steps1):
+            if steps1[x].id != steps2[x].id and steps1[x].id != steps3[x].id:
+                if step1 == None:
+                    step1 = steps1[x]
+                    steps.append(step1)
+            if steps2[x].id != steps1[x].id and steps2[x].id != steps3[x].id:
+                if step2 == None:
+                    step2 = steps2[x]
+                    steps.append(step2)
+            if steps3[x].id != steps1[x].id and steps3[x].id != steps2[x].id:
+                if step3 == None:
+                    step3 = steps3[x]
+                    steps.append(step3)
+            if len(steps) == 3:
+                break
+            x += 1
+    return steps
+  
 ################## START OF BADGE HANDLERS ##################
 def badge_handler(who, speed):
     """
