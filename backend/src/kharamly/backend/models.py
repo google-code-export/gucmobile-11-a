@@ -1102,7 +1102,10 @@ def persistent_time_and_speed_badge_handler(who):
 
 ################### Badge Helpers ################
 def to_kph(speed_in_mps):
-    """Convert from meters per second to kilometers per hour"""
+    """
+    Convert from meters per second to kilometers per hour
+    Author: Shanab
+    """
     return speed_in_mps * 60 * 60 / 1000.0
     
     
