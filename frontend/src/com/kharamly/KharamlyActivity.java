@@ -22,6 +22,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -64,32 +65,20 @@ public class KharamlyActivity extends MapActivity {
 
 	private final static int TIMEOUT_MILLISEC = 0;
 	private final static String TAG_NAME = "Kharamly";
-	private String destination = "29.985067,31.43873"; 
+	private String destination = "29.985067,31.43873";
 	private LocationManager manager;
 	private boolean flag = true;
-	
-	final int[] BADGES = new int[]{
-			R.drawable.checkin_1,
-			R.drawable.checkin_50,
-			R.drawable.checkin_100,
-			R.drawable.checkin_500,
-			R.drawable.checkin_1000,
-			R.drawable.adventurer,
-			R.drawable.addict,
-			R.drawable.fanboy,
-			R.drawable.super_user,
-			R.drawable.warrior,
-			R.drawable.junkie,
-			R.drawable.speedster_100,
-			R.drawable.speedster_140,
-			R.drawable.speedster_180,
-			R.drawable.turtle,
-			R.drawable.granny,
-			R.drawable.snail,
-			R.drawable.lunatic,
-			R.drawable.wacko,
-			R.drawable.badger
-		};
+
+	public static final String BADGE_PREFS_NAME = "Badges";
+	final int[] BADGES = new int[] { R.drawable.checkin_1,
+			R.drawable.checkin_50, R.drawable.checkin_100,
+			R.drawable.checkin_500, R.drawable.checkin_1000,
+			R.drawable.adventurer, R.drawable.addict, R.drawable.fanboy,
+			R.drawable.super_user, R.drawable.warrior, R.drawable.junkie,
+			R.drawable.speedster_100, R.drawable.speedster_140,
+			R.drawable.speedster_180, R.drawable.turtle, R.drawable.granny,
+			R.drawable.snail, R.drawable.lunatic, R.drawable.wacko,
+			R.drawable.badger };
 
 	/**
 	 * Called when the activity is first created.
@@ -98,17 +87,14 @@ public class KharamlyActivity extends MapActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		
-		
+
 		panel = (SlidingPanel) findViewById(R.id.panel);
 
 		manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
 		if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 			buildAlertMessageNoGps();
-		}
-		else
-		{
+		} else {
 			newDestination();
 		}
 		mapView = (MapView) findViewById(R.id.mapView);
@@ -125,37 +111,33 @@ public class KharamlyActivity extends MapActivity {
 
 		mapView.postInvalidate();
 	}
-	
-	private void newDestination()
-	{
-		PromptDialog dest =  new PromptDialog(KharamlyActivity.this, R.string.title, R.string.enter_comment){
-            public boolean onOkClicked(String input, DialogInterface dialog) {
-                        if(input.length()==0)
-                        {
-                        	newDestination();
-                        	toast("No destination entered, Please write something !!!");
-                        }
-                        else
-                        {
-                        	destination = URLEncoder.encode(input);
-                        	if(haveNetworkConnection())
-                        		geocoding();
-                        	else
-                        	{
-                        		dialog.dismiss();
-                        		buildAlertMessageNoInternet();
-                        	}
-                        }
-                        return true;
-            }
-        };
-        dest.show();
+
+	private void newDestination() {
+		PromptDialog dest = new PromptDialog(KharamlyActivity.this,
+				R.string.title, R.string.enter_comment) {
+			public boolean onOkClicked(String input, DialogInterface dialog) {
+				if (input.length() == 0) {
+					newDestination();
+					toast("No destination entered, Please write something !!!");
+				} else {
+					destination = URLEncoder.encode(input);
+					if (haveNetworkConnection())
+						geocoding();
+					else {
+						dialog.dismiss();
+						buildAlertMessageNoInternet();
+					}
+				}
+				return true;
+			}
+		};
+		dest.show();
 	}
-	
-	private void geocoding()
-	{	
-		
-		String geoUrl = "http://maps.googleapis.com/maps/api/geocode/json?address="+destination+"&sensor=true";
+
+	private void geocoding() {
+
+		String geoUrl = "http://maps.googleapis.com/maps/api/geocode/json?address="
+				+ destination + "&sensor=true";
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpGet httpget = new HttpGet(geoUrl);
 		try {
@@ -186,22 +168,22 @@ public class KharamlyActivity extends MapActivity {
 
 		}
 	}
-	
-	private boolean haveNetworkConnection() {
-	    boolean haveConnectedWifi = false;
-	    boolean haveConnectedMobile = false;
 
-	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-	    NetworkInfo[] netInfo = cm.getAllNetworkInfo();
-	    for (NetworkInfo ni : netInfo) {
-	        if (ni.getTypeName().equalsIgnoreCase("WIFI"))
-	            if (ni.isConnected())
-	                haveConnectedWifi = true;
-	        if (ni.getTypeName().equalsIgnoreCase("MOBILE"))
-	            if (ni.isConnected())
-	                haveConnectedMobile = true;
-	    }
-	    return haveConnectedWifi || haveConnectedMobile;
+	private boolean haveNetworkConnection() {
+		boolean haveConnectedWifi = false;
+		boolean haveConnectedMobile = false;
+
+		ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo[] netInfo = cm.getAllNetworkInfo();
+		for (NetworkInfo ni : netInfo) {
+			if (ni.getTypeName().equalsIgnoreCase("WIFI"))
+				if (ni.isConnected())
+					haveConnectedWifi = true;
+			if (ni.getTypeName().equalsIgnoreCase("MOBILE"))
+				if (ni.isConnected())
+					haveConnectedMobile = true;
+		}
+		return haveConnectedWifi || haveConnectedMobile;
 	}
 
 	private void buildAlertMessageNoGps() {
@@ -231,7 +213,7 @@ public class KharamlyActivity extends MapActivity {
 		final AlertDialog alert = builder.create();
 		alert.show();
 	}
-	
+
 	private void buildAlertMessageNoInternet() {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(
@@ -252,7 +234,7 @@ public class KharamlyActivity extends MapActivity {
 					public void onClick(final DialogInterface dialog,
 							@SuppressWarnings("unused") final int id) {
 						dialog.cancel();
-//						finish();
+						// finish();
 					}
 				});
 		builder.setIcon(R.drawable.nowireless);
@@ -267,16 +249,13 @@ public class KharamlyActivity extends MapActivity {
 			// Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
 			if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 				buildAlertMessageNoGps();
-			}
-			else
+			} else
 				newDestination();
 		}
 		if (requestCode == 4 && resultCode == 0) {
-			if(!haveNetworkConnection())
-			{
+			if (!haveNetworkConnection()) {
 				buildAlertMessageNoInternet();
-			}
-			else
+			} else
 				geocoding();
 		}
 	}
@@ -333,12 +312,15 @@ public class KharamlyActivity extends MapActivity {
 		Log.e(TAG_NAME, message);
 		Toast.makeText(this, message, Toast.LENGTH_LONG).show();
 	}
-	
+
 	/**
-	 * Displays a toast message with the badge that the user has acquired
-	 * Along with some text congratulating him
-	 * @param drawableId image id of the badge
-	 * @param name name of the badge
+	 * Displays a toast message with the badge that the user has acquired Along
+	 * with some text congratulating him
+	 * 
+	 * @param drawableId
+	 *            image id of the badge
+	 * @param name
+	 *            name of the badge
 	 * @author Shanab
 	 */
 	public void badgeNotification(int drawableId, String name, String value) {
@@ -349,7 +331,7 @@ public class KharamlyActivity extends MapActivity {
 		ImageView image = (ImageView) layout.findViewById(R.id.image);
 		image.setImageResource(drawableId);
 		TextView text = (TextView) layout.findViewById(R.id.text);
-		
+
 		if (value.trim().length() > 0) {
 			name += ":" + value;
 		}
@@ -400,6 +382,7 @@ public class KharamlyActivity extends MapActivity {
 		Point route2marker;
 		MapRouteOverlay route3markerOverlay;
 		Point route3marker;
+
 		public MyCustomizedLocationOverlay(Context context, MapView mapView) {
 			super(context, mapView);
 			this.mapView = mapView;
@@ -412,29 +395,30 @@ public class KharamlyActivity extends MapActivity {
 			float speed = location.getSpeed();
 			mapController.setZoom(speed <= 5 ? 21 : speed >= 28 ? 15
 					: (int) ((speed * -6 + 513) / 23));
-//			/**
-//			 * Remove any old route info
-//			 */
-//			for (MapRouteOverlay o : KharamlyActivity.this.routeOverlay) {
-//				mapView.getOverlays().remove(o);
-//			}
-//			routeOverlay.clear();
+			// /**
+			// * Remove any old route info
+			// */
+			// for (MapRouteOverlay o : KharamlyActivity.this.routeOverlay) {
+			// mapView.getOverlays().remove(o);
+			// }
+			// routeOverlay.clear();
 
 			// Let's pretend for now we'll update the routes everytime the
 			// location is changed
 			// this might drain the battery, but we'll see!
 
 			// Source: http://www.codeproject.com/KB/android/jsonandroidphp.aspx
-			if(flag){
+			if (flag) {
 				HttpClient httpclient = new DefaultHttpClient();
-				HttpGet httpget = new HttpGet(Cons.API_URL + location.getLatitude()
-						+ "," + location.getLongitude() + "/" + destination + "/"
+				HttpGet httpget = new HttpGet(Cons.API_URL
+						+ location.getLatitude() + ","
+						+ location.getLongitude() + "/" + destination + "/"
 						+ location.getSpeed() + "/"
 						+ Installation.id(KharamlyActivity.this));
-				String x = Cons.API_URL + location.getLatitude()
-				+ "," + location.getLongitude() + "/" + destination + "/"
-				+ location.getSpeed() + "/"
-				+ Installation.id(KharamlyActivity.this);
+				String x = Cons.API_URL + location.getLatitude() + ","
+						+ location.getLongitude() + "/" + destination + "/"
+						+ location.getSpeed() + "/"
+						+ Installation.id(KharamlyActivity.this);
 				Log.e("test", x);
 				try {
 					ArrayList<HashMap<String, Integer>> mylist = new ArrayList<HashMap<String, Integer>>();
@@ -443,27 +427,38 @@ public class KharamlyActivity extends MapActivity {
 							.getEntity().getContent());
 					Log.e("test", responseBody);
 					JSONObject json = new JSONObject(responseBody);
+
 					/* START OF BADGES */
 					JSONArray badgeArray = json.getJSONArray("badges");
-					for (int i = 0; i < badgeArray.length(); i++) {
-						JSONObject badge = badgeArray.getJSONObject(i);
-						int id = badge.getInt("id");
-						String name = badge.getString("name");
-						String value = badge.getString("value");
-						badgeNotification(BADGES[id-1], name, value);
+					if (badgeArray.length() != 0) {
+						SharedPreferences settings = getSharedPreferences(
+								BADGE_PREFS_NAME, 0);
+						SharedPreferences.Editor editor = settings.edit();
+
+						for (int i = 0; i < badgeArray.length(); i++) {
+							JSONObject badge = badgeArray.getJSONObject(i);
+							int id = badge.getInt("id");
+							String name = badge.getString("name");
+							String value = badge.getString("value");
+							badgeNotification(BADGES[id - 1], name, value);
+							editor.putString(name, value);
+						}
+						// Committing changes to BADGE_PREFS
+						editor.commit();
 					}
 					/* END OF BADGES */
+
 					JSONArray jArray = json.getJSONArray("routes");
 					List<Overlay> overlays = mapView.getOverlays();
-					Log.e("R number", jArray.length()+"");
+					Log.e("R number", jArray.length() + "");
 					for (int i = 0; i < jArray.length(); i++) {
 						JSONObject route = jArray.getJSONObject(i);
 						JSONArray steps = route.getJSONArray("steps");
-						Log.e("S number", ""+steps.length());
-						for(int j = 0 ; j <steps.length();j++){
+						Log.e("S number", "" + steps.length());
+						for (int j = 0; j < steps.length(); j++) {
 							JSONObject step = steps.getJSONObject(j);
 							String polyline = step.getString("polyline");
-							
+
 							polyline = polyline.replace("\"", "");
 							polyline = polyline.replace("\\\\", "\\");
 							ArrayList<GeoPoint> geopoints = new ArrayList<GeoPoint>();
@@ -493,47 +488,43 @@ public class KharamlyActivity extends MapActivity {
 										(int) (((double) lat / 1E5) * 1E6),
 										(int) (((double) lng / 1E5) * 1E6));
 								geopoints.add(p);
-								
 
-								
 							}
 							int color = step.getInt("col");
 							int marker = step.getInt("marker");
-							if (i ==0 ){
-								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color, marker==1, 255, i );
+							if (i == 0) {
+								MapRouteOverlay mro = new MapRouteOverlay(
+										geopoints, color, marker == 1, 255, i);
 								route1Overlays.add(mro);
 								overlays.add(mro);
-							}
-							else if (i ==1 ){
-								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color, marker==1, 50, i );
+							} else if (i == 1) {
+								MapRouteOverlay mro = new MapRouteOverlay(
+										geopoints, color, marker == 1, 50, i);
 								route2Overlays.add(mro);
 								overlays.add(mro);
-							}
-							else if (i ==2 ){
-								MapRouteOverlay mro = new MapRouteOverlay(geopoints, color, marker==1, 50, i );
+							} else if (i == 2) {
+								MapRouteOverlay mro = new MapRouteOverlay(
+										geopoints, color, marker == 1, 50, i);
 								route3Overlays.add(mro);
 								overlays.add(mro);
 							}
 
 						}
-					
-					
 
-					
+					}
+
+					GeoPoint loc = new GeoPoint(
+							(int) (location.getLatitude() * 1000000),
+							(int) (location.getLongitude() * 1000000));
+					MapRouteOverlay marker = new MapRouteOverlay(loc);
+					markerOverlay = marker;
+					overlays.add(marker);
+					mapView.invalidate();
+					mapController.animateTo(loc);
+
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-
-				GeoPoint loc = new GeoPoint(
-						(int) (location.getLatitude() * 1000000),
-						(int) (location.getLongitude() * 1000000));
-				MapRouteOverlay marker = new MapRouteOverlay(loc);
-				markerOverlay = marker;
-				overlays.add(marker);
-				mapView.invalidate();
-				mapController.animateTo(loc);
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 			}
 		}
 
@@ -565,7 +556,8 @@ public class KharamlyActivity extends MapActivity {
 			bmp = BitmapFactory.decodeResource(getResources(), R.drawable.car);
 		}
 
-		public MapRouteOverlay(ArrayList<GeoPoint> pointList, int color, boolean marker, int alpha, int routeNo) {
+		public MapRouteOverlay(ArrayList<GeoPoint> pointList, int color,
+				boolean marker, int alpha, int routeNo) {
 			this.pointList = pointList;
 			this.color = color;
 			this.route = marker;
