@@ -50,6 +50,10 @@ import com.google.android.maps.Projection;
 
 public class KharamlyActivity extends MapActivity {
 	SlidingPanel panel;
+	
+	/**
+	 * The sliding panel containing all badges acquired by the user
+	 */
 	SlidingPanel badgePanel;
 	MapView mapView;
 	LinearLayout content;
@@ -67,6 +71,12 @@ public class KharamlyActivity extends MapActivity {
 	private boolean flag = true;
 
 	public static final String BADGE_PREFS_NAME = "Badges";
+	
+	/**
+	 * A list of badge icon resources with the same order
+	 * of badges on the server. Mainly done in order to have
+	 * direct access on a badge icon given a badge id.
+	 */
 	final int[] BADGES = new int[] { R.drawable.checkin_1,
 			R.drawable.checkin_50, R.drawable.checkin_100,
 			R.drawable.checkin_500, R.drawable.checkin_1000,
@@ -114,6 +124,11 @@ public class KharamlyActivity extends MapActivity {
 		mapView.postInvalidate();
 	}
 
+	/**
+	 * Load the badge data (images and text) into the badge
+	 * sliding panel "badgePanel"
+	 * @author Shanab
+	 */
 	private void loadBadgesFromPreferences() {
 
 		SharedPreferences prefs = getSharedPreferences(BADGE_PREFS_NAME, 0);
@@ -488,6 +503,12 @@ public class KharamlyActivity extends MapActivity {
 		toast.show();
 	}
 
+	/**
+	 * Initializes a new BadgeItem object, and adds it to
+	 * the main layout in the sliding panel for badges "badgesPanel"
+	 * @param drawableId
+	 * @param name
+	 */
 	private void addBadgeToBadgesPanel(int drawableId, String name) {
 		LinearLayout l = (LinearLayout) findViewById(R.id.badgecontent);
 		BadgeItem badgeItem = new BadgeItem(getApplicationContext());
