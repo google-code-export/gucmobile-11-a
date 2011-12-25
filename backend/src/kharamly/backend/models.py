@@ -124,15 +124,13 @@ class Badge(models.Model):
     class Meta:
         ordering = ["id"]
     
-##########################################################################################
-################## AGAIN, LEAVE ANYTHING BELOW
-##################
-##########################################################################################
 class Comment(models.Model):
     """
     Comment model, stores comment info, most importantly:
     - who made the comment
     - location of the comment
+    
+    @author kamasheto
     """
     owner = models.ForeignKey(Device, null=True, blank=True)
     location = models.ForeignKey(Node, null=True, blank=True)
@@ -141,31 +139,23 @@ class Comment(models.Model):
     source = models.CharField(max_length = 50)
     flags = models.IntegerField(default=0)
     twitter_id = models.IntegerField(default=0)
-    
-    def get_rate(self):
-        """
-        Returns accumlative rate of this comment
-        Eq: SELECT AVG(r.rate) as avg_rate FROM Comment_Rate r JOIN Comment c ON r.comment = c WHERE c = :this
-        @deprecated use annotate
-        @author kamasheto
-        """
-        res = Comment_Rate.objects.filter(comment=self).aggregate(avg_rate = models.Avg('rate'))
-        return res.avg_rate
 
-    def do_rate(self, rate, voter):
+    def _do_rate(self, rate, voter):
         """
         Makes this rating 
+        Not called directly
         Eq: INSERT INTO comment_rate (comment, rate, voter, time) VALEUS (self, rate, voter, datetime.now())
-        TODO check if this user has not rated before
         """
         Comment_Rate.objects.filter(comment=self, voter=voter).delete()
         Comment_Rate(rate = rate, voter = voter, comment = self, time = datetime.now()).save()
         
     def do_up(self, voter):
-        self.do_rate(1, voter)
+        """Upvotes this comment"""
+        self._do_rate(1, voter)
         
     def do_down(self, voter):
-        self.do_rate(-1, voter)
+        """downvotes this comment"""
+        self._do_rate(-1, voter)
         
     def do_flag(self):
         """
@@ -179,6 +169,9 @@ class Comment(models.Model):
         return self.text
         
 class Comment_Rate(models.Model):
+    """
+    Holds comment rates of voters
+    """
     comment = models.ForeignKey(Comment)
     rate = models.IntegerField(default=0)
     voter = models.ForeignKey(Device)
@@ -189,41 +182,26 @@ def do_comment(node, d, text, source):
     """
     Makes a comment
     This inserts a new comment, so inserted outside the scope of the comment class 
-    works as follows: do_comment(device, "text", "source")
+    works as follows: do_comment(location_node, device, "text", "source")
+    
+    @author kamasheto
     """
     c = Comment(location=node, owner = d, time = datetime.now(), text = text, source = source)
     c.save()
     return c
 
-def add_test_data():
-    """
-    Creates some dummy date (mainly for shell testing)
-    """
-    
-    """Creating a node"""
-    n = Node(latitude = 1, longitude = 2)
-    n.save()
-    
-    """Creating a device"""
-    
-    d = Device(installation_id="abc")
-    d.save()
-    c = None
-    for i in xrange(20):
-        c = do_comment(n, d, "Hello World", "Twitter")
-        
-    for i in xrange(20):
-        c.do_flag()
-
 def within_range(node, lat, lng):
     """
     Returns true if this node is within 5  of this lat,lng
+    
+    @author kamasheto
     """
     d = distance_on_unit_sphere(node.latitude, node.longitude, float(lat), float(lng))
     return d <= 5
 
 def distance_on_unit_sphere(lat1, long1, lat2, long2):
     # Source: http://www.johndcook.com/python_longitude_latitude.html
+    # Modified slightly by kamasheto
     # Convert latitude and longitude to 
     # spherical coordinates in radians.
     degrees_to_radians = math.pi/180.0
@@ -250,14 +228,16 @@ def distance_on_unit_sphere(lat1, long1, lat2, long2):
 
     # Remember to multiply arc by the radius of the earth 
     # in your favorite set of units to get length.
+    # ^k multiplied, gets distance in miles
     return arc * 3960.0
 
-# get_comments_near(30.091538,31.31633)
 def get_comments_near(lat, lng, refresh_url = None):
     """
     Returns comments near this location
     For now the comments are from tweets nearby with the hashtag #kraffic (_K_haramly t_RAFFIC_)
     Comments through the app are not (yet, but might never) be integrated for obvious safety reasons
+    
+    @author kamasheto
     """
     query_string = refresh_url if refresh_url != None else '?q=%23kraffic&geocode=' + str(lat) + ',' + str(lng) + ',5mi'
     url = 'http://search.twitter.com/search.json' + query_string
@@ -286,10 +266,6 @@ def get_comments_near(lat, lng, refresh_url = None):
     }, comments_near)
     return comments, query
     
-##########################################################################################
-################## NOW YOU CAN PLAY AROUND
-##########################################################################################
-        
 
 # @author: Moataz Mekki
 # takes "from" & "to" locations/addresses, calls Google maps
