@@ -141,30 +141,21 @@ class Comment(models.Model):
     source = models.CharField(max_length = 50)
     flags = models.IntegerField(default=0)
     twitter_id = models.IntegerField(default=0)
-    
-    def get_rate(self):
-        """
-        Returns accumlative rate of this comment
-        Eq: SELECT AVG(r.rate) as avg_rate FROM Comment_Rate r JOIN Comment c ON r.comment = c WHERE c = :this
-        @deprecated use annotate
-        @author kamasheto
-        """
-        res = Comment_Rate.objects.filter(comment=self).aggregate(avg_rate = models.Avg('rate'))
-        return res.avg_rate
 
     def do_rate(self, rate, voter):
         """
         Makes this rating 
         Eq: INSERT INTO comment_rate (comment, rate, voter, time) VALEUS (self, rate, voter, datetime.now())
-        TODO check if this user has not rated before
         """
         Comment_Rate.objects.filter(comment=self, voter=voter).delete()
         Comment_Rate(rate = rate, voter = voter, comment = self, time = datetime.now()).save()
         
     def do_up(self, voter):
+        """Upvotes this comment"""
         self.do_rate(1, voter)
         
     def do_down(self, voter):
+        """downvotes this comment"""
         self.do_rate(-1, voter)
         
     def do_flag(self):
@@ -179,6 +170,9 @@ class Comment(models.Model):
         return self.text
         
 class Comment_Rate(models.Model):
+    """
+    Holds comment rates of voters
+    """
     comment = models.ForeignKey(Comment)
     rate = models.IntegerField(default=0)
     voter = models.ForeignKey(Device)
@@ -189,31 +183,11 @@ def do_comment(node, d, text, source):
     """
     Makes a comment
     This inserts a new comment, so inserted outside the scope of the comment class 
-    works as follows: do_comment(device, "text", "source")
+    works as follows: do_comment(location_node, device, "text", "source")
     """
     c = Comment(location=node, owner = d, time = datetime.now(), text = text, source = source)
     c.save()
     return c
-
-def add_test_data():
-    """
-    Creates some dummy date (mainly for shell testing)
-    """
-    
-    """Creating a node"""
-    n = Node(latitude = 1, longitude = 2)
-    n.save()
-    
-    """Creating a device"""
-    
-    d = Device(installation_id="abc")
-    d.save()
-    c = None
-    for i in xrange(20):
-        c = do_comment(n, d, "Hello World", "Twitter")
-        
-    for i in xrange(20):
-        c.do_flag()
 
 def within_range(node, lat, lng):
     """
@@ -250,9 +224,9 @@ def distance_on_unit_sphere(lat1, long1, lat2, long2):
 
     # Remember to multiply arc by the radius of the earth 
     # in your favorite set of units to get length.
+    # ^k multiplied, gets distance in miles
     return arc * 3960.0
 
-# get_comments_near(30.091538,31.31633)
 def get_comments_near(lat, lng, refresh_url = None):
     """
     Returns comments near this location
