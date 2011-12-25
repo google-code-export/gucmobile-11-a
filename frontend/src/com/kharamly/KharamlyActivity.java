@@ -21,6 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -31,7 +32,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
-import android.graphics.RectF;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -52,11 +52,11 @@ import com.google.android.maps.Overlay;
 import com.google.android.maps.Projection;
 
 public class KharamlyActivity extends MapActivity {
+	SlidingPanel panel;
 	MapView mapView;
 	MyCustomizedLocationOverlay myLocationOverlay;
 	List<MapRouteOverlay> routeOverlay = new ArrayList<MapRouteOverlay>();
 	
-	private final static String API_URL = "http://kharamly.alwaysdata.net/api/";
 	private final static int TIMEOUT_MILLISEC = 0;
 	private final static String TAG_NAME = "Kharamly";
 	private String destination = "29.985067,31.43873"; // GUC ;)
@@ -69,6 +69,9 @@ public class KharamlyActivity extends MapActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+
+    
+	    panel = (SlidingPanel) findViewById(R.id.panel);
 		
 		manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
 
@@ -85,12 +88,7 @@ public class KharamlyActivity extends MapActivity {
 		
 		mapView.getOverlays().add(myLocationOverlay);
 		myLocationOverlay.enableMyLocation();
-        //         new PromptDialog(KharamlyActivity.this, R.string.title, R.string.enter_comment){
-        //     public boolean onOkClicked(String input) {
-        //                 toast(input);
-        //                 return true;
-        //     }
-        // };
+		newDestination();
 		myLocationOverlay.runOnFirstFix(new Runnable() {
 			public void run() {
 				mapView.getController().animateTo(myLocationOverlay.getMyLocation());
@@ -98,6 +96,63 @@ public class KharamlyActivity extends MapActivity {
 		});
 		
 		mapView.postInvalidate();
+	}
+	
+	private void newDestination()
+	{
+		PromptDialog dest =  new PromptDialog(KharamlyActivity.this, R.string.title, R.string.enter_comment){
+            public boolean onOkClicked(String input) {
+                        if(input.length()==0)
+                        {
+                        	newDestination();
+                        	toast("No destination entered, Please write something !!!");
+                        }
+                        else
+                        {
+                        	destination = input;
+                        	geocoding();
+                        }
+                        return true;
+            }
+        };
+        dest.show();
+	}
+	
+	private void geocoding()
+	{
+		String geoUrl = "http://maps.googleapis.com/maps/api/geocode/json?address="+destination+"&sensor=true";
+		HttpClient httpclient = new DefaultHttpClient();
+		HttpGet httpget = new HttpGet(geoUrl);
+		try
+		{
+			HttpResponse httpresponse = httpclient.execute(httpget);
+        	String responseBody = convertStreamToString(httpresponse.getEntity().getContent());
+        	JSONObject json = new JSONObject(responseBody);
+        	String status = json.get("status").toString();
+        	if(status.equalsIgnoreCase("ZERO_RESULTS"))
+        	{
+        		toast("Sorry, Destination not found !");
+        		newDestination();
+        	}
+        	else
+        	{
+        		ProgressDialog dialog = ProgressDialog.show(KharamlyActivity.this, "", 
+                        "Loading. Please wait...", true);
+        		JSONArray results = (JSONArray) json.get("results");
+        		JSONObject result = results.getJSONObject(0);
+        		JSONObject geo = (JSONObject)result.get("geometry");
+        		JSONObject location = (JSONObject)geo.get("location");
+        		String lat = location.get("lat").toString();
+        		String lng = location.get("lng").toString();
+        		Log.i(TAG_NAME, lat+" , "+lng);        		
+        		dialog.cancel();
+        		toast(lat+" , "+lng);
+        	}
+		}
+		catch(Exception e)
+		{
+			
+		}
 	}
 	
 	private void buildAlertMessageNoGps() {
@@ -142,12 +197,36 @@ public class KharamlyActivity extends MapActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-    		case R.id.block :
-    			Intent i = new Intent(KharamlyActivity.this, ReportBlocked.class);
-    			startActivity(i);
-    		default:
-    			return super.onOptionsItemSelected(item);
+			case R.id.comments:
+				panel.toggle();
+				break;
+    			
+			case R.id.dest:
+				newDestination();
+				break;
+				
+			case R.id.close:
+				closeKharamly();
+				break;
 		}
+		return super.onOptionsItemSelected(item);
+	}
+	
+	private void closeKharamly() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage("Are you sure you want to exit?")
+		       .setCancelable(false)
+		       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		                finish();
+		           }
+		       })
+		       .setNegativeButton("No", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		                dialog.cancel();
+		           }
+		       });
+		builder.show();
 	}
 	
 	@Override
@@ -158,7 +237,7 @@ public class KharamlyActivity extends MapActivity {
 	
 	public void toast(String message) {
 	    Log.e(TAG_NAME, message);
-	    Toast.makeText(this, message, Toast.LENGTH_LONG);
+	    Toast.makeText(this, message, Toast.LENGTH_LONG).show();
 	}
 	
 	public static void background(final Runnable r) {
@@ -215,7 +294,7 @@ public class KharamlyActivity extends MapActivity {
 		    
             // Source: http://www.codeproject.com/KB/android/jsonandroidphp.aspx
             HttpClient httpclient = new DefaultHttpClient();
-            HttpGet httpget = new HttpGet(API_URL + 
+            HttpGet httpget = new HttpGet(Cons.API_URL + 
                                         location.getLatitude() + "," + location.getLongitude() + "/" + 
                                         destination + "/" +
                                         location.getSpeed() + "/" +

@@ -52,7 +52,7 @@ class Step(models.Model):
     distance_value = models.IntegerField()
     duration_text = models.CharField(max_length=200)
     duration_value = models.IntegerField()
-    polypoints = models.CharField(max_length=200)
+    polypoints = models.CharField(max_length=50000)
     start_location = models.ForeignKey(Node, related_name='start')
     end_location = models.ForeignKey(Node, related_name='end')
 
@@ -178,6 +178,7 @@ def getdirections(origin, destination):
                 duration_value = step['duration']['value']
                 start_location = step['start_location']
                 end_location = step['end_location']
+                polypoints = step['polyline']['points']
                 start_node = get_node(latitude=start_location['lat'],
                                   longitude=start_location['lng'])
                 # start_node.save()
@@ -189,6 +190,7 @@ def getdirections(origin, destination):
                                      duration_value,
                                      distance_text,
                                      distance_value,
+                                     polypoints,
                                      start_node,
                                      end_node)
                 current_leg.steps.add(current_step)
@@ -211,7 +213,7 @@ def get_node(latitude, longitude):
 
 
 def get_step(html, duration_text, duration_value,
-             distance_text,distance_value, start_node,end_node):
+             distance_text,distance_value, polypoints, start_node,end_node):
     try:
         current_step = Step.objects.get(start_location = start_node, end_location = end_node)
     except Step.DoesNotExist:
@@ -220,6 +222,7 @@ def get_step(html, duration_text, duration_value,
                             duration_value=duration_value,
                             distance_text=distance_text,
                             distance_value=distance_value,
+                            polypoints = polypoints,
                             start_location=start_node,
                             end_location=end_node)
         current_step.save()
@@ -805,7 +808,7 @@ def badge_handler(who, speed):
     persistent_time_badge = persistent_time_badge_handler(who)
     if persistent_time_badge_handler:
         badges.append(persistent_time_badge)
-    persistent_time_and_speed_badge = persistent_time_and_speed_badge_handler(who, speed)
+    persistent_time_and_speed_badge = persistent_time_and_speed_badge_handler(who)
     if persistent_time_and_speed_badge_handler:
         badges.append(persistent_time_and_speed_badge_handler)
     return badges
@@ -936,7 +939,7 @@ def persistent_time_badge_handler(who):
     return badge
 
 
-def persistent_time_and_speed_badge_handler(who, speed):
+def persistent_time_and_speed_badge_handler(who):
     """
     Return:
         Either one of [Turtle Speed, Grandma, Snail Like]
@@ -958,17 +961,36 @@ def persistent_time_and_speed_badge_handler(who, speed):
         trip = Ping_Log.objects.filter(who=who, persistence=last_ping.persistence)
         start_time_of_trip = trip[0].time
         end_time_of_trip = trip.reverse()[0].time
+
+        badges = Badge.objects.all()
+        wacko_badge = badges[18]
+        lunatic_badge = badges[17]
+        snail_badge = badges[16]
+        grandma_badge = badges[15]
+        turtle_badge = badges[14]
+        device_badges = who.badge_set.all()
         average_trip_speed = to_kph(sum(trip.values_list('speed', flat=True)) / len(trip))
         if average_trip_speed >= 180 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=10):
-            badge = Badge.objects.get(name="wacko")
+            if wacko_badge not in device_badges:
+                badge = wacko_badge
+            elif lunatic_badge not in device_badges:
+                badge = lunatic_badge
         elif average_trip_speed >= 140 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
-            badge = Badge.objects.get(name="lunatic")
+            badge = lunatic_badge if not lunatic_badge in device_badges else None
         elif average_trip_speed <= 10 and average_trip_speed >= 5 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
-            badge = Badge.objects.get(name="turtle-speed")
+            badge = turtle_badge if not turtle_badge in device_badges else None
         elif average_trip_speed <= 5 and average_trip_speed >= 2 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
-            badge = Badge.objects.get(name="grandma")
+            if grandma_badge not in device_badges:
+                badge = grandma_badge
+            elif turtle_badge not in device_badges:
+                badge = turtle_badge
         elif average_trip_speed <= 2 and end_time_of_trip - start_time_of_trip >= timedelta(minutes=20):
-            badge = Badge.objects.get(name="snail-like")
+            if snail_badge not in device_badges:
+                badge = snail_badge
+            elif grandma_badge not in device_badges:
+                badge = grandma_badge
+            elif turtle_badge not in device_badges:
+                badge = turtle_badge
 
     if badge:
         who.badge_set.add(badge)

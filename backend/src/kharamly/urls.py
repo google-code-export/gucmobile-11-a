@@ -12,5 +12,6 @@ urlpatterns = patterns('backend.views',
     url(r'^inRadius/(?P<longitude>(.)+)/(?P<latitude>(.)+)/(?P<radius>(.)+)/$', 'inRadius'),
     url(r'^alternatives/(?P<location>\d+)/(?P<destination>\d+)$', 'alternatives'),
     url(r'^update/(?P<stepId>\d+)/(?P<routeId>\d+)/(?P<speed>\d+)$', 'alternatives'),
+    url(r'rate_comment/(?P<comment_id>\d)/(?P<rate>\d)$', 'rate_comment'),
     url(r'^admin/', include(admin.site.urls)),
 )

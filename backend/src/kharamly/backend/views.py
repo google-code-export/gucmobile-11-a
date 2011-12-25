@@ -66,11 +66,6 @@ def update(stepId, routeId, speed, who):
 ### FOR TESTING PURPOSES,  ADD A VIEW THAT CALLS YOUR MODEL METHOD
 ##################################################################
 
-# Testing to call model from view
-def test_method_in_views(request, test_value):
-    return HttpResponse(test_method_in_models(test_value))
-
-
 def inRadius(request,longitude,latitude,radius):
     print 'hi'
    
@@ -102,3 +97,22 @@ def directions(request, origin, destination):
     
 def alternatives(request, location, destination):
     return HttpResponse(getalternatives(location, destination))
+
+
+
+
+
+####################################################################
+# BEGIN kama's sandbox
+# DO NOT COME ANYWHERE NEAR.
+####################################################################
+
+def rate_comment(request, comment_id, rate):
+    return HttpResponse("Hello world")
+
+
+
+####################################################################
+# END kama's sandbox
+# NOW you can play around.
+####################################################################
