@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,13 +33,21 @@ import android.graphics.Path;
 import android.graphics.Point;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -63,6 +69,29 @@ public class KharamlyActivity extends MapActivity {
 	private String destination = "29.985067,31.43873"; 
 	private LocationManager manager;
 	private boolean flag = true;
+	
+	final int[] BADGES = new int[]{
+			R.drawable.checkin_1,
+			R.drawable.checkin_50,
+			R.drawable.checkin_100,
+			R.drawable.checkin_500,
+			R.drawable.checkin_1000,
+			R.drawable.adventurer,
+			R.drawable.addict,
+			R.drawable.fanboy,
+			R.drawable.super_user,
+			R.drawable.warrior,
+			R.drawable.junkie,
+			R.drawable.speedster_100,
+			R.drawable.speedster_140,
+			R.drawable.speedster_180,
+			R.drawable.turtle,
+			R.drawable.granny,
+			R.drawable.snail,
+			R.drawable.lunatic,
+			R.drawable.wacko,
+			R.drawable.badger
+		};
 
 	/**
 	 * Called when the activity is first created.
@@ -71,7 +100,8 @@ public class KharamlyActivity extends MapActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-
+		
+		
 		panel = (SlidingPanel) findViewById(R.id.panel);
 
 		manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -79,12 +109,15 @@ public class KharamlyActivity extends MapActivity {
 		if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 			buildAlertMessageNoGps();
 		}
+		else
+		{
+			newDestination();
+		}
 		mapView = (MapView) findViewById(R.id.mapView);
 		mapView.setBuiltInZoomControls(true);
 		myLocationOverlay = new MyCustomizedLocationOverlay(this, mapView);
 		mapView.getOverlays().add(myLocationOverlay);
 		myLocationOverlay.enableMyLocation();
-		newDestination();
 		myLocationOverlay.runOnFirstFix(new Runnable() {
 			public void run() {
 				mapView.getController().animateTo(
@@ -98,7 +131,7 @@ public class KharamlyActivity extends MapActivity {
 	private void newDestination()
 	{
 		PromptDialog dest =  new PromptDialog(KharamlyActivity.this, R.string.title, R.string.enter_comment){
-            public boolean onOkClicked(String input) {
+            public boolean onOkClicked(String input, DialogInterface dialog) {
                         if(input.length()==0)
                         {
                         	newDestination();
@@ -107,7 +140,13 @@ public class KharamlyActivity extends MapActivity {
                         else
                         {
                         	destination = URLEncoder.encode(input);
-                        	geocoding();
+                        	if(haveNetworkConnection())
+                        		geocoding();
+                        	else
+                        	{
+                        		dialog.dismiss();
+                        		buildAlertMessageNoInternet();
+                        	}
                         }
                         return true;
             }
@@ -149,6 +188,23 @@ public class KharamlyActivity extends MapActivity {
 
 		}
 	}
+	
+	private boolean haveNetworkConnection() {
+	    boolean haveConnectedWifi = false;
+	    boolean haveConnectedMobile = false;
+
+	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo[] netInfo = cm.getAllNetworkInfo();
+	    for (NetworkInfo ni : netInfo) {
+	        if (ni.getTypeName().equalsIgnoreCase("WIFI"))
+	            if (ni.isConnected())
+	                haveConnectedWifi = true;
+	        if (ni.getTypeName().equalsIgnoreCase("MOBILE"))
+	            if (ni.isConnected())
+	                haveConnectedMobile = true;
+	    }
+	    return haveConnectedWifi || haveConnectedMobile;
+	}
 
 	private void buildAlertMessageNoGps() {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -173,8 +229,37 @@ public class KharamlyActivity extends MapActivity {
 						finish();
 					}
 				});
+		builder.setIcon(R.drawable.nogps);
 		final AlertDialog alert = builder.create();
 		alert.show();
+	}
+	
+	private void buildAlertMessageNoInternet() {
+		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage(
+				"No Network Available, do you want to enable the WiFi or your Mobile Network?")
+				.setCancelable(false)
+				.setPositiveButton("Yes",
+						new DialogInterface.OnClickListener() {
+							public void onClick(
+									@SuppressWarnings("unused") final DialogInterface dialog,
+									@SuppressWarnings("unused") final int id) {
+								Intent intent = new Intent(
+										Settings.ACTION_WIRELESS_SETTINGS);
+								startActivityForResult(intent, 4);
+							}
+
+						})
+				.setNegativeButton("No", new DialogInterface.OnClickListener() {
+					public void onClick(final DialogInterface dialog,
+							@SuppressWarnings("unused") final int id) {
+						dialog.cancel();
+//						finish();
+					}
+				});
+		builder.setIcon(R.drawable.nowireless);
+		final AlertDialog alert2 = builder.create();
+		alert2.show();
 	}
 
 	@Override
@@ -185,6 +270,16 @@ public class KharamlyActivity extends MapActivity {
 			if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 				buildAlertMessageNoGps();
 			}
+			else
+				newDestination();
+		}
+		if (requestCode == 4 && resultCode == 0) {
+			if(!haveNetworkConnection())
+			{
+				buildAlertMessageNoInternet();
+			}
+			else
+				geocoding();
 		}
 	}
 
@@ -239,6 +334,35 @@ public class KharamlyActivity extends MapActivity {
 	public void toast(String message) {
 		Log.e(TAG_NAME, message);
 		Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+	}
+	
+	/**
+	 * Displays a toast message with the badge that the user has acquired
+	 * Along with some text congratulating him
+	 * @param drawableId image id of the badge
+	 * @param name name of the badge
+	 * @author Shanab
+	 */
+	public void badgeNotification(int drawableId, String name, String value) {
+		LayoutInflater inflater = getLayoutInflater();
+		View layout = inflater.inflate(R.layout.custom_toast,
+				(ViewGroup) findViewById(R.id.toast_layout_root));
+
+		ImageView image = (ImageView) layout.findViewById(R.id.image);
+		image.setImageResource(drawableId);
+		TextView text = (TextView) layout.findViewById(R.id.text);
+		
+		if (value.trim().length() > 0) {
+			name += ":" + value;
+		}
+		text.setText("Congratulations! You just won the " + name + " badge");
+
+		Toast toast = new Toast(getApplicationContext());
+		toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+		toast.setDuration(Toast.LENGTH_LONG);
+		toast.setView(layout);
+		toast.setGravity(Gravity.TOP | Gravity.LEFT, 0, 0);
+		toast.show();
 	}
 
 	public static void background(final Runnable r) {
@@ -308,6 +432,16 @@ public class KharamlyActivity extends MapActivity {
 							.getEntity().getContent());
 					Log.e("test", responseBody);
 					JSONObject json = new JSONObject(responseBody);
+					/* START OF BADGES */
+					JSONArray badgeArray = json.getJSONArray("badges");
+					for (int i = 0; i < badgeArray.length(); i++) {
+						JSONObject badge = badgeArray.getJSONObject(i);
+						int id = badge.getInt("id");
+						String name = badge.getString("name");
+						String value = badge.getString("value");
+						badgeNotification(BADGES[id-1], name, value);
+					}
+					/* END OF BADGES */
 					JSONArray jArray = json.getJSONArray("routes");
 					List<Overlay> overlays = mapView.getOverlays();
 					routes = jArray.length();
@@ -315,7 +449,7 @@ public class KharamlyActivity extends MapActivity {
 						JSONObject route = jArray.getJSONObject(i);
 						JSONArray steps = route.getJSONArray("steps");
 						Log.e("S number", ""+steps.length());
-						for(int j =0 ; j <steps.length();j++){
+						for(int j = 0 ; j <steps.length();j++){
 							JSONObject step = steps.getJSONObject(j);
 							String polyline = step.getString("polyline");
 							

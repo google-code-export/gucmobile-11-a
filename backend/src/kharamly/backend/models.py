@@ -117,6 +117,9 @@ class Badge(models.Model):
         if self.value:
             string += ", " + str(self.value)
         return string
+
+    def json_format(self):
+        return {'id': str(self.id), 'name': self.name, 'value': self.value}
         
     class Meta:
         ordering = ["id"]
