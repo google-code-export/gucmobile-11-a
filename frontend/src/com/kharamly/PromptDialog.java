@@ -24,7 +24,7 @@ public abstract class PromptDialog extends AlertDialog.Builder implements OnClic
         setIcon(R.drawable.add);
         input = new EditText(context);
         setView(input);
-        input.setHint("Write here...");
+        input.setHint(context.getResources().getString(R.string.type));
 
         setPositiveButton(R.string.ok, this);
         setNegativeButton(R.string.cancel, this);
@@ -42,7 +42,7 @@ public abstract class PromptDialog extends AlertDialog.Builder implements OnClic
 
     public void onClick(DialogInterface dialog, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
-            if (onOkClicked(input.getText().toString())) {
+            if (onOkClicked(input.getText().toString(), dialog)) {
                 dialog.dismiss();
             }
         } else {
@@ -55,5 +55,5 @@ public abstract class PromptDialog extends AlertDialog.Builder implements OnClic
     * @param input
     * @return true, if the dialog should be closed. false, if not.
     */
-    abstract public boolean onOkClicked(String input);
+    abstract public boolean onOkClicked(String input, DialogInterface dialog);
 }

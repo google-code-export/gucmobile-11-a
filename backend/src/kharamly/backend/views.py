@@ -12,7 +12,7 @@ The API call. This is optimized for frequent calls in the form:
     10 - speed
     android_id - Installation device ID
     
-@author kamasheto
+@author kamasheto && Monayri
 """
 def api(request, orig, dest, speed, who):
     orig = orig.split(",")
@@ -37,23 +37,29 @@ def api(request, orig, dest, speed, who):
         who.increment_checkins()
         
     result = getalternatives(None, my_step, to_node, from_node)
-    routes = evaluate_route(result, speed, my_step)
-    response  = {"steps": []}
-    for route in routes:
+    response  = {"routes": []}
+    for route in result['routes']:
+        r= {"steps":[]}
         for leg in route['legs']:
             for step in leg['steps']:
-                response['steps'].append({
+                print leg['steps']
+                print step['loc']
+                r['steps'].append({
                     "s_lat": step['start_location']['lat'],
                     "s_lng": step['start_location']['lng'],
                     "e_lat": step['end_location']['lat'],
                     "e_lng": step['end_location']['lng'],
                     "col": get_color_from_speed(step['speed']),
-                })
-                
-    badges = badge_handler(who, speed)
+                    "loc" : step['loc'],
+                    "marker" : step['marker'],
+					"polyline" : step['polyline']
+                })                
+        response['routes'].append(r)    
+    
+    badges = badge_handler(who, float(speed))
+    response['badges'] = map(lambda badge: badge.json_format(), badges)
     
     return HttpResponse(json.dumps(response), mimetype="application/json")
-
 
 
 """
@@ -62,11 +68,11 @@ A Method that handle the pings coming from the device updating the info of the r
 @author Monayri
 """
 
-def update(stepId, routeId, speed, who):
+def update(request, stepId, speed, who):
     myStep = Step.objects.get(pk=stepId)
-    myRoute = Route.objects.get(pk=routeId)
     if myStep:
         Ping_Log(step = myStep, speed = speed, who = get_device(who), time = datetime.now()).save()
+    return HttpResponse(json.dumps("Posted"), mimetype="application/json") 
     
     #Here i will check if the route is going to be blocked 
     
