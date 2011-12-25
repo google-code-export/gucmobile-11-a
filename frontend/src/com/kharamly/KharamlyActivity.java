@@ -48,7 +48,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
@@ -271,24 +270,33 @@ public class KharamlyActivity extends MapActivity {
 		Toast.makeText(this, message, Toast.LENGTH_LONG).show();
 	}
 	
-	public void badgeNotification(int drawableId, String name) {
+	/**
+	 * Displays a toast message with the badge that the user has acquired
+	 * Along with some text congratulating him
+	 * @param drawableId image id of the badge
+	 * @param name name of the badge
+	 * @author Shanab
+	 */
+	public void badgeNotification(int drawableId, String name, String value) {
 		LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.custom_toast,
-                                       (ViewGroup) findViewById(R.id.toast_layout_root));
+		View layout = inflater.inflate(R.layout.custom_toast,
+				(ViewGroup) findViewById(R.id.toast_layout_root));
 
-        ImageView image = (ImageView) layout.findViewById(R.id.image);
-        image.setImageResource(drawableId);
-        System.out.println("Drawable ID:\t" + drawableId);
-        System.out.println("Resource iD:\t" + R.drawable.checkin_1);
-        TextView text = (TextView) layout.findViewById(R.id.text);
-        text.setText("Congratulations! You just won the " + name + " badge");
+		ImageView image = (ImageView) layout.findViewById(R.id.image);
+		image.setImageResource(drawableId);
+		TextView text = (TextView) layout.findViewById(R.id.text);
+		
+		if (value.trim().length() > 0) {
+			name += ":" + value;
+		}
+		text.setText("Congratulations! You just won the " + name + " badge");
 
-        Toast toast = new Toast(getApplicationContext());
-        toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
-        toast.setDuration(Toast.LENGTH_LONG);
-        toast.setView(layout);
-        toast.setGravity(Gravity.TOP|Gravity.LEFT, 0, 0);
-        toast.show();
+		Toast toast = new Toast(getApplicationContext());
+		toast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+		toast.setDuration(Toast.LENGTH_LONG);
+		toast.setView(layout);
+		toast.setGravity(Gravity.TOP | Gravity.LEFT, 0, 0);
+		toast.show();
 	}
 
 	public static void background(final Runnable r) {
@@ -371,6 +379,16 @@ public class KharamlyActivity extends MapActivity {
 							.getEntity().getContent());
 					Log.e("test", responseBody);
 					JSONObject json = new JSONObject(responseBody);
+					/* START OF BADGES */
+					JSONArray badgeArray = json.getJSONArray("badges");
+					for (int i = 0; i < badgeArray.length(); i++) {
+						JSONObject badge = badgeArray.getJSONObject(i);
+						int id = badge.getInt("id");
+						String name = badge.getString("name");
+						String value = badge.getString("value");
+						badgeNotification(BADGES[id-1], name, value);
+					}
+					/* END OF BADGES */
 					JSONArray jArray = json.getJSONArray("routes");
 					List<Overlay> overlays = mapView.getOverlays();
 					Log.e("R number", jArray.length()+"");
@@ -378,7 +396,7 @@ public class KharamlyActivity extends MapActivity {
 						JSONObject route = jArray.getJSONObject(i);
 						JSONArray steps = route.getJSONArray("steps");
 						Log.e("S number", ""+steps.length());
-						for(int j =0 ; j <steps.length();j++){
+						for(int j = 0 ; j <steps.length();j++){
 							JSONObject step = steps.getJSONObject(j);
 							String polyline = step.getString("polyline");
 							
