@@ -26,7 +26,7 @@ public class RegionStatus {
 	public static ArrayList<Step> getRegionStatus(double longitude,
 			double latitude,double radius, Context c, TextView txtMsg) {
 
-		String urlString = "http://10.0.2.2:8000/inRadius/" + longitude + "/"
+		String urlString = Cons.SERVER_URL+"inRadius/" + longitude + "/"
 				+ latitude + "/"+radius+"/";
 
 		Log.d("URL", urlString);

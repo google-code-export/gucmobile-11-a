@@ -9,5 +9,5 @@
     <item android:id="@+id/close" android:title="@string/close" 
     android:icon="@drawable/close" />
 	 <item android:id="@+id/RegionSpeed" android:title="@string/RegionSpeed" 
-    android:icon="@drawable/RegionSpeed" />
+    android:icon="@drawable/regionspeed" />
 </menu>
