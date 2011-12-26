@@ -125,43 +125,34 @@ def alternatives(request, location, destination):
     return HttpResponse(getalternatives(location, destination))
 
 
-
-
-
-####################################################################
-# BEGIN kama's sandbox
-# DO NOT COME ANYWHERE NEAR.
-####################################################################
-
 def rate_comment(request, who, comment_id, rate):
     """
     Rates this comment
+    Comment is either 1, 2, 3:
+    case 1: up vote
+    case 2: down vote
+    case 3: flag comment
+    
+    @author kamasheto
     """
     c = Comment.objects.get(pk = comment_id)
     voter = Device.objects.get(installation_id = who)
-    print "voting, let's see", rate
     rate = int(rate)
     if rate == 1: # up
-        print "comment upped", c, voter
         c.do_up(voter)
     elif rate == 2: # down
-        print "comment downed", c, voter
         c.do_down(voter)
     elif rate == 3: #flag
-        print "comment flagged", c, voter
         c.do_flag(voter)
     
     return HttpResponse(json.dumps({"success" : 1}))
 
 def get_comments(request, lat, lng, refresh_query):
     """
-    Gets comments near this location
+    Gets comments near this location. Comments near this location within 5mi are returned, alongside the future query for twitter in case udpates are needed
+    
+    @author kamasheto
     """
     refresh_query = refresh_query if refresh_query else None
     comments, query = get_comments_near(lat, lng, refresh_query)
     return HttpResponse(json.dumps({"comments" : comments, "query": query}))
-
-####################################################################
-# END kama's sandbox
-# NOW you can play around.
-####################################################################

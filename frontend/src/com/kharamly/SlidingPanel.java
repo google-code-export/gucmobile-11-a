@@ -14,8 +14,8 @@ This version uses a ScrollView, to optimize the layout tree.
   
   From _The Busy Coder's Guide to Advanced Android Development_
     http://commonsware.com/AdvAndroid
-*/
-   
+ */
+
 package com.kharamly;
 
 import android.app.Activity;
@@ -30,6 +30,7 @@ import android.view.animation.TranslateAnimation;
 import android.widget.ScrollView;
 
 public class SlidingPanel extends ScrollView {
+
   private int speed=300;
   private boolean isOpen=false;
   
@@ -93,4 +94,5 @@ public class SlidingPanel extends ScrollView {
       // not needed
     }
   };
+
 }

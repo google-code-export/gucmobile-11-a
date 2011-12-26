@@ -19,4 +19,6 @@
 	<string name="no_net">No Network Available, do you want to enable the WiFi or your Mobile Network?</string>
 	<string name="type">Type here...</string>
 	<string name="exit">Are you sure you want to exit?</string>
+	<string name="show_badges">Badges</string>
+	<string name="note">Note:</string>
 </resources>

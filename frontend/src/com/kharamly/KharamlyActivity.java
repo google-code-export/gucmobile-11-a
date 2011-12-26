@@ -6,19 +6,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import twitter4j.GeoLocation;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -29,7 +26,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
@@ -53,22 +49,33 @@ import com.google.android.maps.Projection;
 
 public class KharamlyActivity extends MapActivity {
 	SlidingPanel panel;
+
+	/**
+	 * The sliding panel containing all badges acquired by the user
+	 */
+	SlidingPanel badgePanel;
 	MapView mapView;
 	LinearLayout content;
 	MyCustomizedLocationOverlay myLocationOverlay;
 
-	TwitterConnection connect=null;
-	
+	TwitterConnection connect = null;
+
 	private final static int TIMEOUT_MILLISEC = 0;
 	private final static String TAG_NAME = "Kharamly";
 	private String destination = "29.985067,31.43873";
 	private LocationManager manager;
-	
+
 	private Location lastLocation = new Location(""); // defaults to lat,lng=0,0
 	private String refresh_query = "";
 	private boolean flag = true;
 
 	public static final String BADGE_PREFS_NAME = "Badges";
+
+	/**
+	 * A list of badge icon resources with the same order of badges on the
+	 * server. Mainly done in order to have direct access on a badge icon given
+	 * a badge id.
+	 */
 	final int[] BADGES = new int[] { R.drawable.checkin_1,
 			R.drawable.checkin_50, R.drawable.checkin_100,
 			R.drawable.checkin_500, R.drawable.checkin_1000,
@@ -87,8 +94,9 @@ public class KharamlyActivity extends MapActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-
 		panel = (SlidingPanel) findViewById(R.id.panel);
+		badgePanel = (SlidingPanel) findViewById(R.id.badgepanel);
+
 		content = (LinearLayout) findViewById(R.id.content);
 		manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -110,20 +118,39 @@ public class KharamlyActivity extends MapActivity {
 			}
 		});
 
+		loadBadgesFromPreferences();
 		mapView.postInvalidate();
+	}
+
+	/*
+	 * Load the badge data (images and text) into the badge sliding panel
+	 * "badgePanel"
+	 * 
+	 * @author Shanab
+	 */
+	private void loadBadgesFromPreferences() {
+
+		SharedPreferences prefs = getSharedPreferences(BADGE_PREFS_NAME, 0);
+		Map<String, Integer> badgeList = (Map<String, Integer>) prefs.getAll();
+
+		for (Map.Entry<String, Integer> entry : badgeList.entrySet()) {
+			addBadgeToBadgesPanel(BADGES[entry.getValue() - 1], entry.getKey());
+		}
 	}
 
 	/**
 	 * @author Ahmed Abouraya
 	 * 
-	 * this method is used after the signs in twitter, the browser redirects to this method
+	 *         this method is used after the signs in twitter, the browser
+	 *         redirects to this method
 	 * 
 	 */
 	public void onNewIntent(Intent intent) {
-		if(connect!=null&&!connect.flag)
-		connect.retrieveData(intent);
-		connect.flag=false;
-	}	
+		if (connect != null && !connect.flag)
+			connect.retrieveData(intent);
+		connect.flag = false;
+	}
+
 	/**
 	 * @author Moataz Mekki
 	 * 
@@ -177,8 +204,8 @@ public class KharamlyActivity extends MapActivity {
 				newDestination();
 			} else {
 				ProgressDialog dialog = ProgressDialog.show(
-						KharamlyActivity.this, "",
-						getResources().getString(R.string.loading), true);
+						KharamlyActivity.this, "", getResources().getString(
+								R.string.loading), true);
 				JSONArray results = (JSONArray) json.get("results");
 				JSONObject result = results.getJSONObject(0);
 				JSONObject geo = (JSONObject) result.get("geometry");
@@ -227,8 +254,8 @@ public class KharamlyActivity extends MapActivity {
 	private void buildAlertMessageNoGps() {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(getResources().getString(R.string.nogps))
-				.setCancelable(false)
-				.setPositiveButton(getResources().getString(R.string.yes),
+				.setCancelable(false).setPositiveButton(
+						getResources().getString(R.string.yes),
 						new DialogInterface.OnClickListener() {
 							public void onClick(
 									@SuppressWarnings("unused") final DialogInterface dialog,
@@ -238,8 +265,8 @@ public class KharamlyActivity extends MapActivity {
 								startActivityForResult(intent, 5);
 							}
 
-						})
-				.setNegativeButton(getResources().getString(R.string.no),
+						}).setNegativeButton(
+						getResources().getString(R.string.no),
 						new DialogInterface.OnClickListener() {
 							public void onClick(final DialogInterface dialog,
 									@SuppressWarnings("unused") final int id) {
@@ -247,6 +274,7 @@ public class KharamlyActivity extends MapActivity {
 								finish();
 							}
 						});
+		builder.setTitle(getResources().getString(R.string.note));
 		builder.setIcon(R.drawable.nogps);
 		final AlertDialog alert = builder.create();
 		alert.show();
@@ -261,8 +289,8 @@ public class KharamlyActivity extends MapActivity {
 	private void buildAlertMessageNoInternet() {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(getResources().getString(R.string.no_net))
-				.setCancelable(false)
-				.setPositiveButton(getResources().getString(R.string.yes),
+				.setCancelable(false).setPositiveButton(
+						getResources().getString(R.string.yes),
 						new DialogInterface.OnClickListener() {
 							public void onClick(
 									@SuppressWarnings("unused") final DialogInterface dialog,
@@ -272,8 +300,8 @@ public class KharamlyActivity extends MapActivity {
 								startActivityForResult(intent, 4);
 							}
 
-						})
-				.setNegativeButton(getResources().getString(R.string.no),
+						}).setNegativeButton(
+						getResources().getString(R.string.no),
 						new DialogInterface.OnClickListener() {
 							public void onClick(final DialogInterface dialog,
 									@SuppressWarnings("unused") final int id) {
@@ -281,6 +309,7 @@ public class KharamlyActivity extends MapActivity {
 								// finish();
 							}
 						});
+		builder.setTitle(getResources().getString(R.string.note));
 		builder.setIcon(R.drawable.nowireless);
 		final AlertDialog alert2 = builder.create();
 		alert2.show();
@@ -333,12 +362,16 @@ public class KharamlyActivity extends MapActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+
 			/*
 			Handle the comments button being clicked.
 			If the sliding door is closed, open it and load the data from the server
 			otherwise simply slide in
 			*/
 			case R.id.comments:
+				if (badgePanel.isOpen())
+					badgePanel.close();
+				
 				if (panel.isOpen()) {
 					panel.close();
 					// clear the content and add the loading item
@@ -369,6 +402,14 @@ public class KharamlyActivity extends MapActivity {
 				PathOverlay.drawPath(RegionStatus.getRegionStatus(this.lastLocation.getLongitude()
 						, this.lastLocation.getLatitude(), 1,null, null),mapView);
 				break;
+		
+			case R.id.badges:
+				if (panel.isOpen())
+					panel.close();
+
+				badgePanel.toggle();
+				break;
+
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -382,14 +423,14 @@ public class KharamlyActivity extends MapActivity {
 	private void closeKharamly() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(getResources().getString(R.string.exit))
-				.setCancelable(false)
-				.setPositiveButton(getResources().getString(R.string.yes),
+				.setCancelable(false).setPositiveButton(
+						getResources().getString(R.string.yes),
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
 								finish();
 							}
-						})
-				.setNegativeButton(getResources().getString(R.string.no),
+						}).setNegativeButton(
+						getResources().getString(R.string.no),
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
 								dialog.cancel();
@@ -397,33 +438,39 @@ public class KharamlyActivity extends MapActivity {
 						});
 		builder.show();
 	}
-	
+
 	/**
-	Loads comments from around the specified center. The center is usually the last pinged location but this is 
-	left free so we can use it in the future in case we want to show comments around a certain node.
-	*/
+	 * Loads comments from around the specified center. The center is usually
+	 * the last pinged location but this is left free so we can use it in the
+	 * future in case we want to show comments around a certain node.
+	 */
 	public void loadComments(Location center) {
 		if (center == null) {
 			center = lastLocation;
 		}
 		// Send the request in the background.. if you may :)
-		new RequestTask(Cons.SERVER_URL + "/get_comments/" + center.getLatitude() + "/" + center.getLongitude() + "/" + refresh_query) {
+		new RequestTask(Cons.SERVER_URL + "/get_comments/"
+				+ center.getLatitude() + "/" + center.getLongitude() + "/"
+				+ refresh_query) {
 			protected void onPostExecute(String result) {
-				// once we have a response, remove all the contents from our current layout 
+				// once we have a response, remove all the contents from our
+				// current layout
 				// and add the comments dynamically ;)
 				LinearLayout content = KharamlyActivity.this.content;
 				content.removeAllViews();
-	            try {
-	            	JSONObject json = new JSONObject(result);
-	            	JSONArray jArray = json.getJSONArray("comments");
-	                for (int i = 0; i < jArray.length(); i++) {
-	                    JSONObject e = jArray.getJSONObject(i);
+				try {
+					JSONObject json = new JSONObject(result);
+					JSONArray jArray = json.getJSONArray("comments");
+					for (int i = 0; i < jArray.length(); i++) {
+						JSONObject e = jArray.getJSONObject(i);
 						// we have a commentId, halaluijah
-						CommentItem c = new CommentItem(KharamlyActivity.this, e.getInt("id"));
-						c.init(e.getString("text"), e.getString("time") + " via " + e.getString("source"), true, false);
+						CommentItem c = new CommentItem(KharamlyActivity.this,
+								e.getInt("id"));
+						c.init(e.getString("text"), e.getString("time")
+								+ " via " + e.getString("source"), true, false);
 						content.addView(c);
-            		}
-					
+					}
+
 					refresh_query = json.getString("query");
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -431,6 +478,7 @@ public class KharamlyActivity extends MapActivity {
 			}
 		};
 	}
+
 	@Override
 	protected boolean isRouteDisplayed() {
 		return true;
@@ -451,7 +499,7 @@ public class KharamlyActivity extends MapActivity {
 	 *            name of the badge
 	 * @author Shanab
 	 */
-	public void badgeNotification(int drawableId, String name, String value) {
+	public void badgeNotification(int drawableId, String name) {
 		LayoutInflater inflater = getLayoutInflater();
 		View layout = inflater.inflate(R.layout.custom_toast,
 				(ViewGroup) findViewById(R.id.toast_layout_root));
@@ -460,9 +508,6 @@ public class KharamlyActivity extends MapActivity {
 		image.setImageResource(drawableId);
 		TextView text = (TextView) layout.findViewById(R.id.text);
 
-		if (value.trim().length() > 0) {
-			name += ":" + value;
-		}
 		text.setText("Congratulations! You just won the " + name + " badge");
 
 		Toast toast = new Toast(getApplicationContext());
@@ -471,6 +516,20 @@ public class KharamlyActivity extends MapActivity {
 		toast.setView(layout);
 		toast.setGravity(Gravity.TOP | Gravity.LEFT, 0, 0);
 		toast.show();
+	}
+
+	/**
+	 * Initializes a new BadgeItem object, and adds it to the main layout in the
+	 * sliding panel for badges "badgesPanel"
+	 * 
+	 * @param drawableId
+	 * @param name
+	 */
+	private void addBadgeToBadgesPanel(int drawableId, String name) {
+		LinearLayout l = (LinearLayout) findViewById(R.id.badgecontent);
+		BadgeItem badgeItem = new BadgeItem(getApplicationContext());
+		badgeItem.setAttributes(name, drawableId);
+		l.addView(badgeItem);
 	}
 
 	public static void background(final Runnable r) {
@@ -549,10 +608,11 @@ public class KharamlyActivity extends MapActivity {
 		 */
 		@Override
 		public void onLocationChanged(Location location) {
-			// ^k Set the last location update so the comments are retrieved from around this center
-    		KharamlyActivity.this.lastLocation = location;
+			// ^k Set the last location update so the comments are retrieved
+			// from around this center
+			KharamlyActivity.this.lastLocation = location;
 			refresh_query = "";
-			
+
 			// Setting the Zoom level
 			mapController.setZoom(15);
 			// if we dont have the routes yet
@@ -582,8 +642,16 @@ public class KharamlyActivity extends MapActivity {
 							int id = badge.getInt("id");
 							String name = badge.getString("name");
 							String value = badge.getString("value");
-							badgeNotification(BADGES[id - 1], name, value);
-							editor.putString(name, value);
+
+							editor.putInt(name, id);
+
+							if (value.trim().length() > 0) {
+								name += ":" + value;
+							}
+
+							badgeNotification(BADGES[id - 1], name);
+							addBadgeToBadgesPanel(BADGES[id - 1], name);
+
 						}
 						// Committing changes to BADGE_PREFS
 						editor.commit();
@@ -657,8 +725,8 @@ public class KharamlyActivity extends MapActivity {
 								MapRouteOverlay mro = new MapRouteOverlay(
 										geopoints, color, 255, i);
 								StepInfo info = new StepInfo(geopoints, color,
-										id, step.getDouble("s_lng"),
-										step.getDouble("s_lat"));
+										id, step.getDouble("s_lng"), step
+												.getDouble("s_lat"));
 								route1Overlays.add(info);
 								overlays.add(mro);
 								// if the step includes the marker Draw the
@@ -677,8 +745,8 @@ public class KharamlyActivity extends MapActivity {
 								MapRouteOverlay mro = new MapRouteOverlay(
 										geopoints, color, 50, i);
 								StepInfo info = new StepInfo(geopoints, color,
-										id, step.getDouble("s_lng"),
-										step.getDouble("s_lat"));
+										id, step.getDouble("s_lng"), step
+												.getDouble("s_lat"));
 								route2Overlays.add(info);
 								overlays.add(mro);
 								if (marker == 1) {
@@ -695,8 +763,8 @@ public class KharamlyActivity extends MapActivity {
 								MapRouteOverlay mro = new MapRouteOverlay(
 										geopoints, color, 50, i);
 								StepInfo info = new StepInfo(geopoints, color,
-										id, step.getDouble("s_lng"),
-										step.getDouble("s_lat"));
+										id, step.getDouble("s_lng"), step
+												.getDouble("s_lat"));
 								route3Overlays.add(info);
 
 								overlays.add(mro);
@@ -932,15 +1000,16 @@ public class KharamlyActivity extends MapActivity {
 	 */
 	public class MapRouteOverlay extends Overlay {
 		private GeoPoint gp1; // The point of the marker to be drawn in case of
-								// markers
+		// markers
 		private int color; // The color of the step to be drawn
 		private boolean marker; // a boolean indicating if we're drawing markers
-								// or steps
+		// or steps
 		private Bitmap bmp; // The bitmap of the marker image
 		private int alpha = 180; // Transparency level
 		private int routeNo;
 		private ArrayList<GeoPoint> pointList; // The pointList of the step to
-												// be drawn
+
+		// be drawn
 
 		/**
 		 * This constructor is for drawing the markers
