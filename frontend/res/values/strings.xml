@@ -8,6 +8,7 @@
 	<string name="title">New Destination</string>
 	<string name="enter_comment">Enter your desired destination here:</string>
 	<string name="close">Exit</string>
+	<string name="RegionSpeed">Region Speed</string>
 	<string name="toggle_comments">Toggle Comments</string>
 	<string name="empty_dest">No destination entered, Please write something !!!</string>
 	<string name="dest_not_found">Sorry, Destination not found !</string>

@@ -58,9 +58,7 @@ public class RegionStatus {
 
 		} catch (Exception e) {
 
-			Toast.makeText(c, "exception" + e.toString(), Toast.LENGTH_SHORT)
-					.show();
-			//txtMsg.append(e.toString() + "\n");
+		
 		}
 		return steps;
 	}

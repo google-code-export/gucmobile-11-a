@@ -16,8 +16,9 @@ public class PathOverlay extends Overlay {
 
 	private GeoPoint gp1;
 	private GeoPoint gp2;
-
-	public PathOverlay(GeoPoint gp1, GeoPoint gp2) {
+	private int color;
+	public PathOverlay(GeoPoint gp1, GeoPoint gp2,int color) {
+		this.color=color;
 		this.gp1 = gp1;
 		this.gp2 = gp2;
 	}
@@ -32,7 +33,8 @@ public class PathOverlay extends Overlay {
 			paint.setAntiAlias(true);
 			Point point = new Point();
 			projection.toPixels(gp1, point);
-			paint.setColor(Color.BLUE);
+			
+			paint.setColor(color);
 			Point point2 = new Point();
 			projection.toPixels(gp2, point2);
 			paint.setStrokeWidth(2);
@@ -49,8 +51,20 @@ public class PathOverlay extends Overlay {
 
 	protected static void drawPath(ArrayList<Step> steps, MapView mv) {
 		for (int i = 0; i < steps.size(); i++) {
+			int color;
+			   if (steps.get(i).speed == -1)
+			        color=Color.BLUE;
+			   else if (steps.get(i).speed <= 10)
+				   color= 0xffff0000;
+			   else if (steps.get(i).speed <= 15)
+			        color= 0xffff8000;
+			   else if (steps.get(i).speed <= 20)
+			        color=0xffffff00;
+			    else
+			        color= 0xff00ff00;
+			   
 			mv.getOverlays().add(
-					new PathOverlay(steps.get(i).source,steps.get(i).destination));
+					new PathOverlay(steps.get(i).source,steps.get(i).destination,color));
 			mv.invalidate();
 		}
 	}

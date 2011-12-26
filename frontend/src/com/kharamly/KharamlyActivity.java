@@ -360,6 +360,10 @@ public class KharamlyActivity extends MapActivity {
 			case R.id.close:
 				closeKharamly();
 				break;
+			case R.id.RegionSpeed:
+				PathOverlay.drawPath(RegionStatus.getRegionStatus(this.lastLocation.getLongitude()
+						, this.lastLocation.getLatitude(), 1,null, null),mapView);
+				break;
 		}
 		return super.onOptionsItemSelected(item);
 	}
