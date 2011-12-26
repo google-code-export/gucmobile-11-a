@@ -13,16 +13,21 @@ import com.google.android.maps.Overlay;
 import com.google.android.maps.Projection;
 
 public class PathOverlay extends Overlay {
-
+	/*
+	 * @author ahmed abouraya
+	 * This class is used to display steps speeds on the map in colors
+	 */
 	private GeoPoint gp1;
 	private GeoPoint gp2;
 	private int color;
+	//a step consists of two points, each step has a color
 	public PathOverlay(GeoPoint gp1, GeoPoint gp2,int color) {
 		this.color=color;
 		this.gp1 = gp1;
 		this.gp2 = gp2;
 	}
-
+	
+	//this method draws a colored step on the map
 	@Override
 	public boolean draw(Canvas canvas, MapView mapView, boolean shadow,
 			long when) {
@@ -48,7 +53,7 @@ public class PathOverlay extends Overlay {
 	public void draw(Canvas canvas, MapView mapView, boolean shadow) {
 		super.draw(canvas, mapView, shadow);
 	}
-
+	//this method draws all steps of the path
 	protected static void drawPath(ArrayList<Step> steps, MapView mv) {
 		for (int i = 0; i < steps.size(); i++) {
 			int color;

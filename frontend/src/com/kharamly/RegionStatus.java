@@ -15,7 +15,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
-
+/*
+ * @author ahmed abouraya
+ * This class is used to get the speed of steps available in a certain region
+ */
 public class RegionStatus {
 	static String respStr;
 	//this method takes longitude and latitude of a certain place and the radius of the targeted region

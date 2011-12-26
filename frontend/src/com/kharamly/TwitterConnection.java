@@ -19,6 +19,11 @@ import org.json.JSONObject;
 
 import android.content.SharedPreferences;
 public class TwitterConnection {
+	/**
+	 * @author Ahmed Abouraya
+	 * 
+	 *         this class is used to connect to twitter
+	 */
 	public static final String PREFS_NAME = "MyPrefsFile";	
 	Twitter twitter;
 	RequestToken requestToken;
@@ -79,42 +84,9 @@ public class TwitterConnection {
 			}
 		} catch (TwitterException ex) {
 			Log.e("in Main.OAuthLogin", ex.getMessage());
-			 txtMsg.append(ex.toString());
+			// txtMsg.append(ex.toString());
 		}
 	}
-	void re(){
-		String urlString = "http://10.0.2.2:8000/twitter/atabouraya";
-	Log.d("URL", urlString);
-	try {
-
-		DefaultHttpClient CLIENT = new DefaultHttpClient();
-
-		HttpResponse resp = CLIENT.execute(new HttpGet(urlString));
-		String respStr  = EntityUtils.toString(resp.getEntity());
-		txtMsg.append(respStr+"\n\n");
-		
-		JSONObject jsonObject = new JSONObject(respStr);
-		String token =  jsonObject.getString("token");
-		String secret= jsonObject.getString("secret");
-		txtMsg.append(token);
-		txtMsg.append(secret);
-		AccessToken a = new AccessToken(token
-				, secret);
-		twitter.setOAuthAccessToken(a); 
-
-		for (Status st : twitter.getMentions()) {
-			txtMsg.append("InDevice\n");
-
-			txtMsg.append(st.getText() + "\n");
-		}
-
-
-	}
-	catch(Exception e){
-		txtMsg.append(e.getMessage());
-	}
-	}
-	
 	void retrieveData(Intent intent) {
 		Uri uri = intent.getData();
 		try {
@@ -129,8 +101,8 @@ public class TwitterConnection {
 			editor.putString("token", token);
 			editor.putString("secret", secret);
 			editor.commit();
-			txtMsg.append(settings.getString("token", "notfoundtoken"));
-			txtMsg.append(settings.getString("secret", "notfoundsecret"));
+			//txtMsg.append(settings.getString("token", "notfoundtoken"));
+			//txtMsg.append(settings.getString("secret", "notfoundsecret"));
 
 			for (Status st : twitter.getMentions()) {
 

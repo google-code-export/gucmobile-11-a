@@ -113,7 +113,12 @@ public class KharamlyActivity extends MapActivity {
 		mapView.postInvalidate();
 	}
 
-	
+	/**
+	 * @author Ahmed Abouraya
+	 * 
+	 * this method is used after the signs in twitter, the browser redirects to this method
+	 * 
+	 */
 	public void onNewIntent(Intent intent) {
 		if(connect!=null&&!connect.flag)
 		connect.retrieveData(intent);
