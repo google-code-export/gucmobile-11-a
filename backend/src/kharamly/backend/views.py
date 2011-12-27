@@ -24,17 +24,17 @@ def api(request, orig, dest, speed, who):
     # my_step = None
     my_step = get_step_from_node(from_node)
     if my_step:
-        pings = Ping_Log.objects.filter(who=who).reverse()
+        # pings = Ping_Log.objects.filter(who=who).reverse()
         # persistence = pings[0].persistence + 1 if len(pings) != 0 and datetime.now() - pings[0].time >= timedelta(hours=1) else pings[0].persistence
         # if len(pings) != 0:
         #     if datetime.now() - pings[0].time >= timedelta(hours=1):
         #         persistence = pings[0].persistence + 1
         #     else:
         #         persistence = pings[0]
-        else:
-            persistence = 1
-        Ping_Log(step=my_step, speed=speed, who=who, time=datetime.now(), persistence=persistence).save()
-        who.increment_checkins()
+        # else:
+        #     persistence = 1
+        Ping_Log(step=my_step, speed=speed, who=who, time=datetime.now(), persistence=1).save()
+        # who.increment_checkins()
         
     result = getalternatives(None, my_step, to_node, from_node)
     response  = {"routes": []}
