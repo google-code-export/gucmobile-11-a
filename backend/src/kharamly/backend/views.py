@@ -24,16 +24,7 @@ def api(request, orig, dest, speed, who):
     # my_step = None
     my_step = get_step_from_node(from_node)
     if my_step:
-        pings = Ping_Log.objects.filter(who=who).reverse()
-        
-        try:
-            if datetime.now() - pings[0].time >= timedelta(hours=1):
-                persistence = pings[0].persistence + 1
-            else:
-                persistence = pings[0]
-        except:
-            persistence = 1
-        Ping_Log(step=my_step, speed=speed, who=who, time=datetime.now(), persistence=1).save()
+        Ping_Log(step=my_step, speed=speed, who=who, time=datetime.now(), persistence=get_persistence(who)).save()
         # who.increment_checkins()
         
     result = getalternatives(None, my_step, to_node, from_node)
